@@ -3,7 +3,7 @@
  * Centraliza todas as variáveis de design da aplicação
  */
 
-import { COLORS, TYPOGRAPHY, SPACING } from '../constants';
+import { COLORS, SPACING, TYPOGRAPHY } from "../constants";
 
 export const THEME = {
   colors: COLORS,
@@ -27,23 +27,23 @@ export const THEME = {
     },
     sm: {
       elevation: 2,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.18,
       shadowRadius: 1.0,
     },
     md: {
       elevation: 4,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.23,
       shadowRadius: 2.62,
     },
     lg: {
       elevation: 8,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.30,
+      shadowOpacity: 0.3,
       shadowRadius: 4.65,
     },
   },
