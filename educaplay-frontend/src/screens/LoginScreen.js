@@ -1,121 +1,234 @@
 /**
  * Tela: Login
- * Primeira tela que o usuário vê - autenticação anônima
+ * Primeira tela que o usuário vê - autenticação com email e senha
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
-import { THEME } from '../design_system/theme';
-import { Button, Input, Card } from '../components';
-import { CHAT_TOPICS } from '../constants';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 
 const LoginScreen = ({ navigation }) => {
-  const [nickname, setNickname] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = () => {
-    if (nickname.trim().length === 0) {
-      alert('Por favor, digite um apelido');
+    if (!email || !password) {
+      alert('Por favor, preencha todos os campos');
       return;
     }
-    // Navegar para Home com o nickname
-    navigation.navigate('Home', { nickname });
+    // Navegar para Home após login bem-sucedido
+    navigation.navigate('Home', { email });
   };
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: THEME.colors.background,
+      backgroundColor: '#F5F5F5',
     },
-    scrollView: {
+    scrollContent: {
       flexGrow: 1,
       justifyContent: 'center',
-      padding: THEME.spacing.lg,
+      paddingHorizontal: 24,
+      paddingVertical: 40,
     },
     header: {
-      textAlign: 'center',
-      fontSize: THEME.typography.displayMedium.fontSize,
-      fontWeight: THEME.typography.displayMedium.fontWeight,
-      color: THEME.colors.primary,
-      marginBottom: THEME.spacing.xl,
+      alignItems: 'center',
+      marginBottom: 50,
     },
-    description: {
-      textAlign: 'center',
-      fontSize: THEME.typography.bodyMedium.fontSize,
-      color: THEME.colors.textSecondary,
-      marginBottom: THEME.spacing.lg,
-      lineHeight: THEME.typography.bodyMedium.lineHeight,
+    logo: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: '#333',
+      marginBottom: 8,
     },
-    topicsTitle: {
-      fontSize: THEME.typography.headingMedium.fontSize,
-      fontWeight: THEME.typography.headingMedium.fontWeight,
-      color: THEME.colors.text,
-      marginTop: THEME.spacing.xl,
-      marginBottom: THEME.spacing.md,
+    headerSubtitle: {
+      fontSize: 16,
+      color: '#999',
+      fontWeight: '500',
     },
-    topicsList: {
-      marginVertical: THEME.spacing.md,
+    formContainer: {
+      width: '100%',
     },
-    topicItem: {
-      marginVertical: THEME.spacing.sm,
+    inputGroup: {
+      marginBottom: 20,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#333',
+      marginBottom: 8,
+    },
+    input: {
+      backgroundColor: '#FFF',
+      borderWidth: 1,
+      borderColor: '#DDD',
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: '#333',
+    },
+    passwordContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#FFF',
+      borderWidth: 1,
+      borderColor: '#DDD',
+      borderRadius: 8,
+      paddingRight: 12,
+    },
+    passwordInput: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: '#333',
+    },
+    eyeButton: {
+      padding: 8,
+    },
+    eyeText: {
+      fontSize: 18,
+    },
+    forgotPassword: {
+      fontSize: 14,
+      color: '#7AC943',
+      fontWeight: '500',
+      textAlign: 'right',
+      marginBottom: 24,
+    },
+    loginButton: {
+      backgroundColor: '#7AC943',
+      paddingVertical: 14,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    loginButtonText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: '#FFF',
+    },
+    dividerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    divider: {
+      flex: 1,
+      height: 1,
+      backgroundColor: '#DDD',
+    },
+    dividerText: {
+      marginHorizontal: 12,
+      color: '#999',
+      fontSize: 14,
+    },
+    signupContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    signupText: {
+      fontSize: 14,
+      color: '#666',
+    },
+    signupLink: {
+      fontSize: 14,
+      color: '#7AC943',
+      fontWeight: '600',
     },
   });
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
-        <Text style={styles.header}>🎮 EducaPlay</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.logo}>PlanejaEdu</Text>
+          <Text style={styles.headerSubtitle}>Bem-vindo de volta</Text>
+        </View>
 
-        <Text style={styles.description}>
-          Conecte-se anonimamente e converse sobre seus tópicos favoritos
-        </Text>
-
-        <Card style={{ marginVertical: THEME.spacing.lg }}>
-          <View>
-            <Text
-              style={{
-                fontSize: THEME.typography.headingSmall.fontSize,
-                fontWeight: THEME.typography.headingSmall.fontWeight,
-                color: THEME.colors.text,
-                marginBottom: THEME.spacing.md,
-              }}
-            >
-              Escolha um apelido
-            </Text>
-
-            <Input
-              placeholder="Digite um apelido"
-              value={nickname}
-              onChangeText={setNickname}
-            />
-
-            <Button
-              title="Entrar"
-              onPress={handleLogin}
-              variant="primary"
-              size="lg"
-              style={{ marginTop: THEME.spacing.lg }}
+        {/* Form Container */}
+        <View style={styles.formContainer}>
+          {/* Email Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="seu@email.com"
+              placeholderTextColor="#CCC"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
-        </Card>
 
-        <Text style={styles.topicsTitle}>Tópicos Disponíveis:</Text>
-
-        <View style={styles.topicsList}>
-          {Object.values(CHAT_TOPICS).map((topic) => (
-            <Card key={topic.id} style={styles.topicItem}>
-              <Text
-                style={{
-                  fontSize: THEME.typography.bodyLarge.fontSize,
-                  color: THEME.colors.text,
-                }}
+          {/* Password Input */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Senha</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Sua senha"
+                placeholderTextColor="#CCC"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
               >
-                {topic.emoji} {topic.label}
-              </Text>
-            </Card>
-          ))}
+                <Text style={styles.eyeText}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Forgot Password Link */}
+          <TouchableOpacity>
+            <Text style={styles.forgotPassword}>Esqueceu a senha?</Text>
+          </TouchableOpacity>
+
+          {/* Login Button */}
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleLogin}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.loginButtonText}>Entrar</Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>ou</Text>
+            <View style={styles.divider} />
+          </View>
+
+          {/* Sign Up Link */}
+          <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Não tem conta? </Text>
+            <TouchableOpacity>
+              <Text style={styles.signupLink}>Criar uma</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
