@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { homeStyles as s } from "../styles/HomeStyles";
 
-// ─── Dados do menu principal ──────────────────────────────
 const MENU_ITEMS = [
   {
     id: "cronogramas",
@@ -29,9 +28,16 @@ const MENU_ITEMS = [
     subtitle: "Cadastre e visualize\nos professores",
     route: "/professores",
   },
+  {
+    id: "salas",
+    icon: "🚪",
+    iconBg: "#fff3e0",
+    title: "Salas",
+    subtitle: "Cadastre e gerencie\nas salas da escola",
+    route: "/salas",
+  },
 ];
 
-// ─── Tabs ─────────────────────────────────────────────────
 const TABS = [
   { id: "home", icon: "🏠", label: "Home" },
   { id: "cronograma", icon: "📅", label: "Cronograma" },
@@ -42,31 +48,25 @@ export default function HomeScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
 
-  const userName = "Anthony"; // TODO: buscar do contexto/auth
+  const userName = "Anthony";
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "cronograma") {
-      router.push("/cronogramas");
-    } else if (tabId === "configuracoes") {
-      router.push("/configuracoes");
-    } else if (tabId === "home") {
-      router.push("/home");
-    }
+    if (tabId === "cronograma") router.push("/cronogramas");
+    else if (tabId === "configuracoes") router.push("/configuracoes");
+    else if (tabId === "home") router.push("/home");
   };
 
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* ── Header ── */}
+      {/* Header */}
       <View style={s.header}>
-        {/* Ícone menu hamburguer */}
         <TouchableOpacity>
           <Text style={s.menuIcon}>☰</Text>
         </TouchableOpacity>
 
-        {/* Logo central */}
         <View style={s.headerLogo}>
           <Image
             source={require("@/assets/images/logo_icon.png")}
@@ -78,7 +78,6 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Sino de notificação */}
         <TouchableOpacity style={s.notifWrapper}>
           <Text style={s.notifIcon}>🔔</Text>
           <View style={s.notifBadge}>
@@ -87,12 +86,11 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ── Conteúdo com scroll ── */}
       <ScrollView
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Banner de boas-vindas ── */}
+        {/* Banner */}
         <View style={s.banner}>
           <View style={s.bannerTextArea}>
             <Text style={s.bannerGreeting}>
@@ -113,10 +111,9 @@ export default function HomeScreen() {
 
         <View style={s.divider} />
 
-        {/* ── Menu Principal ── */}
+        {/* Menu Principal */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Menu Principal</Text>
-
           <View style={s.menuGrid}>
             {MENU_ITEMS.map((item) => (
               <TouchableOpacity
@@ -125,9 +122,7 @@ export default function HomeScreen() {
                 onPress={() => router.push(item.route as any)}
                 activeOpacity={0.75}
               >
-                <View
-                  style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}
-                >
+                <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
                   <Text style={s.menuCardIconText}>{item.icon}</Text>
                 </View>
                 <Text style={s.menuCardTitle}>{item.title}</Text>
@@ -137,7 +132,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Botão Criar Cronograma ── */}
+        {/* Botão Criar Cronograma */}
         <TouchableOpacity
           style={s.btnCriar}
           onPress={() => router.push("/cronogramas/novo" as any)}
@@ -147,7 +142,7 @@ export default function HomeScreen() {
           <Text style={s.btnCriarText}>Criar Cronograma</Text>
         </TouchableOpacity>
 
-        {/* ── Dica do Zé Bloquinho ── */}
+        {/* Dica */}
         <View style={s.dicaCard}>
           <Image
             source={require("@/assets/images/ze_bloco_dicas.png")}
@@ -166,7 +161,7 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* ── Tab Bar ── */}
+      {/* Tab Bar */}
       <View style={s.tabBar}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;

@@ -157,4 +157,25 @@ export const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: "700",
   },
+  intervalItem: {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: Colors.background,
+  borderRadius: 10,
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  marginBottom: 6,
+  borderWidth: 1,
+  borderColor: Colors.border,
+  borderStyle: "dashed",
+  gap: 8,
+},
+intervalIcon: {
+  fontSize: 14,
+},
+intervalText: {
+  fontSize: 12,
+  color: Colors.textMuted,
+  fontStyle: "italic",
+},
 });

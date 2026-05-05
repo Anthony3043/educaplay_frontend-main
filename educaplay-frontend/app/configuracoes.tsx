@@ -1,13 +1,14 @@
 import { styles as s } from "@/styles/configuracoesstyles";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import type { Href } from "expo-router";
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const TABS = [
@@ -16,12 +17,19 @@ const TABS = [
   { id: "configuracoes", icon: "⚙️", label: "Configurações" },
 ];
 
-const CONFIG_ITEMS = [
+const CONFIG_ITEMS: Array<{
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: string;
+  route?: Href;
+}> = [
   {
     id: "perfil",
     title: "Meu Perfil",
     subtitle: "Editar informações pessoais",
     icon: "👤",
+    route: "/perfil",
   },
   {
     id: "notificacoes",
@@ -35,7 +43,12 @@ const CONFIG_ITEMS = [
     subtitle: "Controlar acesso",
     icon: "🔒",
   },
-  { id: "sobre", title: "Sobre", subtitle: "Versão e informações", icon: "ℹ️" },
+  {
+    id: "sobre",
+    title: "Sobre",
+    subtitle: "Versão e informações",
+    icon: "ℹ️",
+  },
 ];
 
 export default function ConfiguracoesScreen() {
@@ -75,6 +88,7 @@ export default function ConfiguracoesScreen() {
               key={item.id}
               style={s.configItem}
               activeOpacity={0.7}
+              onPress={() => item.route && router.push(item.route)}
             >
               <View style={s.configIcon}>
                 <Text style={s.configIconText}>{item.icon}</Text>

@@ -1,4 +1,4 @@
-import { styles as s } from "../styles/perfilstyles";
+import { styles as s } from "../styles/PerfilStyles";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
