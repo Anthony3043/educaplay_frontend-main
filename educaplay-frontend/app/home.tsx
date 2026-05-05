@@ -1,61 +1,59 @@
-/**
- * app/home.tsx - Tela Home do PlanejaEdu
- *
- * Assets necessários em assets/images/:
- *   - logo_icon.png              → ícone do calendário
- *   - ze_bloco_menu_supervisao.png → Zé Bloco grande no banner
- *   - ze_bloco_dicas.png         → Zé Bloco pequeno na dica
- *
- * Navegação: usa expo-router.
- * Tab bar feita manualmente para ficar fiel ao design.
- * Se preferir usar expo-router Tabs, adapte o _layout.tsx.
- */
-
-import React, { useState } from 'react';
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
   Image,
-  TouchableOpacity,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
   StatusBar,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { homeStyles as s } from '../styles/homeStyles';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { homeStyles as s } from "../styles/homeStyles";
 
 // ─── Dados do menu principal ──────────────────────────────
 const MENU_ITEMS = [
   {
-    id: 'cronogramas',
-    icon: '📅',
-    iconBg: '#e8f5ea',
-    title: 'Cronogramas',
-    subtitle: 'Crie e gerencie\nos horários',
-    route: '/cronogramas',
+    id: "cronogramas",
+    icon: "📅",
+    iconBg: "#e8f5ea",
+    title: "Cronogramas",
+    subtitle: "Crie e gerencie\nos horários",
+    route: "/cronogramas",
   },
   {
-    id: 'professores',
-    icon: '👥',
-    iconBg: '#e8f0fe',
-    title: 'Professores',
-    subtitle: 'Cadastre e visualize\nos professores',
-    route: '/professores',
+    id: "professores",
+    icon: "👥",
+    iconBg: "#e8f0fe",
+    title: "Professores",
+    subtitle: "Cadastre e visualize\nos professores",
+    route: "/professores",
   },
 ];
 
 // ─── Tabs ─────────────────────────────────────────────────
 const TABS = [
-  { id: 'home',          icon: '🏠', label: 'Home' },
-  { id: 'cronograma',    icon: '📅', label: 'Cronograma' },
-  { id: 'configuracoes', icon: '⚙️', label: 'Configurações' },
+  { id: "home", icon: "🏠", label: "Home" },
+  { id: "cronograma", icon: "📅", label: "Cronograma" },
+  { id: "configuracoes", icon: "⚙️", label: "Configurações" },
 ];
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState("home");
 
-  const userName = 'Carlos'; // TODO: buscar do contexto/auth
+  const userName = "Anthony"; // TODO: buscar do contexto/auth
+
+  const handleTabPress = (tabId: string) => {
+    setActiveTab(tabId);
+    if (tabId === "cronograma") {
+      router.push("/cronogramas");
+    } else if (tabId === "configuracoes") {
+      router.push("/configuracoes");
+    } else if (tabId === "home") {
+      router.push("/home");
+    }
+  };
 
   return (
     <SafeAreaView style={s.container}>
@@ -71,7 +69,7 @@ export default function HomeScreen() {
         {/* Logo central */}
         <View style={s.headerLogo}>
           <Image
-            source={require('@/assets/images/logo_icon.png')}
+            source={require("@/assets/images/logo_icon.png")}
             style={s.headerLogoImage}
             resizeMode="contain"
           />
@@ -94,7 +92,6 @@ export default function HomeScreen() {
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-
         {/* ── Banner de boas-vindas ── */}
         <View style={s.banner}>
           <View style={s.bannerTextArea}>
@@ -102,13 +99,13 @@ export default function HomeScreen() {
               Olá, {userName}! <Text style={s.bannerEmoji}>👋</Text>
             </Text>
             <Text style={s.bannerSubtitle}>
-              Que bom ver você por aqui.{'\n'}
-              Vamos organizar um{'\n'}
+              Que bom ver você por aqui.{"\n"}
+              Vamos organizar um{"\n"}
               dia incrível de aulas!
             </Text>
           </View>
           <Image
-            source={require('@/assets/images/ze_bloco_menu_supervisao.png')}
+            source={require("@/assets/images/ze_bloco_menu_supervisao.png")}
             style={s.bannerMascote}
             resizeMode="contain"
           />
@@ -128,7 +125,9 @@ export default function HomeScreen() {
                 onPress={() => router.push(item.route as any)}
                 activeOpacity={0.75}
               >
-                <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
+                <View
+                  style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}
+                >
                   <Text style={s.menuCardIconText}>{item.icon}</Text>
                 </View>
                 <Text style={s.menuCardTitle}>{item.title}</Text>
@@ -141,7 +140,7 @@ export default function HomeScreen() {
         {/* ── Botão Criar Cronograma ── */}
         <TouchableOpacity
           style={s.btnCriar}
-          onPress={() => router.push('/cronogramas/novo' as any)}
+          onPress={() => router.push("/cronogramas/novo" as any)}
           activeOpacity={0.85}
         >
           <Text style={s.btnCriarIcon}>＋</Text>
@@ -151,7 +150,7 @@ export default function HomeScreen() {
         {/* ── Dica do Zé Bloquinho ── */}
         <View style={s.dicaCard}>
           <Image
-            source={require('@/assets/images/ze_bloco_dicas.png')}
+            source={require("@/assets/images/ze_bloco_dicas.png")}
             style={s.dicaMascote}
             resizeMode="contain"
           />
@@ -160,12 +159,11 @@ export default function HomeScreen() {
               Dica do Zé Bloquinho <Text style={s.dicaTitleEmoji}>💡</Text>
             </Text>
             <Text style={s.dicaText}>
-              Mantenha seus horários sempre{'\n'}
+              Mantenha seus horários sempre{"\n"}
               atualizados e evite conflitos!
             </Text>
           </View>
         </View>
-
       </ScrollView>
 
       {/* ── Tab Bar ── */}
@@ -176,10 +174,10 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={tab.id}
               style={s.tabItem}
-              onPress={() => setActiveTab(tab.id)}
+              onPress={() => handleTabPress(tab.id)}
               activeOpacity={0.7}
             >
-              <Text style={[s.tabIcon, isActive && { color: '#3a7d44' }]}>
+              <Text style={[s.tabIcon, isActive && { color: "#3a7d44" }]}>
                 {tab.icon}
               </Text>
               <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>
@@ -189,7 +187,6 @@ export default function HomeScreen() {
           );
         })}
       </View>
-
     </SafeAreaView>
   );
 }

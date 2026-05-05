@@ -1,18 +1,18 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { loginStyles as s } from "../styles/loginStyles";
+import { loginStyles as s } from "../styles/LoginStyles";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -23,17 +23,13 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     console.log("Login com:", email, senha);
-  };
-
-  const handleGoogle = () => {
-    console.log("Login com Google");
+    router.push("/home"); // ← navega para o menu
   };
 
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* ── Card branco com formulário ── */}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={s.flex}
@@ -44,14 +40,11 @@ export default function LoginScreen() {
         >
           {/* ── Área superior: Logo ── */}
           <View style={[s.topArea, { position: "relative" }]}>
-            {/* Foil decorativo */}
             <Image
               source={require("@/assets/images/design_foil.png")}
               style={s.foilImage}
               resizeMode="cover"
             />
-
-            {/* Logo */}
             <View style={[s.logoRow, { zIndex: 1 }]}>
               <Image
                 source={require("@/assets/images/logo_icon.png")}
@@ -70,7 +63,6 @@ export default function LoginScreen() {
           {/* ── Seção do Zé Bloco ── */}
           <View style={s.mascoteSection}>
             <View style={s.mascoteCircleBg} />
-
             <Text style={[s.sparkle, { fontSize: 16, top: 24, left: "18%" }]}>
               ✦
             </Text>
@@ -80,7 +72,6 @@ export default function LoginScreen() {
             <Text style={[s.sparkle, { fontSize: 13, top: 60, right: "12%" }]}>
               ✦
             </Text>
-
             <Image
               source={require("@/assets/images/login_ze_bloco.png")}
               style={s.mascoteImage}
@@ -138,7 +129,7 @@ export default function LoginScreen() {
                 </View>
                 <Text style={s.checkboxLabel}>Lembrar-me</Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push("/ForgotPassword")}>
                 <Text style={s.forgotLink}>Esqueceu a senha?</Text>
               </TouchableOpacity>
             </View>
@@ -146,28 +137,11 @@ export default function LoginScreen() {
             {/* Botão Entrar */}
             <TouchableOpacity
               style={s.btnEntrar}
-              onPress={handleLogin}
+              onPress={handleLogin} // ← chama handleLogin que navega para /home
               activeOpacity={0.85}
             >
               <Text style={s.btnEntrarText}>Entrar</Text>
               <Text style={s.btnArrow}>→</Text>
-            </TouchableOpacity>
-
-            {/* Divisor */}
-            <View style={s.dividerRow}>
-              <View style={s.dividerLine} />
-              <Text style={s.dividerText}>ou continue com</Text>
-              <View style={s.dividerLine} />
-            </View>
-
-            {/* Botão Google */}
-            <TouchableOpacity
-              style={s.btnGoogle}
-              onPress={handleGoogle}
-              activeOpacity={0.85}
-            >
-              <Text style={s.googleIcon}>G</Text>
-              <Text style={s.btnGoogleText}>Entrar com Google</Text>
             </TouchableOpacity>
 
             {/* Criar conta */}

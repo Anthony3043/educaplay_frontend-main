@@ -1,20 +1,20 @@
-import { StyleSheet, Dimensions } from 'react-native';
-import { Colors } from '@/src/constants/colors';
+import { Dimensions, StyleSheet } from "react-native";
+import { Colors } from "@/src/constants/colors";
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 export const registerStyles = StyleSheet.create({
 
   // ── Bloco superior (foil + header + logo + mascote) ──────
   topBlock: {
     backgroundColor: Colors.primarySurface,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
 
   // ── Foil decorativo ──────────────────────────────────────
   foil: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     width: width * 0.65,
@@ -24,9 +24,9 @@ export const registerStyles = StyleSheet.create({
 
   // ── Header (← e Já tem uma conta?) ──────────────────────
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 4,
@@ -38,11 +38,11 @@ export const registerStyles = StyleSheet.create({
   backArrow: {
     fontSize: 20,
     color: Colors.textPrimary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerText: {
     fontSize: 13,
@@ -51,25 +51,25 @@ export const registerStyles = StyleSheet.create({
   headerLink: {
     fontSize: 13,
     color: Colors.primary,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // ── Logo (esquerda) + Mascote (direita) ──────────────────
   logoMascoteRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: 16,
     paddingTop: 4,
     zIndex: 2,
   },
   logoSide: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingBottom: 12,
   },
   mascoteSide: {
-    alignItems: 'flex-end',
-    justifyContent: 'flex-end',
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
   },
   mascoteImage: {
     width: width * 0.42,
@@ -78,18 +78,17 @@ export const registerStyles = StyleSheet.create({
 
   // ── Inputs em linha (2 colunas) ──────────────────────────
   rowInputs: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
-    marginBottom: 0,
   },
   halfField: {
     flex: 1,
   },
 
-  // ── Input com label interno (estilo da print) ─────────────
+  // ── Input com label interno ───────────────────────────────
   inlineInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1.2,
     borderColor: Colors.border,
     borderRadius: 10,
@@ -99,9 +98,14 @@ export const registerStyles = StyleSheet.create({
     marginBottom: 14,
     gap: 8,
   },
+  // borda verde quando papel está selecionado
+  inlineInputActive: {
+    borderColor: Colors.primary,
+    borderWidth: 1.6,
+  },
   inlineIconLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
     gap: 8,
   },
@@ -110,7 +114,7 @@ export const registerStyles = StyleSheet.create({
   },
   inlineLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
     color: Colors.textPrimary,
     marginBottom: 1,
   },
@@ -121,58 +125,56 @@ export const registerStyles = StyleSheet.create({
     margin: 0,
   },
 
-  // ── Banner de segurança ───────────────────────────────────
-  securityBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: Colors.successBg,
-    borderRadius: 10,
-    padding: 12,
-    gap: 10,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: Colors.primaryPale,
-  },
-  securityIcon: {
-    fontSize: 22,
-    marginTop: 2,
-  },
-  securityTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: 2,
-  },
-  securityText: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    lineHeight: 16,
+  // ── Modal overlay ─────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
   },
 
-  // ── Dropdown de papel ─────────────────────────────────────
-  dropdown: {
-    position: 'absolute',
-    top: 70,
-    left: 0,
-    right: 0,
+  // ── Modal dropdown ────────────────────────────────────────
+  modalDropdown: {
+    width: "100%",
     backgroundColor: Colors.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    zIndex: 99,
+    borderRadius: 16,
+    overflow: "hidden",
     shadowColor: Colors.shadow,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalDropdownTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 15,
+    paddingHorizontal: 18,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   dropdownText: {
     fontSize: 14,
     color: Colors.textPrimary,
+  },
+  dropdownTextActive: {
+    color: Colors.primary,
+    fontWeight: "700",
+  },
+  dropdownCheck: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: "700",
   },
 });
