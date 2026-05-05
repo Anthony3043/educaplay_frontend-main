@@ -3,6 +3,7 @@
  * Rota: /ForgotPassword
  */
 
+import { styles as s } from "@/styles/ForgotPasswordstyles";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -11,7 +12,6 @@ import {
   SafeAreaView,
   ScrollView,
   StatusBar,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -67,8 +67,14 @@ export default function ForgotPasswordScreen() {
               <Text style={s.iconEmoji}>🔑</Text>
             </View>
             <Text style={[s.sparkle, { top: 10, left: "22%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 11, top: 4, right: "20%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 13, bottom: 6, right: "14%" }]}>✦</Text>
+            <Text style={[s.sparkle, { fontSize: 11, top: 4, right: "20%" }]}>
+              ✦
+            </Text>
+            <Text
+              style={[s.sparkle, { fontSize: 13, bottom: 6, right: "14%" }]}
+            >
+              ✦
+            </Text>
           </View>
 
           {/* Card */}
@@ -129,146 +135,3 @@ export default function ForgotPasswordScreen() {
     </SafeAreaView>
   );
 }
-
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f6fa" },
-  flex: { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: 40 },
-
-  // Header
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  backArrow: { fontSize: 20, color: "#5b6af0" },
-
-  // Ícone
-  iconArea: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 130,
-    marginTop: 20,
-    position: "relative",
-  },
-  iconCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: "#eef0fd",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#5b6af0",
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  iconEmoji: { fontSize: 44 },
-  sparkle: {
-    position: "absolute",
-    fontSize: 16,
-    color: "#5b6af0",
-    opacity: 0.55,
-  },
-
-  // Card
-  card: {
-    marginHorizontal: 20,
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    elevation: 4,
-    marginTop: 8,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1a1d3b",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#7a7f9a",
-    textAlign: "center",
-    lineHeight: 21,
-    marginBottom: 24,
-  },
-
-  // Input
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#1a1d3b",
-    marginBottom: 6,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f5f6fa",
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderWidth: 1.5,
-    borderColor: "#e8eaf0",
-    marginBottom: 6,
-  },
-  inputWrapperError: {
-    borderColor: "#f0556b",
-    backgroundColor: "#fff5f6",
-  },
-  inputIcon: { fontSize: 16, marginRight: 10 },
-  input: { flex: 1, fontSize: 15, color: "#1a1d3b" },
-  clearIcon: { fontSize: 14, color: "#bbbcc8", paddingLeft: 8 },
-  erroText: {
-    fontSize: 12,
-    color: "#f0556b",
-    marginBottom: 12,
-    marginLeft: 2,
-  },
-
-  // Botão
-  btnEnviar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#5b6af0",
-    borderRadius: 16,
-    paddingVertical: 16,
-    marginTop: 20,
-    shadowColor: "#5b6af0",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  btnDisabled: {
-    backgroundColor: "#c4c9f5",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  btnEnviarText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#fff",
-    marginRight: 8,
-  },
-  btnArrow: { fontSize: 18, color: "#fff" },
-
-  voltarRow: { alignItems: "center", marginTop: 20 },
-  voltarText: { fontSize: 14, color: "#5b6af0", fontWeight: "600" },
-});

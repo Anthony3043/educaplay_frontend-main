@@ -9,7 +9,7 @@ import Animated, {
     withSpring,
     withTiming,
 } from "react-native-reanimated";
-import { splashStyles as s } from "../styles/splashStyles";
+import { splashStyles as s } from "../styles/SplashStyles";
 
 const SPLASH_DURATION = 2800;
 
@@ -146,19 +146,6 @@ export default function SplashScreen() {
       >
         ✦
       </Animated.Text>
-
-      {/* Folhas decorativas — remova se não tiver os assets 
-      /*<Image
-        source={require('@/assets/images/leaf_left.png')}
-        style={s.leafLeft}
-        resizeMode="contain"
-      />
-      <Image
-        source={require('@/assets/images/leaf_right.png')}
-        style={s.leafRight}
-        resizeMode="contain"
-      />
-      */}
 
       {/* Logo + tagline */}
       <Animated.View style={[s.topArea, topAnimStyle]}>

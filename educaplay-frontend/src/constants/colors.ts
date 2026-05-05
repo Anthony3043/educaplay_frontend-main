@@ -1,15 +1,3 @@
-/**
- * constants/colors.ts - Paleta de cores centralizada do PlanejaEdu
- *
- * USO:
- *   import { Colors } from '@/constants/colors';
- *   style={{ color: Colors.green }}
- *
- * Ou use o hook useThemeColors() para suporte automático a dark mode.
- */
-
-// ─── Paleta base ────────────────────────────────────────────────────────────
-
 export const Palette = {
   // Verdes (cor principal do PlanejaEdu)
   green900: '#1a3d22',

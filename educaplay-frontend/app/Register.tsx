@@ -4,6 +4,7 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   SafeAreaView,
   ScrollView,
@@ -13,8 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { loginStyles as s } from "../styles/loginStyles";
-import { registerStyles as r } from "../styles/registerStyles";
+import { loginStyles as s } from "../styles/LoginStyles";
+import { registerStyles as r } from "../styles/RegisterStyles";
 
 const { width } = Dimensions.get("window");
 
@@ -30,21 +31,52 @@ export default function RegisterScreen() {
   const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
   const [papelOpen, setPapelOpen] = useState(false);
 
-  const papeis = ["Professor", "Coordenador", "Diretor", "Outro"];
+  const papeis = ["Supervisão", "Professor"];
 
   const handleRegister = () => {
     console.log("Registro:", { nome, email, senha, instituicao, papel });
-  };
-
-  const handleGoogle = () => {
-    console.log("Registro com Google");
+    router.push("/home");
   };
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffdede" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* ── Card com formulário ── */}
+      {/* Dropdown como Modal — renderiza acima de tudo na tela */}
+      <Modal
+        visible={papelOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPapelOpen(false)}
+      >
+        <TouchableOpacity
+          style={r.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setPapelOpen(false)}
+        >
+          <View style={r.modalDropdown}>
+            <Text style={r.modalDropdownTitle}>Selecione seu papel</Text>
+            {papeis.map((p) => (
+              <TouchableOpacity
+                key={p}
+                style={r.dropdownItem}
+                onPress={() => {
+                  setPapel(p);
+                  setPapelOpen(false);
+                }}
+              >
+                <Text
+                  style={[r.dropdownText, papel === p && r.dropdownTextActive]}
+                >
+                  {p}
+                </Text>
+                {papel === p && <Text style={r.dropdownCheck}>✓</Text>}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={s.flex}
@@ -55,14 +87,12 @@ export default function RegisterScreen() {
         >
           {/* ── Bloco superior: foil + logo + mascote ── */}
           <View style={r.topBlock}>
-            {/* Foil decorativo */}
             <Image
               source={require("@/assets/images/design_foil.png")}
               style={r.foil}
               resizeMode="cover"
             />
 
-            {/* Header sobre o foil */}
             <View style={r.headerRow}>
               <TouchableOpacity style={r.backBtn} onPress={() => router.back()}>
                 <Text style={r.backArrow}>←</Text>
@@ -75,7 +105,6 @@ export default function RegisterScreen() {
               </View>
             </View>
 
-            {/* Logo à esquerda + Mascote à direita */}
             <View style={r.logoMascoteRow}>
               <View style={r.logoSide}>
                 <View style={s.logoRow}>
@@ -103,7 +132,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <View style={[s.card, { backgroundColor: 'transparent' }]}>
+          <View style={[s.card, { backgroundColor: "transparent" }]}>
             <Text style={s.welcomeTitle}>Crie sua conta</Text>
             <Text style={s.welcomeSubtitle}>
               Preencha os dados abaixo para começar
@@ -111,7 +140,6 @@ export default function RegisterScreen() {
 
             {/* Nome + E-mail em linha */}
             <View style={r.rowInputs}>
-              {/* Nome completo */}
               <View style={r.halfField}>
                 <View style={r.inlineInput}>
                   <View style={r.inlineIconLabel}>
@@ -131,7 +159,6 @@ export default function RegisterScreen() {
                 </View>
               </View>
 
-              {/* E-mail */}
               <View style={r.halfField}>
                 <View style={r.inlineInput}>
                   <View style={r.inlineIconLabel}>
@@ -204,7 +231,6 @@ export default function RegisterScreen() {
 
             {/* Instituição + Papel em linha */}
             <View style={r.rowInputs}>
-              {/* Instituição */}
               <View style={r.halfField}>
                 <View style={r.inlineInput}>
                   <View style={r.inlineIconLabel}>
@@ -223,11 +249,11 @@ export default function RegisterScreen() {
                 </View>
               </View>
 
-              {/* Papel */}
-              <View style={[r.halfField, { zIndex: 10 }]}>
+              {/* Papel — abre Modal ao invés de dropdown inline */}
+              <View style={r.halfField}>
                 <TouchableOpacity
-                  style={r.inlineInput}
-                  onPress={() => setPapelOpen(!papelOpen)}
+                  style={[r.inlineInput, papel ? r.inlineInputActive : null]}
+                  onPress={() => setPapelOpen(true)}
                   activeOpacity={0.8}
                 >
                   <View style={r.inlineIconLabel}>
@@ -246,35 +272,6 @@ export default function RegisterScreen() {
                   </View>
                   <Text style={{ fontSize: 12, color: "#aaa" }}>▼</Text>
                 </TouchableOpacity>
-
-                {papelOpen && (
-                  <View style={r.dropdown}>
-                    {papeis.map((p) => (
-                      <TouchableOpacity
-                        key={p}
-                        style={r.dropdownItem}
-                        onPress={() => {
-                          setPapel(p);
-                          setPapelOpen(false);
-                        }}
-                      >
-                        <Text style={r.dropdownText}>{p}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* Banner segurança */}
-            <View style={r.securityBanner}>
-              <Text style={r.securityIcon}>🛡️</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={r.securityTitle}>Seus dados estão protegidos</Text>
-                <Text style={r.securityText}>
-                  Utilizamos criptografia e boas práticas de segurança para
-                  garantir a privacidade das suas informações.
-                </Text>
               </View>
             </View>
 
@@ -286,23 +283,6 @@ export default function RegisterScreen() {
             >
               <Text style={s.btnEntrarText}>Criar conta</Text>
               <Text style={s.btnArrow}>→</Text>
-            </TouchableOpacity>
-
-            {/* Divisor */}
-            <View style={s.dividerRow}>
-              <View style={s.dividerLine} />
-              <Text style={s.dividerText}>ou cadastre-se com</Text>
-              <View style={s.dividerLine} />
-            </View>
-
-            {/* Botão Google */}
-            <TouchableOpacity
-              style={s.btnGoogle}
-              onPress={handleGoogle}
-              activeOpacity={0.85}
-            >
-              <Text style={s.googleIcon}>G</Text>
-              <Text style={s.btnGoogleText}>Continuar com Google</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
