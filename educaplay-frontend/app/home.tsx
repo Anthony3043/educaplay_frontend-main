@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { homeStyles as s } from "../styles/homeStyles";
+import { homeStyles as s } from "../styles/HomeStyles";
 
 // ─── Dados do menu principal ──────────────────────────────
 const MENU_ITEMS = [

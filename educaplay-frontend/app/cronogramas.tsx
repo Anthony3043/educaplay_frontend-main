@@ -1,4 +1,4 @@
-import { styles as s } from "";
+import { styles as s } from "@/styles/Cronogramasstyles";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
