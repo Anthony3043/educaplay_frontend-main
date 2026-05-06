@@ -6,9 +6,10 @@ interface ActionBarProps {
   onEdit?: () => void;
   onSave?: () => void;
   onExportPDF?: () => void;
+  salvando?: boolean;
 }
 
-export function ActionBar({ onEdit, onSave, onExportPDF }: ActionBarProps) {
+export function ActionBar({ onEdit, onSave, onExportPDF, salvando }: ActionBarProps) {
   return (
     <View style={styles.actionBar}>
       <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={onEdit} activeOpacity={0.8}>
@@ -16,9 +17,9 @@ export function ActionBar({ onEdit, onSave, onExportPDF }: ActionBarProps) {
         <Text style={[styles.actionLabel, styles.editLabel]}>Editar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.actionBtn, styles.saveBtn]} onPress={onSave} activeOpacity={0.8}>
-        <Text style={styles.saveIcon}>✓</Text>
-        <Text style={[styles.actionLabel, styles.saveLabel]}>Salvar</Text>
+      <TouchableOpacity style={[styles.actionBtn, styles.saveBtn, salvando && { opacity: 0.6 }]} onPress={onSave} activeOpacity={0.8} disabled={salvando}>
+        <Text style={styles.saveIcon}>{salvando ? "⏳" : "✓"}</Text>
+        <Text style={[styles.actionLabel, styles.saveLabel]}>{salvando ? "Salvando..." : "Salvar"}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={[styles.actionBtn, styles.exportBtn]} onPress={onExportPDF} activeOpacity={0.8}>

@@ -1,15 +1,20 @@
 import { styles as s } from "@/styles/Cronogramasstyles";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   SafeAreaView,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { ActionBar } from "@/components/ActionBar";
+import api from "../src/services/api";
 
 export type TurnoId = "matutino" | "vespertino" | "noturno" | "integral";
 
@@ -20,6 +25,20 @@ export type Aula = {
   subject: string;
   teacher: string;
   isInterval?: boolean;
+  professorId?: string | null;
+};
+
+type CronogramaAPI = {
+  id: string;
+  turno: string;
+  aulas: Array<{
+    id: string;
+    timeStart: string;
+    timeEnd: string;
+    subject: string;
+    isInterval: boolean;
+    professor: { nome: string } | null;
+  }>;
 };
 
 const TURNOS: Array<{
@@ -40,56 +59,83 @@ const TABS = [
   { id: "configuracoes", icon: "⚙️", label: "Configurações" },
 ];
 
-export const SCHEDULE_DATA: Record<TurnoId, Aula[]> = {
-  matutino: [
-    { id: "m1", timeStart: "07:00", timeEnd: "07:50", subject: "Matemática",      teacher: "Prof. Ricardo" },
-    { id: "m2", timeStart: "07:50", timeEnd: "08:40", subject: "História",         teacher: "Prof. Ana" },
-    { id: "m3", timeStart: "08:40", timeEnd: "09:30", subject: "Português",        teacher: "Prof. Carlos" },
-    { id: "mi", timeStart: "09:30", timeEnd: "09:50", subject: "Intervalo",        teacher: "", isInterval: true },
-    { id: "m4", timeStart: "09:50", timeEnd: "10:40", subject: "Ciências",         teacher: "Prof. Beatriz" },
-    { id: "m5", timeStart: "10:40", timeEnd: "11:30", subject: "Geografia",        teacher: "Prof. Marcos" },
-    { id: "mf", timeStart: "11:30", timeEnd: "12:00", subject: "Intervalo Final",  teacher: "", isInterval: true },
-  ],
-  vespertino: [
-    { id: "v1", timeStart: "13:00", timeEnd: "13:50", subject: "Física",           teacher: "Prof. Luiz" },
-    { id: "v2", timeStart: "13:50", timeEnd: "14:40", subject: "Química",          teacher: "Prof. Fernanda" },
-    { id: "v3", timeStart: "14:40", timeEnd: "15:30", subject: "Biologia",         teacher: "Prof. Paula" },
-    { id: "vi", timeStart: "15:30", timeEnd: "15:50", subject: "Intervalo",        teacher: "", isInterval: true },
-    { id: "v4", timeStart: "15:50", timeEnd: "16:40", subject: "Inglês",           teacher: "Prof. Sandra" },
-    { id: "v5", timeStart: "16:40", timeEnd: "17:30", subject: "Educação Física",  teacher: "Prof. João" },
-    { id: "vf", timeStart: "17:30", timeEnd: "18:00", subject: "Intervalo Final",  teacher: "", isInterval: true },
-  ],
-  noturno: [
-    { id: "n1", timeStart: "18:30", timeEnd: "19:20", subject: "Matemática",       teacher: "Prof. Roberto" },
-    { id: "n2", timeStart: "19:20", timeEnd: "20:10", subject: "Português",        teacher: "Prof. Lúcia" },
-    { id: "ni", timeStart: "20:10", timeEnd: "20:30", subject: "Intervalo",        teacher: "", isInterval: true },
-    { id: "n3", timeStart: "20:30", timeEnd: "21:20", subject: "História",         teacher: "Prof. Tiago" },
-    { id: "n4", timeStart: "21:20", timeEnd: "22:10", subject: "Geografia",        teacher: "Prof. Cláudia" },
-    { id: "nf", timeStart: "22:10", timeEnd: "23:00", subject: "Intervalo Final",  teacher: "", isInterval: true },
-  ],
-  integral: [
-    { id: "i1",  timeStart: "07:00", timeEnd: "07:50", subject: "Matemática",      teacher: "Prof. Ricardo" },
-    { id: "i2",  timeStart: "07:50", timeEnd: "08:40", subject: "Português",       teacher: "Prof. Carlos" },
-    { id: "i3",  timeStart: "08:40", timeEnd: "09:30", subject: "História",        teacher: "Prof. Ana" },
-    { id: "ii1", timeStart: "09:30", timeEnd: "09:50", subject: "Intervalo",       teacher: "", isInterval: true },
-    { id: "i4",  timeStart: "09:50", timeEnd: "10:40", subject: "Ciências",        teacher: "Prof. Beatriz" },
-    { id: "i5",  timeStart: "10:40", timeEnd: "11:30", subject: "Geografia",       teacher: "Prof. Marcos" },
-    { id: "il",  timeStart: "11:30", timeEnd: "13:00", subject: "Almoço",          teacher: "", isInterval: true },
-    { id: "i6",  timeStart: "13:00", timeEnd: "13:50", subject: "Física",          teacher: "Prof. Luiz" },
-    { id: "i7",  timeStart: "13:50", timeEnd: "14:40", subject: "Química",         teacher: "Prof. Fernanda" },
-    { id: "i8",  timeStart: "14:40", timeEnd: "15:30", subject: "Biologia",        teacher: "Prof. Paula" },
-    { id: "ii2", timeStart: "15:30", timeEnd: "15:50", subject: "Intervalo",       teacher: "", isInterval: true },
-    { id: "i9",  timeStart: "15:50", timeEnd: "16:40", subject: "Inglês",          teacher: "Prof. Sandra" },
-    { id: "i10", timeStart: "16:40", timeEnd: "17:30", subject: "Educação Física", teacher: "Prof. João" },
-    { id: "if",  timeStart: "17:30", timeEnd: "18:00", subject: "Intervalo Final", teacher: "", isInterval: true },
-  ],
-};
+// Remover SCHEDULE_DATA mock — dados vêm do backend agora
 
 export default function CronogramasScreen() {
   const router = useRouter();
   const [selectedTurno, setSelectedTurno] = useState<TurnoId>("matutino");
   const [activeTab, setActiveTab] = useState("cronograma");
   const [modoEdicao, setModoEdicao] = useState(false);
+  const [cronogramas, setCronogramas] = useState<Record<TurnoId, Aula[]>>({
+    matutino: [], vespertino: [], noturno: [], integral: [],
+  });
+  const [cronogramaIds, setCronogramaIds] = useState<Record<TurnoId, string | null>>({
+    matutino: null, vespertino: null, noturno: null, integral: null,
+  });
+  const [carregando, setCarregando] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+  const [aulasEditadas, setAulasEditadas] = useState<Record<string, Partial<Aula>>>({});
+
+  const carregar = useCallback(async () => {
+    try {
+      const res = await api.get("/cronogramas");
+      const ids: Record<TurnoId, string | null> = { matutino: null, vespertino: null, noturno: null, integral: null };
+      const dados: Record<TurnoId, Aula[]> = { matutino: [], vespertino: [], noturno: [], integral: [] };
+      (res.data as CronogramaAPI[]).forEach((c) => {
+        const turno = c.turno as TurnoId;
+        if (turno in dados) {
+          ids[turno] = c.id;
+          dados[turno] = c.aulas.map((a) => ({
+            id: a.id,
+            timeStart: a.timeStart,
+            timeEnd: a.timeEnd,
+            subject: a.subject,
+            teacher: a.professor?.nome ?? "",
+            isInterval: a.isInterval,
+          }));
+        }
+      });
+      setCronogramaIds(ids);
+      setCronogramas(dados);
+    } catch {
+      Alert.alert("Erro", "Não foi possível carregar os cronogramas.");
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
+
+  useEffect(() => { carregar(); }, [carregar]);
+
+  // Garante que o cronograma do turno existe no banco antes de editar
+  const garantirCronograma = async (turno: TurnoId): Promise<string> => {
+    if (cronogramaIds[turno]) return cronogramaIds[turno]!;
+    const res = await api.post("/cronogramas", { turno });
+    setCronogramaIds((prev) => ({ ...prev, [turno]: res.data.id }));
+    return res.data.id;
+  };
+
+  const handleSalvar = async () => {
+    if (Object.keys(aulasEditadas).length === 0) {
+      setModoEdicao(false);
+      return;
+    }
+    setSalvando(true);
+    try {
+      await garantirCronograma(selectedTurno);
+      await Promise.all(
+        Object.entries(aulasEditadas).map(([aulaId, dados]) =>
+          api.put(`/aulas/${aulaId}`, dados)
+        )
+      );
+      setAulasEditadas({});
+      setModoEdicao(false);
+      await carregar();
+    } catch {
+      Alert.alert("Erro", "Não foi possível salvar as alterações.");
+    } finally {
+      setSalvando(false);
+    }
+  };
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
@@ -97,35 +143,18 @@ export default function CronogramasScreen() {
     else if (tabId === "configuracoes") router.push("/configuracoes");
   };
 
-  // Clique normal → detalhe da aula
   const handleAulaPress = (aula: Aula) => {
     if (aula.isInterval) return;
     router.push({
       pathname: "/AulaDetalhe",
-      params: {
-        id:        aula.id,
-        timeStart: aula.timeStart,
-        timeEnd:   aula.timeEnd,
-        subject:   aula.subject,
-        teacher:   aula.teacher,
-        turno:     selectedTurno,
-      },
+      params: { id: aula.id, timeStart: aula.timeStart, timeEnd: aula.timeEnd, subject: aula.subject, teacher: aula.teacher, turno: selectedTurno },
     });
   };
 
-  // Clique no modo edição → tela de edição
   const handleAulaEditPress = (aula: Aula) => {
     router.push({
       pathname: "/EditarHorario",
-      params: {
-        id:         aula.id,
-        timeStart:  aula.timeStart,
-        timeEnd:    aula.timeEnd,
-        subject:    aula.subject,
-        teacher:    aula.teacher,
-        turno:      selectedTurno,
-        isInterval: aula.isInterval ? "true" : "false",
-      },
+      params: { id: aula.id, timeStart: aula.timeStart, timeEnd: aula.timeEnd, subject: aula.subject, teacher: aula.teacher, turno: selectedTurno, isInterval: aula.isInterval ? "true" : "false" },
     });
   };
 
@@ -133,6 +162,8 @@ export default function CronogramasScreen() {
     if (modoEdicao) handleAulaEditPress(aula);
     else handleAulaPress(aula);
   };
+
+  const aulasDoCronograma = cronogramas[selectedTurno];
 
   return (
     <SafeAreaView style={s.container}>
@@ -159,20 +190,15 @@ export default function CronogramasScreen() {
         </View>
       )}
 
+      {carregando ? (
+        <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
+      ) : (
       <ScrollView contentContainerStyle={s.scrollContent}>
-        {/* Seleção de Turno */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Selecione o Turno</Text>
           <View style={s.turnoGrid}>
             {TURNOS.map((turno) => (
-              <TouchableOpacity
-                key={turno.id}
-                style={[
-                  s.turnoCard,
-                  selectedTurno === turno.id && s.turnoCardSelected,
-                ]}
-                onPress={() => setSelectedTurno(turno.id)}
-              >
+              <TouchableOpacity key={turno.id} style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]} onPress={() => setSelectedTurno(turno.id)}>
                 <Text style={s.turnoIcon}>{turno.icon}</Text>
                 <Text style={s.turnoLabel}>{turno.label}</Text>
                 <Text style={s.turnoTime}>{turno.time}</Text>
@@ -181,65 +207,46 @@ export default function CronogramasScreen() {
           </View>
         </View>
 
-        {/* Lista de Aulas */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Horários das Aulas</Text>
-
-          {SCHEDULE_DATA[selectedTurno].map((item) =>
-            item.isInterval ? (
-              // Intervalo — clicável apenas no modo edição
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  s.intervalItem,
-                  modoEdicao && editBannerStyle.editableItem,
-                ]}
-                onPress={() => modoEdicao && handleAulaEditPress(item)}
-                activeOpacity={modoEdicao ? 0.7 : 1}
-              >
-                <Text style={s.intervalIcon}>
-                  {modoEdicao ? "✏️" : "☕"}
-                </Text>
-                <Text style={s.intervalText}>
-                  {item.subject} · {item.timeStart} – {item.timeEnd}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              // Aula — sempre clicável
-              <TouchableOpacity
-                key={item.id}
-                style={[
-                  s.horarioItem,
-                  modoEdicao && editBannerStyle.editableItem,
-                ]}
-                activeOpacity={0.75}
-                onPress={() => handleItemPress(item)}
-              >
-                <View style={s.timeColumn}>
-                  <Text style={s.startTime}>{item.timeStart}</Text>
-                  <Text style={s.endTime}>{item.timeEnd}</Text>
-                </View>
-                <View style={s.infoColumn}>
-                  <Text style={s.materiaName}>{item.subject}</Text>
-                  <Text style={s.professorName}>{item.teacher}</Text>
-                </View>
-                <Text style={{ fontSize: 18, color: "#CCC" }}>
-                  {modoEdicao ? "✏️" : "›"}
-                </Text>
-              </TouchableOpacity>
+          {aulasDoCronograma.length === 0 ? (
+            <View style={s.emptyState}>
+              <Text style={{ fontSize: 40 }}>🗓️</Text>
+              <Text style={s.emptyText}>Nenhum horário cadastrado para este turno.</Text>
+            </View>
+          ) : (
+            aulasDoCronograma.map((item) =>
+              item.isInterval ? (
+                <TouchableOpacity key={item.id} style={[s.intervalItem, modoEdicao && editBannerStyle.editableItem]}
+                  onPress={() => modoEdicao && handleAulaEditPress(item)} activeOpacity={modoEdicao ? 0.7 : 1}>
+                  <Text style={s.intervalIcon}>{modoEdicao ? "✏️" : "☕"}</Text>
+                  <Text style={s.intervalText}>{item.subject} · {item.timeStart} – {item.timeEnd}</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity key={item.id} style={[s.horarioItem, modoEdicao && editBannerStyle.editableItem]}
+                  activeOpacity={0.75} onPress={() => handleItemPress(item)}>
+                  <View style={s.timeColumn}>
+                    <Text style={s.startTime}>{item.timeStart}</Text>
+                    <Text style={s.endTime}>{item.timeEnd}</Text>
+                  </View>
+                  <View style={s.infoColumn}>
+                    <Text style={s.materiaName}>{item.subject}</Text>
+                    <Text style={s.professorName}>{item.teacher}</Text>
+                  </View>
+                  <Text style={{ fontSize: 18, color: "#CCC" }}>{modoEdicao ? "✏️" : "›"}</Text>
+                </TouchableOpacity>
+              )
             )
           )}
         </View>
       </ScrollView>
+      )}
 
-      {/* ActionBar */}
       <ActionBar
         onEdit={() => setModoEdicao(true)}
-        onSave={() => {
-          setModoEdicao(false);
-          console.log("Salvar cronograma");
-        }}
-        onExportPDF={() => console.log("Exportar PDF")}
+        onSave={handleSalvar}
+        onExportPDF={() => Alert.alert("Em breve", "Exportação em PDF será implementada em breve.")}
+        salvando={salvando}
       />
 
       {/* Tab Bar */}
@@ -267,9 +274,6 @@ export default function CronogramasScreen() {
   );
 }
 
-// Estilos inline pequenos só para o banner de edição
-// (para não poluir o Cronogramasstyles com coisa específica)
-import { StyleSheet } from "react-native";
 const editBannerStyle = StyleSheet.create({
   banner: {
     flexDirection: "row",

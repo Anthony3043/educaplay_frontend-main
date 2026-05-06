@@ -85,7 +85,7 @@ export default function ResetPasswordScreen() {
       await api.post('/auth/reset-senha', { token, novaSenha });
       setSucesso(true);
     } catch (err) {
-      setErro(err?.response?.data?.error || 'Token inválido ou expirado.');
+      setErro((err as any)?.response?.data?.error || 'Token inválido ou expirado.');
     } finally {
       setCarregando(false);
     }

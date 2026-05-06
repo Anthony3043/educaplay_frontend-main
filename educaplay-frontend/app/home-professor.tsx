@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { homeStyles as s } from "../styles/homeStyles";
+import { useAuth } from "../context/AuthContext";
+import api from "../src/services/api";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.72;
@@ -70,8 +72,19 @@ export default function HomeProfessorScreen() {
   const drawerX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  const userName = "Anthony";
-  const cargo = "Professor de Matemática";
+  const { usuario } = useAuth();
+  const userName = usuario?.nome?.split(" ")[0] ?? "";
+  const cargo = usuario?.cargo ?? usuario?.papel ?? "";
+  const [naoLidas, setNaoLidas] = useState(0);
+
+  const carregarNotifs = useCallback(async () => {
+    try {
+      const res = await api.get("/notificacoes");
+      setNaoLidas(res.data.filter((n: any) => !n.lida).length);
+    } catch {}
+  }, []);
+
+  useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * DICAS.length);
@@ -134,9 +147,11 @@ export default function HomeProfessorScreen() {
 
         <TouchableOpacity style={{ position: "absolute", right: 16 }} onPress={() => router.push("/notificacoes")}>
           <Text style={s.notifIcon}>🔔</Text>
-          <View style={s.notifBadge}>
-            <Text style={s.notifBadgeText}>2</Text>
-          </View>
+          {naoLidas > 0 && (
+            <View style={s.notifBadge}>
+              <Text style={s.notifBadgeText}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 

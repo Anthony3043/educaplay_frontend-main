@@ -52,7 +52,7 @@ export default function RegisterScreen() {
         router.replace("/home");
       }
     } catch (err) {
-      const msg = err?.response?.data?.error || err?.message || "Erro ao criar conta. Verifique se o servidor está rodando.";
+      const msg = (err as any)?.response?.data?.error || (err as any)?.message || "Erro ao criar conta. Verifique se o servidor está rodando.";
       Alert.alert("Erro", msg);
     } finally {
       setCarregando(false);

@@ -31,7 +31,7 @@ export default function LoginScreen() {
         router.replace("/home");
       }
     } catch (err) {
-      Alert.alert("Erro", err?.response?.data?.error || "Credenciais inválidas.");
+      Alert.alert("Erro", (err as any)?.response?.data?.error || "Credenciais inválidas.");
     } finally {
       setCarregando(false);
     }
