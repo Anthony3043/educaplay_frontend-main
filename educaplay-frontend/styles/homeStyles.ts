@@ -18,7 +18,7 @@ export const homeStyles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     backgroundColor: Colors.surface,
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -273,5 +273,84 @@ export const homeStyles = StyleSheet.create({
   },
   tabIconActive: {
     // tint aplicado via prop tintColor na Image
+  },
+
+  // ── Drawer lateral ───────────────────────────────────────
+  drawerOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    zIndex: 10,
+  },
+  drawer: {
+    position: 'absolute',
+    top: 0, left: 0, bottom: 0,
+    width: width * 0.72,
+    backgroundColor: Colors.surface,
+    zIndex: 11,
+    shadowColor: Colors.shadow,
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  drawerHeader: {
+    paddingTop: 48,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    gap: 4,
+  },
+  drawerLogo: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 10,
+  },
+  drawerAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  drawerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  drawerSubtitle: {
+    fontSize: 13,
+    color: Colors.textMuted,
+  },
+  drawerDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginHorizontal: 16,
+    marginVertical: 8,
+  },
+  drawerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    gap: 16,
+  },
+  drawerItemIcon: {
+    fontSize: 20,
+    width: 28,
+    textAlign: 'center',
+  },
+  drawerItemLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  drawerLogout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    gap: 16,
+    marginTop: 4,
   },
 });

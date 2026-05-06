@@ -7,6 +7,7 @@ import { styles as s } from "@/styles/ForgotPasswordstyles";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -17,13 +18,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import api from "../src/services/api";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-  const handleEnviar = () => {
+  const handleEnviar = async () => {
     if (!email.trim()) {
       setErro("Por favor, insira seu e-mail.");
       return;
@@ -33,8 +36,19 @@ export default function ForgotPasswordScreen() {
       return;
     }
     setErro("");
-    // TODO: chamar authService.sendPasswordReset(email)
-    router.push({ pathname: "/CheckEmail", params: { email } });
+    setCarregando(true);
+    try {
+      await api.post("/auth/check-email", { email: email.trim() });
+      router.push({ pathname: "/CheckEmail", params: { email } });
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        setErro("Este e-mail não está cadastrado.");
+      } else {
+        setErro("Erro ao verificar e-mail. Tente novamente.");
+      }
+    } finally {
+      setCarregando(false);
+    }
   };
 
   return (
@@ -113,13 +127,18 @@ export default function ForgotPasswordScreen() {
             {erro ? <Text style={s.erroText}>{erro}</Text> : null}
 
             <TouchableOpacity
-              style={[s.btnEnviar, !email ? s.btnDisabled : null]}
+              style={[s.btnEnviar, (!email || carregando) ? s.btnDisabled : null]}
               onPress={handleEnviar}
               activeOpacity={0.85}
-              disabled={!email}
+              disabled={!email || carregando}
             >
-              <Text style={s.btnEnviarText}>Enviar link de recuperação</Text>
-              <Text style={s.btnArrow}>→</Text>
+              {carregando
+                ? <ActivityIndicator color="#fff" />
+                : <>
+                    <Text style={s.btnEnviarText}>Enviar link de recuperação</Text>
+                    <Text style={s.btnArrow}>→</Text>
+                  </>
+              }
             </TouchableOpacity>
 
             <TouchableOpacity

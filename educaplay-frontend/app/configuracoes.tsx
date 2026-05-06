@@ -2,6 +2,7 @@ import { styles as s } from "@/styles/configuracoesstyles";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import type { Href } from "expo-router";
+import { useAuth } from "../context/AuthContext";
 import {
   SafeAreaView,
   ScrollView,
@@ -36,23 +37,27 @@ const CONFIG_ITEMS: Array<{
     title: "Notificações",
     subtitle: "Gerenciar preferências",
     icon: "🔔",
+    route: "/notificacoes",
   },
   {
     id: "privacidade",
     title: "Privacidade",
     subtitle: "Controlar acesso",
     icon: "🔒",
+    route: "/privacidade",
   },
   {
     id: "sobre",
     title: "Sobre",
     subtitle: "Versão e informações",
     icon: "ℹ️",
+    route: "/sobre",
   },
 ];
 
 export default function ConfiguracoesScreen() {
   const router = useRouter();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState("configuracoes");
 
   const handleTabPress = (tabId: string) => {
@@ -103,7 +108,7 @@ export default function ConfiguracoesScreen() {
         </View>
 
         {/* Botão Sair */}
-        <TouchableOpacity style={s.btnLogout} activeOpacity={0.85}>
+        <TouchableOpacity style={s.btnLogout} activeOpacity={0.85} onPress={async () => { await logout(); router.replace("/Login"); }}>
           <Text style={s.btnLogoutText}>Sair</Text>
         </TouchableOpacity>
       </ScrollView>

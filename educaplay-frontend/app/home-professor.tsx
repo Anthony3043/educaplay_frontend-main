@@ -18,36 +18,48 @@ const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.72;
 
 const DICAS = [
-  "Mantenha seus horários sempre\natualizados e evite conflitos!",
-  "Cadastre todos os professores\nantes de montar o cronograma.",
-  "Use o modo edição para ajustar\naulas rapidamente no cronograma.",
-  "Verifique as salas disponíveis\nantes de alocar uma turma.",
-  "Organize os turnos separadamente\npara facilitar a visualização.",
-  "Salve o cronograma em PDF para\ncompartilhar com a equipe.",
+  "Registre sua disponibilidade\ncom antecedência para evitar conflitos!",
+  "Consulte o cronograma regularmente\npara se manter atualizado.",
+  "Atualize seus horários disponíveis\nsempre que houver mudanças.",
+  "Verifique se suas aulas estão\ncorretas no cronograma.",
+  "Mantenha seu perfil atualizado\npara facilitar a alocação.",
+  "Em caso de dúvidas, entre em\ncontato com a supervisão.",
 ];
 
 const MENU_ITEMS = [
-  { id: "cronogramas", icon: "📅", iconBg: "#e8f5ea", title: "Cronogramas", subtitle: "Crie e gerencie\nos horários", route: "/cronogramas" },
-  { id: "professores", icon: "👥", iconBg: "#e8f0fe", title: "Professores", subtitle: "Cadastre e visualize\nos professores", route: "/professores" },
-  { id: "salas", icon: "🚪", iconBg: "#fff3e0", title: "Salas", subtitle: "Cadastre e gerencie\nas salas da escola", route: "/salas" },
+  {
+    id: "disponibilidade",
+    icon: "🗓️",
+    iconBg: "#e8f5ea",
+    title: "Minha Agenda",
+    subtitle: "Informe seus horários\ndisponíveis",
+    route: "/disponibilidade",
+  },
+  {
+    id: "cronogramas",
+    icon: "📅",
+    iconBg: "#e8f0fe",
+    title: "Cronogramas",
+    subtitle: "Veja as aulas\natribuídas a você",
+    route: "/cronogramas",
+  },
 ];
 
 const TABS = [
   { id: "home", icon: "🏠", label: "Home" },
-  { id: "cronograma", icon: "📅", label: "Cronograma" },
+  { id: "agenda", icon: "🗓️", label: "Minha Agenda" },
   { id: "configuracoes", icon: "⚙️", label: "Configurações" },
 ];
 
 const DRAWER_ITEMS = [
-  { icon: "🏠", label: "Home", route: "/home" },
+  { icon: "🏠", label: "Home", route: "/home-professor" },
+  { icon: "🗓️", label: "Minha Agenda", route: "/disponibilidade" },
   { icon: "📅", label: "Cronogramas", route: "/cronogramas" },
-  { icon: "👥", label: "Professores", route: "/professores" },
-  { icon: "🚪", label: "Salas", route: "/salas" },
   { icon: "👤", label: "Perfil", route: "/perfil" },
   { icon: "⚙️", label: "Configurações", route: "/configuracoes" },
 ];
 
-export default function HomeScreen() {
+export default function HomeProfessorScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const [dicaIndex, setDicaIndex] = useState(0);
@@ -59,6 +71,7 @@ export default function HomeScreen() {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
   const userName = "Anthony";
+  const cargo = "Professor de Matemática";
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * DICAS.length);
@@ -73,9 +86,7 @@ export default function HomeScreen() {
     });
   };
 
-  const handleDicaPress = () => {
-    animateTroca((dicaIndex + 1) % DICAS.length);
-  };
+  const handleDicaPress = () => animateTroca((dicaIndex + 1) % DICAS.length);
 
   const openDrawer = () => {
     setDrawerOpen(true);
@@ -99,9 +110,9 @@ export default function HomeScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "cronograma") router.push("/cronogramas");
+    if (tabId === "agenda") router.push("/disponibilidade" as any);
     else if (tabId === "configuracoes") router.push("/configuracoes");
-    else if (tabId === "home") router.push("/home");
+    else if (tabId === "home") router.push("/home-professor" as any);
   };
 
   return (
@@ -134,7 +145,11 @@ export default function HomeScreen() {
         <View style={s.banner}>
           <View style={s.bannerTextArea}>
             <Text style={s.bannerGreeting}>Olá, {userName}! <Text style={s.bannerEmoji}>👋</Text></Text>
-            <Text style={s.bannerSubtitle}>Que bom ver você por aqui.{"\n"}Vamos organizar um{"\n"}dia incrível de aulas!</Text>
+            <Text style={s.bannerSubtitle}>
+              Que bom ver você por aqui.{"\n"}
+              Veja suas aulas e{"\n"}
+              gerencie sua agenda!
+            </Text>
           </View>
           <Image source={require("@/assets/images/ze_bloco_menu_supervisao.png")} style={s.bannerMascote} resizeMode="contain" />
         </View>
@@ -144,9 +159,14 @@ export default function HomeScreen() {
         {/* Menu Principal */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Menu Principal</Text>
-          <View style={s.menuGrid}>
+          <View style={[s.menuGrid, { justifyContent: "center" }]}>
             {MENU_ITEMS.map((item) => (
-              <TouchableOpacity key={item.id} style={s.menuCard} onPress={() => router.push(item.route as any)} activeOpacity={0.75}>
+              <TouchableOpacity
+                key={item.id}
+                style={[s.menuCard, { maxWidth: "48%" }]}
+                onPress={() => router.push(item.route as any)}
+                activeOpacity={0.75}
+              >
                 <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
                   <Text style={s.menuCardIconText}>{item.icon}</Text>
                 </View>
@@ -157,10 +177,10 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Botão Criar Cronograma */}
+        {/* Botão Ver Cronograma */}
         <TouchableOpacity style={s.btnCriar} onPress={() => router.push("/cronogramas")} activeOpacity={0.85}>
-          <Text style={s.btnCriarIcon}>＋</Text>
-          <Text style={s.btnCriarText}>Criar Cronograma</Text>
+          <Text style={s.btnCriarIcon}>📅</Text>
+          <Text style={s.btnCriarText}>Ver Cronograma</Text>
         </TouchableOpacity>
 
         {/* Dica do Zé Bloquinho */}
@@ -187,7 +207,7 @@ export default function HomeScreen() {
         })}
       </View>
 
-      {/* Drawer overlay + painel */}
+      {/* Drawer */}
       {drawerOpen && (
         <>
           <TouchableWithoutFeedback onPress={closeDrawer}>
@@ -195,16 +215,14 @@ export default function HomeScreen() {
           </TouchableWithoutFeedback>
 
           <Animated.View style={[s.drawer, { transform: [{ translateX: drawerX }] }]}>
-            {/* Cabeçalho do drawer */}
             <View style={s.drawerHeader}>
               <Image source={{ uri: "https://via.placeholder.com/64?text=A" }} style={s.drawerAvatar} resizeMode="cover" />
               <Text style={s.drawerTitle}>{userName}</Text>
-              <Text style={s.drawerSubtitle}>Professor de Matemática</Text>
+              <Text style={s.drawerSubtitle}>{cargo}</Text>
             </View>
 
             <View style={s.drawerDivider} />
 
-            {/* Itens do drawer */}
             {DRAWER_ITEMS.map((item) => (
               <TouchableOpacity key={item.route} style={s.drawerItem} onPress={() => handleDrawerNav(item.route)} activeOpacity={0.7}>
                 <Text style={s.drawerItemIcon}>{item.icon}</Text>
@@ -214,7 +232,11 @@ export default function HomeScreen() {
 
             <View style={s.drawerDivider} />
 
-            <TouchableOpacity style={s.drawerLogout} onPress={() => { closeDrawer(); setTimeout(() => router.replace("/Login"), 260); }} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={s.drawerLogout}
+              onPress={() => { closeDrawer(); setTimeout(() => router.replace("/Login"), 260); }}
+              activeOpacity={0.7}
+            >
               <Text style={s.drawerItemIcon}>🚪</Text>
               <Text style={[s.drawerItemLabel, { color: "#ef4444" }]}>Sair</Text>
             </TouchableOpacity>

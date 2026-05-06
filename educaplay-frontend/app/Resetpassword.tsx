@@ -71,21 +71,24 @@ export default function ResetPasswordScreen() {
 
   const handleRedefinir = async () => {
     if (novaSenha.length < 8) {
-      setErro("A senha deve ter pelo menos 8 caracteres.");
+      setErro('A senha deve ter pelo menos 8 caracteres.');
       return;
     }
     if (novaSenha !== confirmar) {
-      setErro("As senhas não coincidem.");
+      setErro('As senhas não coincidem.');
       return;
     }
-    setErro("");
+    setErro('');
     setCarregando(true);
-
-    // TODO: chamar authService.resetPassword(token, novaSenha)
-    await new Promise((r) => setTimeout(r, 1000)); // simula chamada de API
-
-    setCarregando(false);
-    setSucesso(true);
+    try {
+      const api = (await import('../src/services/api')).default;
+      await api.post('/auth/reset-senha', { token, novaSenha });
+      setSucesso(true);
+    } catch (err) {
+      setErro(err?.response?.data?.error || 'Token inválido ou expirado.');
+    } finally {
+      setCarregando(false);
+    }
   };
 
   // ── Tela de Sucesso ────────────────────────────────────────────────────

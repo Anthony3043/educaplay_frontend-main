@@ -1,4 +1,4 @@
-import { styles as s } from "@/styles/editarHorarioStyles";
+import { styles as s } from "@/styles/EditarHorarioStyles";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {

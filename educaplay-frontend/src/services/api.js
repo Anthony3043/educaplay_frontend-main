@@ -1,49 +1,29 @@
-/**
- * Serviço de API - Axios Configuration
- * Centraliza toda a configuração de requisições HTTP
- */
-
 import axios from 'axios';
-import { API_BASE_URL, API_TIMEOUT } from '../constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Criar instância do Axios
+const API_URL = 'http://localhost:3000/api'; // Web / iOS Simulator
+// Para Android Emulator use: 'http://10.0.2.2:3000/api'
+// Para dispositivo físico use o IP da sua máquina: 'http://192.168.x.x:3000/api'
+
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: API_TIMEOUT,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_URL,
+  timeout: 10000,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor de Requisição
-api.interceptors.request.use(
-  (config) => {
-    // Aqui você pode adicionar token de autenticação
-    // const token = AsyncStorage.getItem('@educaplay_token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Injeta o token em toda requisição
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem('@educaplay_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-// Interceptor de Resposta
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Tratamento de erros centralizado
-    if (error.response) {
-      // Erro da API
-      console.error('Erro na resposta:', error.response.status);
-    } else if (error.request) {
-      // Requisição feita mas sem resposta
-      console.error('Nenhuma resposta recebida');
-    } else {
-      // Erro ao preparar a requisição
-      console.error('Erro:', error.message);
+    if (error.response?.status === 401) {
+      AsyncStorage.removeItem('@educaplay_token');
+      AsyncStorage.removeItem('@educaplay_user');
     }
     return Promise.reject(error);
   }
