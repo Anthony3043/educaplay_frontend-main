@@ -8,6 +8,7 @@ import { styles as s } from "@/styles/CheckEmailstyles";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import api from "../src/services/api";
 
 const COUNTDOWN_INICIAL = 60;
 
@@ -45,12 +47,16 @@ export default function CheckEmailScreen() {
 
   const handleReenviar = async () => {
     setReenviando(true);
-    // TODO: chamar authService.sendPasswordReset(email)
-    await new Promise((r) => setTimeout(r, 800)); // simula chamada de API
-    setReenvios((r) => r + 1);
-    setCountdown(COUNTDOWN_INICIAL);
-    setPodeReenviar(false);
-    setReenviando(false);
+    try {
+      await api.post('/auth/check-email', { email });
+      setReenvios((r) => r + 1);
+      setCountdown(COUNTDOWN_INICIAL);
+      setPodeReenviar(false);
+    } catch {
+      Alert.alert('Erro', 'Não foi possível reenviar o e-mail. Tente novamente.');
+    } finally {
+      setReenviando(false);
+    }
   };
 
   return (
