@@ -5,7 +5,7 @@ import {
   SafeAreaView, ScrollView, StatusBar, Text,
   TextInput, TouchableOpacity, View, ActivityIndicator,
 } from "react-native";
-import { loginStyles as s } from "../styles/loginStyles";
+import { loginStyles as s } from "../styles/LoginStyles";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen() {

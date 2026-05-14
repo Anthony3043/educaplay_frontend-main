@@ -9,7 +9,7 @@ import Animated, {
     withSpring,
     withTiming,
 } from "react-native-reanimated";
-import { splashStyles as s } from "../styles/splashStyles";
+import { splashStyles as s } from "../styles/SplashStyles";
 
 const SPLASH_DURATION = 2800;
 
