@@ -5,8 +5,8 @@ import {
   Modal, Platform, SafeAreaView, ScrollView, StatusBar,
   Text, TextInput, TouchableOpacity, View,
 } from "react-native";
-import { loginStyles as s } from "../styles/LoginStyles";
-import { registerStyles as r } from "../styles/RegisterStyles";
+import { loginStyles as s } from "../styles/loginStyles";
+import { registerStyles as r } from "../styles/registerStyles";
 import { useAuth } from "../context/AuthContext";
 
 const { width } = Dimensions.get("window");

@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import api from "../src/services/api";
 
+
 type Notificacao = { id: string; icon: string; titulo: string; mensagem: string; lida: boolean; createdAt: string };
 type Tab = "recebidas" | "preferencias";
 
