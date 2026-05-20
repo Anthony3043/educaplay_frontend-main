@@ -43,7 +43,7 @@ const MENU_ITEMS = [
     iconBg: "#e8f0fe",
     title: "Cronogramas",
     subtitle: "Veja as aulas\natribuídas a você",
-    route: "/cronogramas",
+    route: "/cronogramas-professor",
   },
 ];
 
@@ -56,7 +56,7 @@ const TABS = [
 const DRAWER_ITEMS = [
   { icon: "🏠", label: "Home", route: "/home-professor" },
   { icon: "🗓️", label: "Minha Agenda", route: "/disponibilidade" },
-  { icon: "📅", label: "Cronogramas", route: "/cronogramas" },
+  { icon: "📅", label: "Cronogramas", route: "/cronogramas-professor" },
   { icon: "👤", label: "Perfil", route: "/perfil" },
   { icon: "⚙️", label: "Configurações", route: "/configuracoes" },
 ];
@@ -193,7 +193,7 @@ export default function HomeProfessorScreen() {
         </View>
 
         {/* Botão Ver Cronograma */}
-        <TouchableOpacity style={s.btnCriar} onPress={() => router.push("/cronogramas")} activeOpacity={0.85}>
+        <TouchableOpacity style={s.btnCriar} onPress={() => router.push("/cronogramas-professor")} activeOpacity={0.85}>
           <Text style={s.btnCriarIcon}>📅</Text>
           <Text style={s.btnCriarText}>Ver Cronograma</Text>
         </TouchableOpacity>

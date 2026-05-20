@@ -44,7 +44,8 @@ function RootNavigator() {
       <Stack.Screen name="sobre" />
       <Stack.Screen name="AulaDetalhe" />
       <Stack.Screen name="EditarHorario" />
-      
+      <Stack.Screen name="CriarHorario" />
+      <Stack.Screen name="cronogramas-professor" />
     </Stack>
   );
 }

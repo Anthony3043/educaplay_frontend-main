@@ -51,9 +51,16 @@ export default function RegisterScreen() {
       } else {
         router.replace("/home");
       }
-    } catch (err) {
-      const msg = (err as any)?.response?.data?.error || (err as any)?.message || "Erro ao criar conta. Verifique se o servidor está rodando.";
-      Alert.alert("Erro", msg);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const backendMsg = err?.response?.data?.error || err?.response?.data?.message;
+      let msg: string;
+      if (status === 409) {
+        msg = "Este e-mail já está cadastrado. Use outro e-mail ou faça login.";
+      } else {
+        msg = backendMsg || err?.message || "Erro ao criar conta. Tente novamente.";
+      }
+      Alert.alert("Erro no cadastro", msg);
     } finally {
       setCarregando(false);
     }

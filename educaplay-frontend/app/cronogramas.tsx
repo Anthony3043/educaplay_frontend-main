@@ -12,8 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-import { ActionBar } from "@/components/ActionBar";
 import api from "../src/services/api";
 
 export type TurnoId = "matutino" | "vespertino" | "noturno" | "integral";
@@ -37,16 +35,11 @@ type CronogramaAPI = {
     timeEnd: string;
     subject: string;
     isInterval: boolean;
-    professor: { nome: string } | null;
+    professor: { id: string; nome: string } | null;
   }>;
 };
 
-const TURNOS: Array<{
-  id: TurnoId;
-  label: string;
-  icon: string;
-  time: string;
-}> = [
+const TURNOS: Array<{ id: TurnoId; label: string; icon: string; time: string }> = [
   { id: "matutino",   label: "Matutino",   icon: "☀️",  time: "07:00 - 12:00" },
   { id: "vespertino", label: "Vespertino", icon: "🌤️", time: "13:00 - 18:00" },
   { id: "noturno",    label: "Noturno",    icon: "🌙",  time: "18:30 - 23:00" },
@@ -59,13 +52,10 @@ const TABS = [
   { id: "configuracoes", icon: "⚙️", label: "Configurações" },
 ];
 
-// Remover SCHEDULE_DATA mock — dados vêm do backend agora
-
 export default function CronogramasScreen() {
   const router = useRouter();
   const [selectedTurno, setSelectedTurno] = useState<TurnoId>("matutino");
   const [activeTab, setActiveTab] = useState("cronograma");
-  const [modoEdicao, setModoEdicao] = useState(false);
   const [cronogramas, setCronogramas] = useState<Record<TurnoId, Aula[]>>({
     matutino: [], vespertino: [], noturno: [], integral: [],
   });
@@ -73,8 +63,7 @@ export default function CronogramasScreen() {
     matutino: null, vespertino: null, noturno: null, integral: null,
   });
   const [carregando, setCarregando] = useState(true);
-  const [salvando, setSalvando] = useState(false);
-  const [aulasEditadas, setAulasEditadas] = useState<Record<string, Partial<Aula>>>({});
+  const [criando, setCriando] = useState(false);
 
   const carregar = useCallback(async () => {
     try {
@@ -92,6 +81,7 @@ export default function CronogramasScreen() {
             subject: a.subject,
             teacher: a.professor?.nome ?? "",
             isInterval: a.isInterval,
+            professorId: a.professor?.id ?? null,
           }));
         }
       });
@@ -106,35 +96,34 @@ export default function CronogramasScreen() {
 
   useEffect(() => { carregar(); }, [carregar]);
 
-  // Garante que o cronograma do turno existe no banco antes de editar
-  const garantirCronograma = async (turno: TurnoId): Promise<string> => {
-    if (cronogramaIds[turno]) return cronogramaIds[turno]!;
-    const res = await api.post("/cronogramas", { turno });
-    setCronogramaIds((prev) => ({ ...prev, [turno]: res.data.id }));
-    return res.data.id;
-  };
-
-  const handleSalvar = async () => {
-    if (Object.keys(aulasEditadas).length === 0) {
-      setModoEdicao(false);
+  const handleCriarCronograma = async () => {
+    if (cronogramaIds[selectedTurno]) {
+      Alert.alert("Aviso", `Já existe um cronograma para o turno ${selectedTurno}.`);
       return;
     }
-    setSalvando(true);
+    setCriando(true);
     try {
-      await garantirCronograma(selectedTurno);
-      await Promise.all(
-        Object.entries(aulasEditadas).map(([aulaId, dados]) =>
-          api.put(`/aulas/${aulaId}`, dados)
-        )
-      );
-      setAulasEditadas({});
-      setModoEdicao(false);
+      const res = await api.post("/cronogramas", { turno: selectedTurno });
+      setCronogramaIds((prev) => ({ ...prev, [selectedTurno]: res.data.id }));
+      Alert.alert("Sucesso", "Cronograma criado com sucesso!");
       await carregar();
     } catch {
-      Alert.alert("Erro", "Não foi possível salvar as alterações.");
+      Alert.alert("Erro", "Não foi possível criar o cronograma.");
     } finally {
-      setSalvando(false);
+      setCriando(false);
     }
+  };
+
+  const handleCriarHorario = () => {
+    const cronogramaId = cronogramaIds[selectedTurno];
+    if (!cronogramaId) {
+      Alert.alert("Atenção", "Crie um cronograma para este turno antes de adicionar horários.");
+      return;
+    }
+    router.push({
+      pathname: "/CriarHorario",
+      params: { cronogramaId, turno: selectedTurno },
+    });
   };
 
   const handleTabPress = (tabId: string) => {
@@ -147,20 +136,15 @@ export default function CronogramasScreen() {
     if (aula.isInterval) return;
     router.push({
       pathname: "/AulaDetalhe",
-      params: { id: aula.id, timeStart: aula.timeStart, timeEnd: aula.timeEnd, subject: aula.subject, teacher: aula.teacher, turno: selectedTurno },
+      params: {
+        id: aula.id,
+        timeStart: aula.timeStart,
+        timeEnd: aula.timeEnd,
+        subject: aula.subject,
+        teacher: aula.teacher,
+        turno: selectedTurno,
+      },
     });
-  };
-
-  const handleAulaEditPress = (aula: Aula) => {
-    router.push({
-      pathname: "/EditarHorario",
-      params: { id: aula.id, timeStart: aula.timeStart, timeEnd: aula.timeEnd, subject: aula.subject, teacher: aula.teacher, turno: selectedTurno, isInterval: aula.isInterval ? "true" : "false" },
-    });
-  };
-
-  const handleItemPress = (aula: Aula) => {
-    if (modoEdicao) handleAulaEditPress(aula);
-    else handleAulaPress(aula);
   };
 
   const aulasDoCronograma = cronogramas[selectedTurno];
@@ -169,7 +153,6 @@ export default function CronogramasScreen() {
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Text style={{ fontSize: 20 }}>←</Text>
@@ -178,78 +161,91 @@ export default function CronogramasScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Banner modo edição */}
-      {modoEdicao && (
-        <View style={editBannerStyle.banner}>
-          <Text style={editBannerStyle.text}>
-            ✏️ Modo edição — toque em um horário para editar
-          </Text>
-          <TouchableOpacity onPress={() => setModoEdicao(false)}>
-            <Text style={editBannerStyle.cancel}>Cancelar</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
       {carregando ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
-      <ScrollView contentContainerStyle={s.scrollContent}>
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Selecione o Turno</Text>
-          <View style={s.turnoGrid}>
-            {TURNOS.map((turno) => (
-              <TouchableOpacity key={turno.id} style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]} onPress={() => setSelectedTurno(turno.id)}>
-                <Text style={s.turnoIcon}>{turno.icon}</Text>
-                <Text style={s.turnoLabel}>{turno.label}</Text>
-                <Text style={s.turnoTime}>{turno.time}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Horários das Aulas</Text>
-          {aulasDoCronograma.length === 0 ? (
-            <View style={s.emptyState}>
-              <Text style={{ fontSize: 40 }}>🗓️</Text>
-              <Text style={s.emptyText}>Nenhum horário cadastrado para este turno.</Text>
+        <ScrollView contentContainerStyle={s.scrollContent}>
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Selecione o Turno</Text>
+            <View style={s.turnoGrid}>
+              {TURNOS.map((turno) => (
+                <TouchableOpacity
+                  key={turno.id}
+                  style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]}
+                  onPress={() => setSelectedTurno(turno.id)}
+                >
+                  <Text style={s.turnoIcon}>{turno.icon}</Text>
+                  <Text style={s.turnoLabel}>{turno.label}</Text>
+                  <Text style={s.turnoTime}>{turno.time}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          ) : (
-            aulasDoCronograma.map((item) =>
-              item.isInterval ? (
-                <TouchableOpacity key={item.id} style={[s.intervalItem, modoEdicao && editBannerStyle.editableItem]}
-                  onPress={() => modoEdicao && handleAulaEditPress(item)} activeOpacity={modoEdicao ? 0.7 : 1}>
-                  <Text style={s.intervalIcon}>{modoEdicao ? "✏️" : "☕"}</Text>
-                  <Text style={s.intervalText}>{item.subject} · {item.timeStart} – {item.timeEnd}</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity key={item.id} style={[s.horarioItem, modoEdicao && editBannerStyle.editableItem]}
-                  activeOpacity={0.75} onPress={() => handleItemPress(item)}>
-                  <View style={s.timeColumn}>
-                    <Text style={s.startTime}>{item.timeStart}</Text>
-                    <Text style={s.endTime}>{item.timeEnd}</Text>
+          </View>
+
+          {/* Botões de ação */}
+          <View style={actionStyles.row}>
+            <TouchableOpacity
+              style={[actionStyles.btn, actionStyles.btnPrimary, criando && actionStyles.btnDisabled]}
+              onPress={handleCriarCronograma}
+              disabled={criando}
+              activeOpacity={0.8}
+            >
+              <Text style={actionStyles.btnIcon}>📋</Text>
+              <Text style={actionStyles.btnTextPrimary}>
+                {criando ? "Criando..." : "Criar Cronograma"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[actionStyles.btn, actionStyles.btnSecondary]}
+              onPress={handleCriarHorario}
+              activeOpacity={0.8}
+            >
+              <Text style={actionStyles.btnIcon}>⏰</Text>
+              <Text style={actionStyles.btnTextSecondary}>Criar Horário</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Horários das Aulas</Text>
+            {aulasDoCronograma.length === 0 ? (
+              <View style={s.emptyState}>
+                <Text style={{ fontSize: 40 }}>🗓️</Text>
+                <Text style={s.emptyText}>Nenhum horário cadastrado para este turno.</Text>
+              </View>
+            ) : (
+              aulasDoCronograma.map((item) =>
+                item.isInterval ? (
+                  <View key={item.id} style={s.intervalItem}>
+                    <Text style={s.intervalIcon}>☕</Text>
+                    <Text style={s.intervalText}>
+                      {item.subject} · {item.timeStart} – {item.timeEnd}
+                    </Text>
                   </View>
-                  <View style={s.infoColumn}>
-                    <Text style={s.materiaName}>{item.subject}</Text>
-                    <Text style={s.professorName}>{item.teacher}</Text>
-                  </View>
-                  <Text style={{ fontSize: 18, color: "#CCC" }}>{modoEdicao ? "✏️" : "›"}</Text>
-                </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={s.horarioItem}
+                    activeOpacity={0.75}
+                    onPress={() => handleAulaPress(item)}
+                  >
+                    <View style={s.timeColumn}>
+                      <Text style={s.startTime}>{item.timeStart}</Text>
+                      <Text style={s.endTime}>{item.timeEnd}</Text>
+                    </View>
+                    <View style={s.infoColumn}>
+                      <Text style={s.materiaName}>{item.subject}</Text>
+                      <Text style={s.professorName}>{item.teacher}</Text>
+                    </View>
+                    <Text style={{ fontSize: 18, color: "#CCC" }}>›</Text>
+                  </TouchableOpacity>
+                )
               )
-            )
-          )}
-        </View>
-      </ScrollView>
+            )}
+          </View>
+        </ScrollView>
       )}
 
-      <ActionBar
-        onEdit={() => setModoEdicao(true)}
-        onSave={handleSalvar}
-        onExportPDF={() => Alert.alert("Em breve", "Exportação em PDF será implementada em breve.")}
-        salvando={salvando}
-      />
-
-      {/* Tab Bar */}
       <View style={s.tabBar}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -260,12 +256,8 @@ export default function CronogramasScreen() {
               onPress={() => handleTabPress(tab.id)}
               activeOpacity={0.7}
             >
-              <Text style={[s.tabIcon, isActive && s.tabIconActive]}>
-                {tab.icon}
-              </Text>
-              <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>
-                {tab.label}
-              </Text>
+              <Text style={[s.tabIcon, isActive && s.tabIconActive]}>{tab.icon}</Text>
+              <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -274,31 +266,42 @@ export default function CronogramasScreen() {
   );
 }
 
-const editBannerStyle = StyleSheet.create({
-  banner: {
+const actionStyles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    gap: 10,
+    marginBottom: 4,
+  },
+  btn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 13,
+    borderRadius: 14,
+  },
+  btnPrimary: {
+    backgroundColor: "#3a7d44",
+  },
+  btnSecondary: {
     backgroundColor: "#EEF1FF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#C7CFFF",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
   },
-  text: {
-    fontSize: 13,
-    color: "#5B6BD8",
-    fontWeight: "600",
-    flex: 1,
+  btnDisabled: {
+    opacity: 0.6,
   },
-  cancel: {
-    fontSize: 13,
-    color: "#E05A5A",
+  btnIcon: {
+    fontSize: 16,
+  },
+  btnTextPrimary: {
+    fontSize: 14,
     fontWeight: "700",
-    marginLeft: 12,
+    color: "#fff",
   },
-  editableItem: {
-    borderColor: "#C7CFFF",
-    borderWidth: 1.5,
+  btnTextSecondary: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#5B6BD8",
   },
 });
