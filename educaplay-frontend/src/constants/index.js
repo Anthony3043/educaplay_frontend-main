@@ -8,7 +8,7 @@ export { TYPOGRAPHY, default as TYPOGRAPHY_DEFAULT } from './typography';
 export { SPACING, default as SPACING_DEFAULT } from './spacing';
 
 // API Constants
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://educaplay-backend.onrender.com/api';
 export const API_TIMEOUT = 10000;
 
 // Storage Keys
