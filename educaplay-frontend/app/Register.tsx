@@ -94,12 +94,6 @@ export default function RegisterScreen() {
               <TouchableOpacity style={r.backBtn} onPress={() => router.back()}>
                 <Text style={r.backArrow}>←</Text>
               </TouchableOpacity>
-              <View style={r.headerRight}>
-                <Text style={r.headerText}>Já tem uma conta? </Text>
-                <TouchableOpacity onPress={() => router.back()}>
-                  <Text style={r.headerLink}>Entrar</Text>
-                </TouchableOpacity>
-              </View>
             </View>
             <View style={r.logoMascoteRow}>
               <View style={r.logoSide}>
@@ -115,7 +109,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <View style={s.card}>
+          <View style={[s.card, { marginTop: 0 }]}>
             <Text style={s.welcomeTitle}>Crie sua conta</Text>
             <Text style={s.welcomeSubtitle}>Preencha os dados abaixo para começar</Text>
 
@@ -179,21 +173,21 @@ export default function RegisterScreen() {
               </Text>
             )}
 
-            <View style={r.rowInputs}>
+            <View style={[r.rowInputs, { alignItems: "stretch", marginBottom: 12 }]}>
               <View style={r.halfField}>
-                <View style={r.inlineInput}>
+                <View style={[r.inlineInput, { flex: 1, marginBottom: 0 }]}>
                   <View style={r.inlineIconLabel}>
                     <Text style={r.inlineIcon}>🏫</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={r.inlineLabel}>Instituição (opcional)</Text>
-                      <TextInput style={r.inlineTextInput} placeholder="Nome da instituição" placeholderTextColor="#bbbcc8"
+                      <TextInput style={r.inlineTextInput} placeholder="Nome da escola" placeholderTextColor="#bbbcc8"
                         value={instituicao} onChangeText={setInstituicao} />
                     </View>
                   </View>
                 </View>
               </View>
               <View style={r.halfField}>
-                <TouchableOpacity style={[r.inlineInput, papel ? r.inlineInputActive : null]} onPress={() => setPapelOpen(true)} activeOpacity={0.8}>
+                <TouchableOpacity style={[r.inlineInput, papel ? r.inlineInputActive : null, { flex: 1, marginBottom: 0 }]} onPress={() => setPapelOpen(true)} activeOpacity={0.8}>
                   <View style={r.inlineIconLabel}>
                     <Text style={r.inlineIcon}>🛡️</Text>
                     <View style={{ flex: 1 }}>
@@ -214,6 +208,13 @@ export default function RegisterScreen() {
                 <Text style={s.btnArrow}>→</Text>
               </>}
             </TouchableOpacity>
+
+            <View style={[s.createAccountRow, { marginTop: 16 }]}>
+              <Text style={s.createAccountText}>Já tem uma conta? </Text>
+              <TouchableOpacity onPress={() => router.back()}>
+                <Text style={s.createAccountLink}>Entrar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
