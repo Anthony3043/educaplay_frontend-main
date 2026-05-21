@@ -30,6 +30,12 @@ export default function IndisponibilidadeScreen() {
   const [timeEnd, setTimeEnd] = useState("");
   const [descricao, setDescricao] = useState("");
 
+  const formatarHorario = (texto: string) => {
+    const digitos = texto.replace(/\D/g, "").slice(0, 4);
+    if (digitos.length <= 2) return digitos;
+    return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
+  };
+
   const carregar = useCallback(async () => {
     try {
       const res = await api.get("/bloqueios");
@@ -129,18 +135,22 @@ export default function IndisponibilidadeScreen() {
             <TextInput
               style={s.input}
               value={timeStart}
-              onChangeText={setTimeStart}
-              placeholder="Ex: 07:00"
+              onChangeText={(t) => setTimeStart(formatarHorario(t))}
+              placeholder="0700 → 07:00"
               placeholderTextColor="#AAAAAA"
+              keyboardType="numeric"
+              maxLength={5}
             />
 
             <Text style={s.label}>Horário de término</Text>
             <TextInput
               style={s.input}
               value={timeEnd}
-              onChangeText={setTimeEnd}
-              placeholder="Ex: 09:00"
+              onChangeText={(t) => setTimeEnd(formatarHorario(t))}
+              placeholder="0900 → 09:00"
               placeholderTextColor="#AAAAAA"
+              keyboardType="numeric"
+              maxLength={5}
             />
 
             <Text style={s.label}>Escola / motivo (opcional)</Text>
