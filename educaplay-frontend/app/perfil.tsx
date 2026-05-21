@@ -50,7 +50,7 @@ export default function PerfilScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.6,
+      quality: 0.4,
       base64: true,
     });
     if (!result.canceled && result.assets[0]) {
