@@ -40,9 +40,11 @@ export default function ForgotPasswordScreen() {
     try {
       await api.post("/auth/check-email", { email: email.trim() });
       router.push({ pathname: "/CheckEmail", params: { email } });
-    } catch (err) {
-      if ((err as any)?.response?.status === 404) {
+    } catch (err: any) {
+      if (err?.response?.status === 404) {
         setErro("Este e-mail não está cadastrado.");
+      } else if (err?.code === 'ECONNABORTED') {
+        setErro("O servidor demorou para responder. Aguarde alguns segundos e tente novamente.");
       } else {
         setErro("Erro ao verificar e-mail. Tente novamente.");
       }

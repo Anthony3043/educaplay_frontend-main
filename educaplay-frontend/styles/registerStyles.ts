@@ -115,14 +115,13 @@ export const registerStyles = StyleSheet.create({
   inlineLabel: {
     fontSize: 11,
     fontWeight: "600",
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
     marginBottom: 1,
   },
   inlineTextInput: {
-    fontSize: 13,
+    flex: 1,
+    fontSize: 14,
     color: Colors.textPrimary,
-    padding: 0,
-    margin: 0,
   },
 
   // ── Modal overlay ─────────────────────────────────────────

@@ -52,8 +52,15 @@ export default function CheckEmailScreen() {
       setReenvios((r) => r + 1);
       setCountdown(COUNTDOWN_INICIAL);
       setPodeReenviar(false);
-    } catch {
-      Alert.alert('Erro', 'Não foi possível reenviar o e-mail. Tente novamente.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 404) {
+        Alert.alert('Erro', 'E-mail não encontrado. Volte e tente com outro e-mail.');
+      } else if (err?.code === 'ECONNABORTED') {
+        Alert.alert('Tempo esgotado', 'O servidor demorou para responder. Aguarde alguns segundos e tente novamente.');
+      } else {
+        Alert.alert('Erro', 'Não foi possível reenviar o e-mail. Tente novamente.');
+      }
     } finally {
       setReenviando(false);
     }
