@@ -195,9 +195,9 @@ export default function AulaDetalheScreen() {
                   <TouchableOpacity key={prof.id} style={[es.professorCard, sel && es.professorCardSelected]} onPress={() => setProfessorSelecionado(sel ? null : prof)} activeOpacity={0.75}>
                     <View style={es.professorAvatar}>
                       {prof.foto ? (
-                        <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+                        <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="cover" />
                       ) : (
-                        <Text style={es.professorAvatarText}>👨🏫</Text>
+                        <Text style={es.professorAvatarText}>👤</Text>
                       )}
                     </View>
                     <View style={es.professorInfo}>
@@ -265,7 +265,7 @@ export default function AulaDetalheScreen() {
         ) : null}
 
         <View style={s.teacherCard}>
-          <View style={s.teacherAvatar}><Text style={{ fontSize: 28 }}>👨‍🏫</Text></View>
+          <View style={s.teacherAvatar}><Text style={{ fontSize: 28 }}>👤</Text></View>
           <View style={s.teacherInfo}>
             <Text style={s.teacherLabel}>Professor(a)</Text>
             <Text style={s.teacherName}>{params.teacher || "Não atribuído"}</Text>

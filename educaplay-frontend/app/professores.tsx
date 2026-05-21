@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -19,6 +20,7 @@ type Professor = {
   email: string;
   cargo: string | null;
   instituicao: string | null;
+  foto?: string | null;
 };
 
 export default function ProfessoresScreen() {
@@ -65,7 +67,11 @@ export default function ProfessoresScreen() {
             professores.map((prof) => (
               <View key={prof.id} style={s.professorCard}>
                 <View style={s.professorAvatar}>
-                  <Text style={s.professorAvatarText}>👨🏫</Text>
+                  {prof.foto ? (
+                    <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
+                  ) : (
+                    <Text style={s.professorAvatarText}>👤</Text>
+                  )}
                 </View>
                 <View style={s.professorInfo}>
                   <Text style={s.professorNome}>{prof.nome}</Text>

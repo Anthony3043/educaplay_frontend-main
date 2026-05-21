@@ -262,9 +262,9 @@ export default function CriarHorarioScreen() {
                       >
                         <View style={s.professorAvatar}>
                           {prof.foto ? (
-                            <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+                            <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="cover" />
                           ) : (
-                            <Text style={s.professorAvatarText}>👨🏫</Text>
+                            <Text style={s.professorAvatarText}>👤</Text>
                           )}
                         </View>
                         <View style={s.professorInfo}>
