@@ -91,12 +91,12 @@ export const registerStyles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1.2,
     borderColor: Colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     backgroundColor: Colors.surface,
-    marginBottom: 14,
-    gap: 8,
+    marginBottom: 12,
+    gap: 10,
   },
   // borda verde quando papel está selecionado
   inlineInputActive: {
@@ -107,16 +107,16 @@ export const registerStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    gap: 8,
+    gap: 10,
   },
   inlineIcon: {
-    fontSize: 16,
+    fontSize: 18,
   },
   inlineLabel: {
     fontSize: 11,
     fontWeight: "600",
     color: Colors.textSecondary,
-    marginBottom: 1,
+    marginBottom: 2,
   },
   inlineTextInput: {
     flex: 1,

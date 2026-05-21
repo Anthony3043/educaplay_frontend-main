@@ -115,33 +115,28 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <View style={[s.card, { backgroundColor: "transparent" }]}>
+          <View style={s.card}>
             <Text style={s.welcomeTitle}>Crie sua conta</Text>
             <Text style={s.welcomeSubtitle}>Preencha os dados abaixo para começar</Text>
 
-            <View style={r.rowInputs}>
-              <View style={r.halfField}>
-                <View style={r.inlineInput}>
-                  <View style={r.inlineIconLabel}>
-                    <Text style={r.inlineIcon}>👤</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={r.inlineLabel}>Nome completo</Text>
-                      <TextInput style={r.inlineTextInput} placeholder="Digite seu nome" placeholderTextColor="#bbbcc8"
-                        value={nome} onChangeText={setNome} autoCapitalize="words" />
-                    </View>
-                  </View>
+            <View style={r.inlineInput}>
+              <View style={r.inlineIconLabel}>
+                <Text style={r.inlineIcon}>👤</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={r.inlineLabel}>Nome completo</Text>
+                  <TextInput style={r.inlineTextInput} placeholder="Digite seu nome completo" placeholderTextColor="#bbbcc8"
+                    value={nome} onChangeText={setNome} autoCapitalize="words" />
                 </View>
               </View>
-              <View style={r.halfField}>
-                <View style={r.inlineInput}>
-                  <View style={r.inlineIconLabel}>
-                    <Text style={r.inlineIcon}>✉️</Text>
-                    <View style={{ flex: 1 }}>
-                      <Text style={r.inlineLabel}>E-mail</Text>
-                      <TextInput style={r.inlineTextInput} placeholder="Digite seu e-mail" placeholderTextColor="#bbbcc8"
-                        value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
-                    </View>
-                  </View>
+            </View>
+
+            <View style={r.inlineInput}>
+              <View style={r.inlineIconLabel}>
+                <Text style={r.inlineIcon}>✉️</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={r.inlineLabel}>E-mail</Text>
+                  <TextInput style={r.inlineTextInput} placeholder="Digite seu e-mail" placeholderTextColor="#bbbcc8"
+                    value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
                 </View>
               </View>
             </View>
