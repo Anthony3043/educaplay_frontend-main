@@ -4,7 +4,6 @@ import {
   Animated,
   Dimensions,
   Image,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
@@ -12,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { homeStyles as s } from "../styles/homeStyles";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";

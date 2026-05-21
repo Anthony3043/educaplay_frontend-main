@@ -3,9 +3,10 @@ import { Colors } from "@/src/constants/colors";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Modal, SafeAreaView, ScrollView, StatusBar,
+  ActivityIndicator, Modal, ScrollView, StatusBar,
   StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LocalAuthentication from "expo-local-authentication";
 import api from "../src/services/api";

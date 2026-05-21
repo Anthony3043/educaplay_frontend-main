@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert, Image, KeyboardAvoidingView, Platform,
-  SafeAreaView, ScrollView, StatusBar, Text,
+  Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Text,
   TextInput, TouchableOpacity, View, ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { loginStyles as s } from "../styles/loginStyles";
 import { useAuth } from "../context/AuthContext";
 

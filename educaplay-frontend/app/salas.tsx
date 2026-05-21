@@ -2,9 +2,10 @@ import { styles as s } from "@/styles/SalasStyles";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, Modal, SafeAreaView, ScrollView,
+  ActivityIndicator, Alert, Modal, ScrollView,
   StatusBar, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import api from "../src/services/api";
 
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };

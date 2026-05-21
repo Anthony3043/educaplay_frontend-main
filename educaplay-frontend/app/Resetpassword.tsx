@@ -12,7 +12,6 @@ import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -21,6 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // ── Utilitário: análise de força da senha ──────────────────────────────────
 type ForcaSenha = { nivel: 0 | 1 | 2 | 3 | 4; label: string; cor: string };

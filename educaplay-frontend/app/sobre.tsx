@@ -5,13 +5,13 @@ import {
   Alert,
   Image,
   Linking,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/src/constants/colors";
 
 const SOBRE_ITEMS = [

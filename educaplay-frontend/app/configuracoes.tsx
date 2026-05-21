@@ -4,13 +4,13 @@ import React, { useState } from "react";
 import type { Href } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import {
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const TABS = [
   { id: "home", icon: "🏠", label: "Home" },

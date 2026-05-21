@@ -3,9 +3,10 @@ import { Colors } from "@/src/constants/colors";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, SafeAreaView, ScrollView, StatusBar,
+  ActivityIndicator, Alert, ScrollView, StatusBar,
   Switch, Text, TouchableOpacity, View, StyleSheet,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/services/api";
 import { agendarLembretes, cancelarLembretes } from "../hooks/useNotifications";

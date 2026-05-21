@@ -3,9 +3,10 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, Image, SafeAreaView, ScrollView,
+  ActivityIndicator, Alert, Image, ScrollView,
   StatusBar, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
 

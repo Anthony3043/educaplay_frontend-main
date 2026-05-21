@@ -1,20 +1,26 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import api from '../src/services/api';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+const isExpoGo = Constants.appOwnership === 'expo';
+
+if (!isExpoGo) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+}
 
 export async function registrarPushToken() {
   if (Platform.OS === 'web') return;
   if (!Device.isDevice) return;
+  if (isExpoGo) return;
 
   const perms = await Notifications.getPermissionsAsync() as any;
   let isGranted: boolean = perms.granted;
@@ -35,6 +41,7 @@ export async function registrarPushToken() {
 
 export async function agendarLembretes(aulas: { subject: string; timeStart: string }[]) {
   if (Platform.OS === 'web') return;
+  if (isExpoGo) return;
 
   await Notifications.cancelAllScheduledNotificationsAsync();
 
@@ -43,7 +50,6 @@ export async function agendarLembretes(aulas: { subject: string; timeStart: stri
     const hora = parseInt(hStr, 10);
     const minuto = parseInt(mStr, 10);
 
-    // Lembrete 15 minutos antes da aula
     let minLembrete = minuto - 15;
     let horaLembrete = hora;
     if (minLembrete < 0) { minLembrete += 60; horaLembrete -= 1; }
@@ -66,5 +72,6 @@ export async function agendarLembretes(aulas: { subject: string; timeStart: stri
 
 export async function cancelarLembretes() {
   if (Platform.OS === 'web') return;
+  if (isExpoGo) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
