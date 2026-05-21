@@ -6,7 +6,10 @@ import {
   ActivityIndicator, Alert, SafeAreaView, ScrollView, StatusBar,
   Switch, Text, TouchableOpacity, View, StyleSheet,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/services/api";
+import { agendarLembretes, cancelarLembretes } from "../hooks/useNotifications";
+import { useAuth } from "../context/AuthContext";
 
 
 type Notificacao = { id: string; icon: string; titulo: string; mensagem: string; lida: boolean; createdAt: string };
@@ -30,16 +33,48 @@ function formatarTempo(dateStr: string) {
   return `${Math.floor(h / 24)}d atrás`;
 }
 
+const PREFS_KEY = '@educaplay_notif_prefs';
+const PREFS_DEFAULT = { cronograma: true, professores: true, salas: false, lembretes: true, sistema: false };
+
 export default function NotificacoesScreen() {
   const router = useRouter();
+  const { usuario } = useAuth();
   const [tab, setTab] = useState<Tab>("recebidas");
   const [notifs, setNotifs] = useState<Notificacao[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [prefs, setPrefs] = useState<Record<string, boolean>>({
-    cronograma: true, professores: true, salas: false, lembretes: true, sistema: false,
-  });
+  const [prefs, setPrefs] = useState<Record<string, boolean>>(PREFS_DEFAULT);
 
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => {
+    carregar();
+    carregarPrefs();
+  }, []);
+
+  const carregarPrefs = async () => {
+    try {
+      const salvo = await AsyncStorage.getItem(PREFS_KEY);
+      if (salvo) setPrefs(JSON.parse(salvo));
+    } catch {}
+  };
+
+  const salvarPref = async (id: string, valor: boolean) => {
+    const novas = { ...prefs, [id]: valor };
+    setPrefs(novas);
+    await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(novas));
+
+    if (id === 'lembretes' && usuario?.papel === 'Professor') {
+      if (valor) {
+        try {
+          const res = await api.get('/cronogramas');
+          const minhasAulas = res.data.flatMap((c: any) =>
+            c.aulas.filter((a: any) => a.professorId === usuario.id && !a.isInterval)
+          );
+          await agendarLembretes(minhasAulas);
+        } catch {}
+      } else {
+        await cancelarLembretes();
+      }
+    }
+  };
 
   const carregar = async () => {
     try {
@@ -155,7 +190,7 @@ export default function NotificacoesScreen() {
                   <Text style={s.configTitle}>{item.title}</Text>
                   <Text style={s.configSubtitle}>{item.subtitle}</Text>
                 </View>
-                <Switch value={prefs[item.id]} onValueChange={() => setPrefs((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                <Switch value={prefs[item.id]} onValueChange={(val) => salvarPref(item.id, val)}
                   trackColor={{ false: Colors.border, true: Colors.primaryLight }}
                   thumbColor={prefs[item.id] ? Colors.primary : Colors.textMuted} />
               </View>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../src/services/api';
+import { registrarPushToken } from '../hooks/useNotifications';
 
 type Usuario = {
   id: string;
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem('@educaplay_token', token);
     await AsyncStorage.setItem('@educaplay_user', JSON.stringify(usuario));
     setUsuario(usuario);
+    registrarPushToken().catch(() => {});
     return usuario;
   };
 
