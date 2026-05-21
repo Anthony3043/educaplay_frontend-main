@@ -30,7 +30,7 @@ type AulaProfessor = {
 type CronogramaAPI = {
   id: string;
   turno: string;
-  aulas: Array<{
+  aulas: {
     id: string;
     timeStart: string;
     timeEnd: string;
@@ -38,10 +38,10 @@ type CronogramaAPI = {
     isInterval: boolean;
     professor: { id: string; nome: string } | null;
     sala: { id: string; nome: string; turma?: string | null } | null;
-  }>;
+  }[];
 };
 
-const TURNOS: Array<{ id: TurnoId; label: string; icon: string; time: string }> = [
+const TURNOS: { id: TurnoId; label: string; icon: string; time: string }[] = [
   { id: "matutino",   label: "Matutino",   icon: "☀️",  time: "07:00 - 12:00" },
   { id: "vespertino", label: "Vespertino", icon: "🌤️", time: "13:00 - 18:00" },
   { id: "noturno",    label: "Noturno",    icon: "🌙",  time: "18:30 - 23:00" },

@@ -1,15 +1,13 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator, Alert, Dimensions, Image, KeyboardAvoidingView,
+  ActivityIndicator, Alert, Image, KeyboardAvoidingView,
   Modal, Platform, SafeAreaView, ScrollView, StatusBar,
   Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { loginStyles as s } from "../styles/loginStyles";
 import { registerStyles as r } from "../styles/registerStyles";
 import { useAuth } from "../context/AuthContext";
-
-const { width } = Dimensions.get("window");
 
 export default function RegisterScreen() {
   const router = useRouter();

@@ -18,13 +18,13 @@ const TABS = [
   { id: "configuracoes", icon: "⚙️", label: "Configurações" },
 ];
 
-const CONFIG_ITEMS: Array<{
+const CONFIG_ITEMS: {
   id: string;
   title: string;
   subtitle: string;
   icon: string;
   route?: Href;
-}> = [
+}[] = [
   {
     id: "perfil",
     title: "Meu Perfil",

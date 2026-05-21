@@ -74,9 +74,8 @@ export default function HomeScreen() {
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * DICAS.length);
-    animateTroca(randomIndex);
-  }, []);
+    animateTroca(Math.floor(Math.random() * DICAS.length));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const animateTroca = (novoIndex: number) => {
     Animated.timing(dicaOpacity, { toValue: 0, duration: 250, useNativeDriver: true }).start(() => {

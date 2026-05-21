@@ -76,7 +76,7 @@ export default function SplashScreen() {
     }, SPLASH_DURATION);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Animated styles
   const topAnimStyle = useAnimatedStyle(() => ({

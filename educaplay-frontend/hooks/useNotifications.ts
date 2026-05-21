@@ -33,7 +33,7 @@ export async function registrarPushToken() {
   }
 }
 
-export async function agendarLembretes(aulas: Array<{ subject: string; timeStart: string }>) {
+export async function agendarLembretes(aulas: { subject: string; timeStart: string }[]) {
   if (Platform.OS === 'web') return;
 
   await Notifications.cancelAllScheduledNotificationsAsync();
