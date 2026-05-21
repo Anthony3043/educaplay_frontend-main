@@ -1,12 +1,20 @@
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import api from '../src/services/api';
 
 const isExpoGo = Constants.appOwnership === 'expo';
 
-if (!isExpoGo) {
+function getNotif() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('expo-notifications') as typeof import('expo-notifications');
+}
+
+export async function registrarPushToken() {
+  if (Platform.OS === 'web' || isExpoGo || !Device.isDevice) return;
+
+  const Notifications = getNotif();
+
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
@@ -15,12 +23,6 @@ if (!isExpoGo) {
       shouldSetBadge: true,
     }),
   });
-}
-
-export async function registrarPushToken() {
-  if (Platform.OS === 'web') return;
-  if (!Device.isDevice) return;
-  if (isExpoGo) return;
 
   const perms = await Notifications.getPermissionsAsync() as any;
   let isGranted: boolean = perms.granted;
@@ -32,17 +34,16 @@ export async function registrarPushToken() {
 
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync();
-    const token = tokenData.data;
-    await api.put('/auth/push-token', { token });
+    await api.put('/auth/push-token', { token: tokenData.data });
   } catch (e) {
     console.warn('Push token não obtido:', e);
   }
 }
 
 export async function agendarLembretes(aulas: { subject: string; timeStart: string }[]) {
-  if (Platform.OS === 'web') return;
-  if (isExpoGo) return;
+  if (Platform.OS === 'web' || isExpoGo) return;
 
+  const Notifications = getNotif();
   await Notifications.cancelAllScheduledNotificationsAsync();
 
   for (const aula of aulas) {
@@ -61,17 +62,12 @@ export async function agendarLembretes(aulas: { subject: string; timeStart: stri
         body: `Sua aula de "${aula.subject}" começa em 15 minutos (${aula.timeStart}).`,
         sound: true,
       },
-      trigger: {
-        hour: horaLembrete,
-        minute: minLembrete,
-        repeats: true,
-      } as any,
+      trigger: { hour: horaLembrete, minute: minLembrete, repeats: true } as any,
     });
   }
 }
 
 export async function cancelarLembretes() {
-  if (Platform.OS === 'web') return;
-  if (isExpoGo) return;
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  if (Platform.OS === 'web' || isExpoGo) return;
+  getNotif().cancelAllScheduledNotificationsAsync();
 }
