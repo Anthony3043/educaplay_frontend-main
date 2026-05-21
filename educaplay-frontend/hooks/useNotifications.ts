@@ -5,7 +5,8 @@ import api from '../src/services/api';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -15,13 +16,13 @@ export async function registrarPushToken() {
   if (Platform.OS === 'web') return;
   if (!Device.isDevice) return;
 
-  const { status: existente } = await Notifications.getPermissionsAsync();
-  let status = existente;
-  if (existente !== 'granted') {
-    const { status: novo } = await Notifications.requestPermissionsAsync();
-    status = novo;
+  const perms = await Notifications.getPermissionsAsync() as any;
+  let isGranted: boolean = perms.granted;
+  if (!isGranted) {
+    const resultado = await Notifications.requestPermissionsAsync() as any;
+    isGranted = resultado.granted;
   }
-  if (status !== 'granted') return;
+  if (!isGranted) return;
 
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync();
