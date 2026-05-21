@@ -19,7 +19,8 @@ export default function PerfilScreen() {
   const router = useRouter();
   const { usuario, atualizarUsuario } = useAuth();
   const [activeTab, setActiveTab] = useState("configuracoes");
-  const [foto, setFoto] = useState(usuario?.foto || "https://via.placeholder.com/120?text=Foto");
+  const [foto, setFoto] = useState<string>(usuario?.foto || "");
+  const [fotoBase64, setFotoBase64] = useState<string | null>(null);
   const [nome, setNome] = useState(usuario?.nome || "");
   const [cargo, setCargo] = useState(usuario?.cargo || "");
   const [escola, setEscola] = useState(usuario?.instituicao || "");
@@ -31,7 +32,7 @@ export default function PerfilScreen() {
       setNome(usuario.nome || "");
       setCargo(usuario.cargo || "");
       setEscola(usuario.instituicao || "");
-      setFoto(usuario.foto || "https://via.placeholder.com/120?text=Foto");
+      setFoto(usuario.foto || "");
     }
   }, [usuario]);
 
@@ -45,15 +46,30 @@ export default function PerfilScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") { Alert.alert("Permissão necessária", "Precisamos de acesso à sua galeria."); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 0.7 });
-    if (!result.canceled) setFoto(result.assets[0].uri);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.6,
+      base64: true,
+    });
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      setFoto(asset.uri);
+      if (asset.base64) {
+        setFotoBase64(`data:image/jpeg;base64,${asset.base64}`);
+      }
+    }
   };
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const res = await api.put("/auth/perfil", { nome, cargo, instituicao: escola });
+      const payload: any = { nome, cargo, instituicao: escola };
+      if (fotoBase64) payload.foto = fotoBase64;
+      const res = await api.put("/auth/perfil", payload);
       atualizarUsuario(res.data);
+      setFotoBase64(null);
       setIsEditing(false);
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
     } catch {
@@ -79,7 +95,13 @@ export default function PerfilScreen() {
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={s.perfilCard}>
           <TouchableOpacity style={s.fotoContainer} onPress={isEditing ? pickImage : undefined} activeOpacity={isEditing ? 0.7 : 1}>
-            <Image source={{ uri: foto }} style={s.foto} resizeMode="cover" />
+            {foto ? (
+              <Image source={{ uri: foto }} style={s.foto} resizeMode="cover" />
+            ) : (
+              <View style={[s.foto, { backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center" }]}>
+                <Text style={{ fontSize: 48 }}>👤</Text>
+              </View>
+            )}
             {isEditing && <View style={s.fotoOverlay}><Text style={s.fotoOverlayText}>📷</Text></View>}
           </TouchableOpacity>
           <Text style={s.perfilNome}>{nome}</Text>

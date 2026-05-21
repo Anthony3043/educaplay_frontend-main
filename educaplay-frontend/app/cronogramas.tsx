@@ -24,6 +24,9 @@ export type Aula = {
   teacher: string;
   isInterval?: boolean;
   professorId?: string | null;
+  salaId?: string | null;
+  salaNome?: string | null;
+  salaTurma?: string | null;
 };
 
 type CronogramaAPI = {
@@ -36,6 +39,7 @@ type CronogramaAPI = {
     subject: string;
     isInterval: boolean;
     professor: { id: string; nome: string } | null;
+    sala: { id: string; nome: string; turma?: string | null } | null;
   }>;
 };
 
@@ -63,7 +67,6 @@ export default function CronogramasScreen() {
     matutino: null, vespertino: null, noturno: null, integral: null,
   });
   const [carregando, setCarregando] = useState(true);
-  const [criando, setCriando] = useState(false);
 
   const carregar = useCallback(async () => {
     try {
@@ -82,6 +85,9 @@ export default function CronogramasScreen() {
             teacher: a.professor?.nome ?? "",
             isInterval: a.isInterval,
             professorId: a.professor?.id ?? null,
+            salaId: a.sala?.id ?? null,
+            salaNome: a.sala?.nome ?? null,
+            salaTurma: a.sala?.turma ?? null,
           }));
         }
       });
@@ -96,29 +102,17 @@ export default function CronogramasScreen() {
 
   useEffect(() => { carregar(); }, [carregar]);
 
-  const handleCriarCronograma = async () => {
-    if (cronogramaIds[selectedTurno]) {
-      Alert.alert("Aviso", `Já existe um cronograma para o turno ${selectedTurno}.`);
-      return;
-    }
-    setCriando(true);
-    try {
-      const res = await api.post("/cronogramas", { turno: selectedTurno });
-      setCronogramaIds((prev) => ({ ...prev, [selectedTurno]: res.data.id }));
-      Alert.alert("Sucesso", "Cronograma criado com sucesso!");
-      await carregar();
-    } catch {
-      Alert.alert("Erro", "Não foi possível criar o cronograma.");
-    } finally {
-      setCriando(false);
-    }
-  };
-
-  const handleCriarHorario = () => {
-    const cronogramaId = cronogramaIds[selectedTurno];
+  const handleCriarHorario = async () => {
+    let cronogramaId = cronogramaIds[selectedTurno];
     if (!cronogramaId) {
-      Alert.alert("Atenção", "Crie um cronograma para este turno antes de adicionar horários.");
-      return;
+      try {
+        const res = await api.post("/cronogramas", { turno: selectedTurno });
+        cronogramaId = res.data.id;
+        setCronogramaIds((prev) => ({ ...prev, [selectedTurno]: cronogramaId }));
+      } catch {
+        Alert.alert("Erro", "Não foi possível iniciar o cronograma.");
+        return;
+      }
     }
     router.push({
       pathname: "/CriarHorario",
@@ -142,6 +136,10 @@ export default function CronogramasScreen() {
         timeEnd: aula.timeEnd,
         subject: aula.subject,
         teacher: aula.teacher,
+        professorId: aula.professorId ?? "",
+        salaId: aula.salaId ?? "",
+        salaNome: aula.salaNome ?? "",
+        salaTurma: aula.salaTurma ?? "",
         turno: selectedTurno,
       },
     });
@@ -182,27 +180,15 @@ export default function CronogramasScreen() {
             </View>
           </View>
 
-          {/* Botões de ação */}
+          {/* Botão de ação */}
           <View style={actionStyles.row}>
             <TouchableOpacity
-              style={[actionStyles.btn, actionStyles.btnPrimary, criando && actionStyles.btnDisabled]}
-              onPress={handleCriarCronograma}
-              disabled={criando}
-              activeOpacity={0.8}
-            >
-              <Text style={actionStyles.btnIcon}>📋</Text>
-              <Text style={actionStyles.btnTextPrimary}>
-                {criando ? "Criando..." : "Criar Cronograma"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[actionStyles.btn, actionStyles.btnSecondary]}
+              style={[actionStyles.btn, actionStyles.btnPrimary]}
               onPress={handleCriarHorario}
               activeOpacity={0.8}
             >
               <Text style={actionStyles.btnIcon}>⏰</Text>
-              <Text style={actionStyles.btnTextSecondary}>Criar Horário</Text>
+              <Text style={actionStyles.btnTextPrimary}>Criar Horário</Text>
             </TouchableOpacity>
           </View>
 
@@ -268,13 +254,10 @@ export default function CronogramasScreen() {
 
 const actionStyles = StyleSheet.create({
   row: {
-    flexDirection: "row",
     paddingHorizontal: 20,
-    gap: 10,
     marginBottom: 4,
   },
   btn: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -285,12 +268,6 @@ const actionStyles = StyleSheet.create({
   btnPrimary: {
     backgroundColor: "#3a7d44",
   },
-  btnSecondary: {
-    backgroundColor: "#EEF1FF",
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
   btnIcon: {
     fontSize: 16,
   },
@@ -298,10 +275,5 @@ const actionStyles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#fff",
-  },
-  btnTextSecondary: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#5B6BD8",
   },
 });

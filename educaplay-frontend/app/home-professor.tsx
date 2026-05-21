@@ -35,7 +35,7 @@ const MENU_ITEMS = [
     iconBg: "#e8f5ea",
     title: "Minha Agenda",
     subtitle: "Informe seus horários\ndisponíveis",
-    route: "/disponibilidade",
+    route: "/indisponibilidade",
   },
   {
     id: "cronogramas",
@@ -55,7 +55,7 @@ const TABS = [
 
 const DRAWER_ITEMS = [
   { icon: "🏠", label: "Home", route: "/home-professor" },
-  { icon: "🗓️", label: "Minha Agenda", route: "/disponibilidade" },
+  { icon: "🗓️", label: "Minha Agenda", route: "/indisponibilidade" },
   { icon: "📅", label: "Cronogramas", route: "/cronogramas-professor" },
   { icon: "👤", label: "Perfil", route: "/perfil" },
   { icon: "⚙️", label: "Configurações", route: "/configuracoes" },
@@ -123,7 +123,7 @@ export default function HomeProfessorScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "agenda") router.push("/disponibilidade" as any);
+    if (tabId === "agenda") router.push("/indisponibilidade" as any);
     else if (tabId === "configuracoes") router.push("/configuracoes");
     else if (tabId === "home") router.push("/home-professor" as any);
   };
@@ -231,7 +231,13 @@ export default function HomeProfessorScreen() {
 
           <Animated.View style={[s.drawer, { transform: [{ translateX: drawerX }] }]}>
             <View style={s.drawerHeader}>
-              <Image source={{ uri: "https://via.placeholder.com/64?text=A" }} style={s.drawerAvatar} resizeMode="cover" />
+              {usuario?.foto ? (
+                <Image source={{ uri: usuario.foto }} style={s.drawerAvatar} resizeMode="cover" />
+              ) : (
+                <View style={[s.drawerAvatar, { backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center" }]}>
+                  <Text style={{ fontSize: 28 }}>👤</Text>
+                </View>
+              )}
               <Text style={s.drawerTitle}>{userName}</Text>
               <Text style={s.drawerSubtitle}>{cargo}</Text>
             </View>

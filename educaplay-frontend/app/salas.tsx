@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import api from "../src/services/api";
 
-type Sala = { id: string; nome: string; capacidade: string };
+type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
 
 export default function SalasScreen() {
   const router = useRouter();
@@ -17,8 +17,10 @@ export default function SalasScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editando, setEditando] = useState<Sala | null>(null);
   const [nome, setNome] = useState("");
+  const [turma, setTurma] = useState("");
   const [capacidade, setCapacidade] = useState("");
   const [nomeFocused, setNomeFocused] = useState(false);
+  const [turmaFocused, setTurmaFocused] = useState(false);
   const [capFocused, setCapFocused] = useState(false);
 
   useEffect(() => { carregar(); }, []);
@@ -34,19 +36,19 @@ export default function SalasScreen() {
     }
   };
 
-  const abrirModalNova = () => { setEditando(null); setNome(""); setCapacidade(""); setModalVisible(true); };
-  const abrirModalEditar = (sala: Sala) => { setEditando(sala); setNome(sala.nome); setCapacidade(sala.capacidade || ""); setModalVisible(true); };
-  const fecharModal = () => { setModalVisible(false); setEditando(null); setNome(""); setCapacidade(""); };
+  const abrirModalNova = () => { setEditando(null); setNome(""); setTurma(""); setCapacidade(""); setModalVisible(true); };
+  const abrirModalEditar = (sala: Sala) => { setEditando(sala); setNome(sala.nome); setTurma(sala.turma || ""); setCapacidade(sala.capacidade || ""); setModalVisible(true); };
+  const fecharModal = () => { setModalVisible(false); setEditando(null); setNome(""); setTurma(""); setCapacidade(""); };
 
   const handleSalvar = async () => {
     if (!nome.trim()) { Alert.alert("Atenção", "Informe o nome da sala."); return; }
     setSalvando(true);
     try {
       if (editando) {
-        const res = await api.put(`/salas/${editando.id}`, { nome: nome.trim(), capacidade: capacidade.trim() });
+        const res = await api.put(`/salas/${editando.id}`, { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
         setSalas((prev) => prev.map((s) => s.id === editando.id ? res.data : s));
       } else {
-        const res = await api.post("/salas", { nome: nome.trim(), capacidade: capacidade.trim() });
+        const res = await api.post("/salas", { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
         setSalas((prev) => [...prev, res.data]);
       }
       fecharModal();
@@ -98,10 +100,12 @@ export default function SalasScreen() {
               <View key={sala.id} style={s.salaCard}>
                 <View style={s.salaIconWrapper}><Text style={s.salaIcon}>🚪</Text></View>
                 <View style={s.salaInfo}>
-                  <Text style={s.salaNome}>{sala.nome}</Text>
-                  {sala.capacidade && sala.capacidade !== "—" && (
+                  <Text style={s.salaNome}>
+                    {sala.nome}{sala.turma ? ` — ${sala.turma}` : ""}
+                  </Text>
+                  {sala.capacidade ? (
                     <Text style={s.salaCapacidade}>👥 {sala.capacidade}</Text>
-                  )}
+                  ) : null}
                 </View>
                 <View style={s.salaActions}>
                   <TouchableOpacity style={[s.actionBtn, s.editBtn]} onPress={() => abrirModalEditar(sala)} activeOpacity={0.75}>
@@ -127,6 +131,12 @@ export default function SalasScreen() {
               <TextInput style={[s.modalInput, nomeFocused && s.modalInputFocused]} value={nome} onChangeText={setNome}
                 placeholder="Ex: Sala 01, Lab. de Ciências..." placeholderTextColor="#AAAAAA"
                 onFocus={() => setNomeFocused(true)} onBlur={() => setNomeFocused(false)} />
+            </View>
+            <View>
+              <Text style={s.modalLabel}>Turma (opcional)</Text>
+              <TextInput style={[s.modalInput, turmaFocused && s.modalInputFocused]} value={turma} onChangeText={setTurma}
+                placeholder="Ex: 3º A, 2º B, 1º Ano..." placeholderTextColor="#AAAAAA"
+                onFocus={() => setTurmaFocused(true)} onBlur={() => setTurmaFocused(false)} />
             </View>
             <View>
               <Text style={s.modalLabel}>Capacidade (opcional)</Text>

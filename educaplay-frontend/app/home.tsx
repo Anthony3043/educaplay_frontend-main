@@ -212,9 +212,15 @@ export default function HomeScreen() {
           <Animated.View style={[s.drawer, { transform: [{ translateX: drawerX }] }]}>
             {/* Cabeçalho do drawer */}
             <View style={s.drawerHeader}>
-              <Image source={{ uri: "https://via.placeholder.com/64?text=A" }} style={s.drawerAvatar} resizeMode="cover" />
+              {usuario?.foto ? (
+                <Image source={{ uri: usuario.foto }} style={s.drawerAvatar} resizeMode="cover" />
+              ) : (
+                <View style={[s.drawerAvatar, { alignItems: "center", justifyContent: "center", backgroundColor: "#e8f5ea" }]}>
+                  <Text style={{ fontSize: 28 }}>👤</Text>
+                </View>
+              )}
               <Text style={s.drawerTitle}>{userName}</Text>
-              <Text style={s.drawerSubtitle}>{usuario?.cargo ?? usuario?.papel ?? ""}</Text>
+              <Text style={s.drawerSubtitle}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel ?? ""}</Text>
             </View>
 
             <View style={s.drawerDivider} />

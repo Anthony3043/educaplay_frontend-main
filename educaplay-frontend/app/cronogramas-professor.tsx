@@ -22,6 +22,8 @@ type AulaProfessor = {
   timeStart: string;
   timeEnd: string;
   subject: string;
+  salaNome: string | null;
+  salaTurma: string | null;
   turno: TurnoId;
 };
 
@@ -35,6 +37,7 @@ type CronogramaAPI = {
     subject: string;
     isInterval: boolean;
     professor: { id: string; nome: string } | null;
+    sala: { id: string; nome: string; turma?: string | null } | null;
   }>;
 };
 
@@ -78,6 +81,8 @@ export default function CronogramasProfessorScreen() {
               timeStart: a.timeStart,
               timeEnd: a.timeEnd,
               subject: a.subject,
+              salaNome: a.sala?.nome ?? null,
+              salaTurma: a.sala?.turma ?? null,
               turno,
             });
           });
@@ -164,7 +169,14 @@ export default function CronogramasProfessorScreen() {
                     <Text style={s.endTime}>{item.timeEnd}</Text>
                   </View>
                   <View style={s.infoColumn}>
-                    <Text style={s.materiaName}>{item.subject}</Text>
+                    {item.salaNome ? (
+                      <Text style={s.materiaName}>
+                        {item.salaNome}{item.salaTurma ? ` — ${item.salaTurma}` : ""}
+                      </Text>
+                    ) : (
+                      <Text style={s.materiaName}>{item.subject}</Text>
+                    )}
+                    <Text style={s.professorName}>{item.subject}</Text>
                   </View>
                 </View>
               ))

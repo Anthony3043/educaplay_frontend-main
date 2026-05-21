@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,7 +16,10 @@ import {
 import api from "../src/services/api";
 
 type TipoSlot = "aula" | "intervalo";
-type Professor = { id: string; nome: string; materias: string[] };
+type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null };
+type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
+
+const salaLabel = (sala: Sala) => sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
 
 const TURNO_LABELS: Record<string, string> = {
   matutino: "☀️ Matutino",
@@ -31,21 +35,35 @@ export default function CriarHorarioScreen() {
     turno: string;
   }>();
 
+  const voltar = () => {
+    try {
+      voltar();
+    } catch {
+      router.replace("/cronogramas" as any);
+    }
+  };
+
   const [tipoSlot, setTipoSlot] = useState<TipoSlot>("aula");
   const [materia, setMateria] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
+  const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
   const [professores, setProfessores] = useState<Professor[]>([]);
+  const [salas, setSalas] = useState<Sala[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
   const carregarDados = useCallback(async () => {
     try {
-      const res = await api.get("/professores");
-      setProfessores(res.data);
+      const [resProfessores, resSalas] = await Promise.all([
+        api.get("/professores"),
+        api.get("/salas"),
+      ]);
+      setProfessores(resProfessores.data);
+      setSalas(resSalas.data);
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar os professores.");
+      Alert.alert("Erro", "Não foi possível carregar os dados.");
     } finally {
       setCarregando(false);
     }
@@ -70,14 +88,20 @@ export default function CriarHorarioScreen() {
         timeEnd: timeEnd.trim(),
         subject: tipoSlot === "intervalo" ? "Intervalo" : materia.trim(),
         professorId: tipoSlot === "aula" ? (professorSelecionado?.id ?? null) : null,
+        salaId: tipoSlot === "aula" ? (salaSelecionada?.id ?? null) : null,
         isInterval: tipoSlot === "intervalo",
       });
       Alert.alert("Sucesso", "Horário criado com sucesso!", [
-        { text: "OK", onPress: () => router.back() },
+        { text: "OK", onPress: () => router.replace("/cronogramas" as any) },
       ]);
     } catch (err: any) {
-      const msg = err?.response?.data?.error || "Não foi possível criar o horário.";
-      Alert.alert("Erro", msg);
+      const status = err?.response?.status;
+      const backendMsg = err?.response?.data?.error;
+      if (status === 409) {
+        Alert.alert("Conflito de horário", backendMsg || "Já existe um conflito neste período.");
+      } else {
+        Alert.alert("Erro", backendMsg || "Não foi possível criar o horário.");
+      }
     } finally {
       setSalvando(false);
     }
@@ -88,7 +112,7 @@ export default function CriarHorarioScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={s.backBtn} onPress={() => voltar()}>
           <Text style={{ fontSize: 20 }}>←</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>Criar Horário</Text>
@@ -167,7 +191,7 @@ export default function CriarHorarioScreen() {
             <View style={s.intervaloBanner}>
               <Text style={{ fontSize: 24 }}>☕</Text>
               <Text style={s.intervaloBannerText}>
-                Este horário será marcado como intervalo. Nenhum professor ou matéria será atribuído.
+                Este horário será marcado como intervalo. Nenhum professor ou sala será atribuído.
               </Text>
             </View>
           ) : (
@@ -182,6 +206,40 @@ export default function CriarHorarioScreen() {
                   placeholder="Ex: Matemática, Português..."
                   placeholderTextColor="#AAAAAA"
                 />
+              </View>
+
+              {/* Sala */}
+              <View style={s.section}>
+                <Text style={s.sectionTitle}>Sala</Text>
+                {salas.length === 0 ? (
+                  <View style={s.emptyProfessores}>
+                    <Text style={{ fontSize: 32 }}>🏫</Text>
+                    <Text style={s.emptyProfessoresText}>Nenhuma sala cadastrada.</Text>
+                  </View>
+                ) : (
+                  salas.map((sala) => {
+                    const selected = salaSelecionada?.id === sala.id;
+                    return (
+                      <TouchableOpacity
+                        key={sala.id}
+                        style={[s.professorCard, selected && s.professorCardSelected]}
+                        onPress={() => setSalaSelecionada(selected ? null : sala)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={s.professorAvatar}>
+                          <Text style={s.professorAvatarText}>🏫</Text>
+                        </View>
+                        <View style={s.professorInfo}>
+                          <Text style={s.professorNome}>{salaLabel(sala)}</Text>
+                          {sala.capacidade ? (
+                            <Text style={s.professorMaterias}>👥 {sala.capacidade}</Text>
+                          ) : null}
+                        </View>
+                        {selected && <Text style={s.professorCheckmark}>✓</Text>}
+                      </TouchableOpacity>
+                    );
+                  })
+                )}
               </View>
 
               {/* Professor */}
@@ -203,13 +261,17 @@ export default function CriarHorarioScreen() {
                         activeOpacity={0.75}
                       >
                         <View style={s.professorAvatar}>
-                          <Text style={s.professorAvatarText}>👨🏫</Text>
+                          {prof.foto ? (
+                            <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+                          ) : (
+                            <Text style={s.professorAvatarText}>👨🏫</Text>
+                          )}
                         </View>
                         <View style={s.professorInfo}>
                           <Text style={s.professorNome}>{prof.nome}</Text>
-                          <Text style={s.professorMaterias}>
-                            {prof.materias?.join(" · ")}
-                          </Text>
+                          {prof.cargo ? (
+                            <Text style={s.professorMaterias}>{prof.cargo}</Text>
+                          ) : null}
                         </View>
                         {selected && <Text style={s.professorCheckmark}>✓</Text>}
                       </TouchableOpacity>
