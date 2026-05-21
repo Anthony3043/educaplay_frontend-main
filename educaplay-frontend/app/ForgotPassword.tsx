@@ -43,7 +43,12 @@ export default function ForgotPasswordScreen() {
     } catch (err: any) {
       if (err?.response?.status === 404) {
         setErro("Este e-mail não está cadastrado.");
-      } else if (err?.code === 'ECONNABORTED') {
+      } else if (
+        !err?.response ||
+        err?.code === 'ECONNABORTED' ||
+        err?.message?.includes('timeout') ||
+        err?.message?.includes('Network')
+      ) {
         setErro("O servidor demorou para responder. Aguarde alguns segundos e tente novamente.");
       } else {
         setErro("Erro ao verificar e-mail. Tente novamente.");

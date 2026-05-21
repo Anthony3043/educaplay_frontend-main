@@ -56,7 +56,12 @@ export default function CheckEmailScreen() {
       const status = err?.response?.status;
       if (status === 404) {
         Alert.alert('Erro', 'E-mail não encontrado. Volte e tente com outro e-mail.');
-      } else if (err?.code === 'ECONNABORTED') {
+      } else if (
+        !err?.response ||
+        err?.code === 'ECONNABORTED' ||
+        err?.message?.includes('timeout') ||
+        err?.message?.includes('Network')
+      ) {
         Alert.alert('Tempo esgotado', 'O servidor demorou para responder. Aguarde alguns segundos e tente novamente.');
       } else {
         Alert.alert('Erro', 'Não foi possível reenviar o e-mail. Tente novamente.');
