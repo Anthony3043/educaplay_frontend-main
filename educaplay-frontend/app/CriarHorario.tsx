@@ -5,9 +5,11 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
   SafeAreaView,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -38,6 +40,12 @@ const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string
 function toMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
+}
+
+function formatarHorario(texto: string): string {
+  const digitos = texto.replace(/\D/g, "").slice(0, 4);
+  if (digitos.length <= 2) return digitos;
+  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
 }
 
 function validarHorario(start: string, end: string, turno: string): string | null {
@@ -73,13 +81,14 @@ export default function CriarHorarioScreen() {
 
   const voltar = () => {
     try {
-      voltar();
+      router.back();
     } catch {
       router.replace("/cronogramas" as any);
     }
   };
 
   const [tipoSlot, setTipoSlot] = useState<TipoSlot>("aula");
+  const [sucesso, setSucesso] = useState(false);
   const [materia, setMateria] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
@@ -132,9 +141,7 @@ export default function CriarHorarioScreen() {
         salaId: tipoSlot === "aula" ? (salaSelecionada?.id ?? null) : null,
         isInterval: tipoSlot === "intervalo",
       });
-      Alert.alert("Sucesso", "Horário criado com sucesso!", [
-        { text: "OK", onPress: () => router.replace("/cronogramas" as any) },
-      ]);
+      setSucesso(true);
     } catch (err: any) {
       const status = err?.response?.status;
       const backendMsg = err?.response?.data?.error;
@@ -210,9 +217,11 @@ export default function CriarHorarioScreen() {
             <TextInput
               style={s.inputCard}
               value={timeStart}
-              onChangeText={setTimeStart}
-              placeholder="Ex: 07:00"
+              onChangeText={(t) => setTimeStart(formatarHorario(t))}
+              placeholder="0730 → 07:30"
               placeholderTextColor="#AAAAAA"
+              keyboardType="numeric"
+              maxLength={5}
             />
           </View>
 
@@ -222,9 +231,11 @@ export default function CriarHorarioScreen() {
             <TextInput
               style={s.inputCard}
               value={timeEnd}
-              onChangeText={setTimeEnd}
-              placeholder="Ex: 08:00"
+              onChangeText={(t) => setTimeEnd(formatarHorario(t))}
+              placeholder="0800 → 08:00"
               placeholderTextColor="#AAAAAA"
+              keyboardType="numeric"
+              maxLength={5}
             />
           </View>
 
@@ -324,6 +335,47 @@ export default function CriarHorarioScreen() {
           )}
         </ScrollView>
       )}
+
+      <Modal visible={sucesso} transparent animationType="fade">
+        <View style={ms.overlay}>
+          <View style={ms.box}>
+            <Text style={ms.icon}>✅</Text>
+            <Text style={ms.title}>Horário criado!</Text>
+            <Text style={ms.msg}>O horário foi salvo com sucesso no cronograma.</Text>
+            <TouchableOpacity style={ms.btn} onPress={() => router.replace("/cronogramas" as any)} activeOpacity={0.85}>
+              <Text style={ms.btnText}>Confirmar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const ms = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  box: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 28,
+    width: "80%",
+    alignItems: "center",
+    gap: 8,
+  },
+  icon: { fontSize: 48 },
+  title: { fontSize: 20, fontWeight: "700", color: "#1a1a2e", marginTop: 4 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 20 },
+  btn: {
+    marginTop: 12,
+    backgroundColor: "#3a7d44",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 36,
+  },
+  btnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+});

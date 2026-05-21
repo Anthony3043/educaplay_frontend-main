@@ -35,6 +35,12 @@ const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string
   integral:   { inicio: "07:00", fim: "18:00", label: "Integral (07:00 – 18:00)" },
 };
 
+function formatarHorario(texto: string): string {
+  const digitos = texto.replace(/\D/g, "").slice(0, 4);
+  if (digitos.length <= 2) return digitos;
+  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
+}
+
 function toMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -200,11 +206,11 @@ export default function AulaDetalheScreen() {
           <ScrollView contentContainerStyle={es.scrollContent} keyboardShouldPersistTaps="handled">
             <View style={es.section}>
               <Text style={es.sectionTitle}>Horário de início</Text>
-              <TextInput style={es.inputCard} value={timeStart} onChangeText={setTimeStart} placeholder="Ex: 07:00" placeholderTextColor="#AAAAAA" />
+              <TextInput style={es.inputCard} value={timeStart} onChangeText={(t) => setTimeStart(formatarHorario(t))} placeholder="0730 → 07:30" placeholderTextColor="#AAAAAA" keyboardType="numeric" maxLength={5} />
             </View>
             <View style={es.section}>
               <Text style={es.sectionTitle}>Horário de término</Text>
-              <TextInput style={es.inputCard} value={timeEnd} onChangeText={setTimeEnd} placeholder="Ex: 08:00" placeholderTextColor="#AAAAAA" />
+              <TextInput style={es.inputCard} value={timeEnd} onChangeText={(t) => setTimeEnd(formatarHorario(t))} placeholder="0800 → 08:00" placeholderTextColor="#AAAAAA" keyboardType="numeric" maxLength={5} />
             </View>
             <View style={es.section}>
               <Text style={es.sectionTitle}>Matéria</Text>
