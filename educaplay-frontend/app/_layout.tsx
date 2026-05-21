@@ -1,7 +1,7 @@
 import 'react-native-reanimated';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,10 +16,13 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const [biometriaOk, setBiometriaOk] = useState(false);
+  const biometriaVerificada = useRef(false);
 
-  // Roda uma única vez quando o carregamento inicial termina
   useEffect(() => {
     if (carregando) return;
+    if (biometriaVerificada.current) return;
+    biometriaVerificada.current = true;
+
     SplashScreen.hideAsync();
 
     const checarBiometria = async () => {
@@ -46,7 +49,7 @@ function RootNavigator() {
     };
 
     checarBiometria();
-  }, [carregando]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [carregando, usuario, logout]);
 
   useEffect(() => {
     if (carregando || !biometriaOk) return;
@@ -76,7 +79,7 @@ function RootNavigator() {
         return;
       }
     }
-  }, [usuario, carregando, segments, biometriaOk]);
+  }, [usuario, carregando, segments, biometriaOk, router]);
 
   if (!biometriaOk) {
     return (
