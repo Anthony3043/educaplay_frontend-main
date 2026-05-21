@@ -28,6 +28,42 @@ const TURNO_LABELS: Record<string, string> = {
   integral: "📚 Integral",
 };
 
+const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string }> = {
+  matutino:   { inicio: "07:00", fim: "12:35", label: "Matutino (07:00 – 12:35)" },
+  vespertino: { inicio: "13:00", fim: "18:00", label: "Vespertino (13:00 – 18:00)" },
+  noturno:    { inicio: "18:30", fim: "23:00", label: "Noturno (18:30 – 23:00)" },
+  integral:   { inicio: "07:00", fim: "18:00", label: "Integral (07:00 – 18:00)" },
+};
+
+function toMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function validarHorario(start: string, end: string, turno: string): string | null {
+  const formato = /^\d{2}:\d{2}$/;
+  if (!formato.test(start) || !formato.test(end)) {
+    return "Use o formato HH:MM (ex: 07:00, 13:30).";
+  }
+  const s = toMinutes(start);
+  const e = toMinutes(end);
+  if (s < toMinutes("07:00")) {
+    return "Não existem aulas antes das 07:00. O horário mínimo permitido é 07:00.";
+  }
+  if (e <= s) {
+    return "O horário de término deve ser após o horário de início.";
+  }
+  const limite = TURNO_LIMITES[turno];
+  if (!limite) return null;
+  if (s < toMinutes(limite.inicio) || s >= toMinutes(limite.fim)) {
+    return `Horário de início fora do turno ${limite.label}.`;
+  }
+  if (e > toMinutes(limite.fim)) {
+    return `Horário de término fora do turno ${limite.label}.`;
+  }
+  return null;
+}
+
 export default function CriarHorarioScreen() {
   const router = useRouter();
   const { cronogramaId, turno } = useLocalSearchParams<{
@@ -78,6 +114,11 @@ export default function CriarHorarioScreen() {
     }
     if (tipoSlot === "aula" && !materia.trim()) {
       Alert.alert("Atenção", "Informe o nome da matéria.");
+      return;
+    }
+    const erroHorario = validarHorario(timeStart.trim(), timeEnd.trim(), turno);
+    if (erroHorario) {
+      Alert.alert("Horário indisponível", erroHorario);
       return;
     }
     setSalvando(true);
