@@ -16,11 +16,31 @@ function RootNavigator() {
     SplashScreen.hideAsync();
 
     const rotasPublicas = ['index', 'Login', 'Register', 'ForgotPassword', 'CheckEmail', 'Resetpassword'];
-    const rotaAtual = segments[0];
+    // Rotas exclusivas de Supervisão
+    const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'AulaDetalhe'];
+    // Rotas exclusivas de Professor
+    const rotasProfessor = ['home-professor', 'cronogramas-professor', 'indisponibilidade'];
+
+    const rotaAtual = segments[0] as string;
     const estaEmRotaPublica = rotasPublicas.includes(rotaAtual);
 
     if (!usuario && !estaEmRotaPublica) {
       router.replace('/Login');
+      return;
+    }
+
+    if (usuario) {
+      const isProfessor = usuario.papel === 'Professor';
+      const isSupervisao = usuario.papel === 'Supervisao';
+
+      if (isProfessor && rotasSupervisao.includes(rotaAtual)) {
+        router.replace('/home-professor');
+        return;
+      }
+      if (isSupervisao && rotasProfessor.includes(rotaAtual)) {
+        router.replace('/home');
+        return;
+      }
     }
   }, [usuario, carregando, segments]);
 

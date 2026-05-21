@@ -19,6 +19,7 @@ export default function PerfilScreen() {
   const router = useRouter();
   const { usuario, atualizarUsuario } = useAuth();
   const [activeTab, setActiveTab] = useState("configuracoes");
+  const isProfessor = usuario?.papel === "Professor";
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [nome, setNome] = useState(usuario?.nome || "");
   const [cargo, setCargo] = useState(usuario?.cargo || "");
@@ -38,8 +39,8 @@ export default function PerfilScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "home") router.push("/home");
-    else if (tabId === "cronograma") router.push("/cronogramas");
+    if (tabId === "home") router.push(isProfessor ? "/home-professor" : "/home");
+    else if (tabId === "cronograma") router.push(isProfessor ? "/cronogramas-professor" : "/cronogramas");
     else if (tabId === "configuracoes") router.push("/configuracoes");
   };
 

@@ -57,15 +57,16 @@ const CONFIG_ITEMS: Array<{
 
 export default function ConfiguracoesScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, usuario } = useAuth();
   const [activeTab, setActiveTab] = useState("configuracoes");
+  const isProfessor = usuario?.papel === "Professor";
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
     if (tabId === "home") {
-      router.push("/home");
+      router.push(isProfessor ? "/home-professor" : "/home");
     } else if (tabId === "cronograma") {
-      router.push("/cronogramas");
+      router.push(isProfessor ? "/cronogramas-professor" : "/cronogramas");
     }
   };
 
