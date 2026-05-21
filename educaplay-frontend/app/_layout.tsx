@@ -1,24 +1,58 @@
 import 'react-native-reanimated';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuthentication from 'expo-local-authentication';
+
+const BIOMETRIA_KEY = "@educaplay_biometria";
 
 SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
-  const { usuario, carregando } = useAuth();
+  const { usuario, carregando, logout } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [biometriaOk, setBiometriaOk] = useState(false);
 
+  // Roda uma única vez quando o carregamento inicial termina
   useEffect(() => {
     if (carregando) return;
     SplashScreen.hideAsync();
 
+    const checarBiometria = async () => {
+      if (!usuario) {
+        setBiometriaOk(true);
+        return;
+      }
+      const salvo = await AsyncStorage.getItem(BIOMETRIA_KEY);
+      if (salvo !== "true") {
+        setBiometriaOk(true);
+        return;
+      }
+      const resultado = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Confirme sua identidade para acessar o EducaPlay",
+        cancelLabel: "Cancelar",
+        fallbackLabel: "Usar senha",
+      });
+      if (resultado.success) {
+        setBiometriaOk(true);
+      } else {
+        await logout();
+        setBiometriaOk(true);
+      }
+    };
+
+    checarBiometria();
+  }, [carregando]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (carregando || !biometriaOk) return;
+
     const rotasPublicas = ['index', 'Login', 'Register', 'ForgotPassword', 'CheckEmail', 'Resetpassword'];
-    // Rotas exclusivas de Supervisão
     const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'AulaDetalhe'];
-    // Rotas exclusivas de Professor
     const rotasProfessor = ['home-professor', 'cronogramas-professor', 'indisponibilidade'];
 
     const rotaAtual = segments[0] as string;
@@ -42,7 +76,15 @@ function RootNavigator() {
         return;
       }
     }
-  }, [usuario, carregando, segments]);
+  }, [usuario, carregando, segments, biometriaOk]);
+
+  if (!biometriaOk) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#3a7d44" />
+      </View>
+    );
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
