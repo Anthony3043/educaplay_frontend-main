@@ -19,8 +19,7 @@ export default function PerfilScreen() {
   const router = useRouter();
   const { usuario, atualizarUsuario } = useAuth();
   const [activeTab, setActiveTab] = useState("configuracoes");
-  const [foto, setFoto] = useState<string>(usuario?.foto || "");
-  const [fotoBase64, setFotoBase64] = useState<string | null>(null);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [nome, setNome] = useState(usuario?.nome || "");
   const [cargo, setCargo] = useState(usuario?.cargo || "");
   const [escola, setEscola] = useState(usuario?.instituicao || "");
@@ -32,9 +31,10 @@ export default function PerfilScreen() {
       setNome(usuario.nome || "");
       setCargo(usuario.cargo || "");
       setEscola(usuario.instituicao || "");
-      setFoto(usuario.foto || "");
     }
   }, [usuario]);
+
+  const fotoExibir = fotoPreview || usuario?.foto || "";
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
@@ -55,9 +55,8 @@ export default function PerfilScreen() {
     });
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
-      setFoto(asset.uri);
       if (asset.base64) {
-        setFotoBase64(`data:image/jpeg;base64,${asset.base64}`);
+        setFotoPreview(`data:image/jpeg;base64,${asset.base64}`);
       }
     }
   };
@@ -66,10 +65,10 @@ export default function PerfilScreen() {
     setIsLoading(true);
     try {
       const payload: any = { nome, cargo, instituicao: escola };
-      if (fotoBase64) payload.foto = fotoBase64;
+      if (fotoPreview) payload.foto = fotoPreview;
       const res = await api.put("/auth/perfil", payload);
       atualizarUsuario(res.data);
-      setFotoBase64(null);
+      setFotoPreview(null);
       setIsEditing(false);
       Alert.alert("Sucesso", "Perfil atualizado com sucesso!");
     } catch {
@@ -95,8 +94,8 @@ export default function PerfilScreen() {
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={s.perfilCard}>
           <TouchableOpacity style={s.fotoContainer} onPress={isEditing ? pickImage : undefined} activeOpacity={isEditing ? 0.7 : 1}>
-            {foto ? (
-              <Image source={{ uri: foto }} style={s.foto} resizeMode="cover" />
+            {fotoExibir ? (
+              <Image source={{ uri: fotoExibir }} style={s.foto} resizeMode="cover" />
             ) : (
               <View style={[s.foto, { backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center" }]}>
                 <Text style={{ fontSize: 48 }}>👤</Text>
