@@ -14,6 +14,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null };
@@ -21,11 +22,11 @@ type Sala = { id: string; nome: string; turma?: string | null; capacidade?: stri
 
 const salaLabel = (sala: Sala) => sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
 
-const TURNO_LABELS: Record<string, { label: string; icon: string; color: string }> = {
-  matutino:   { label: "Matutino",   icon: "☀️",  color: "#F59E0B" },
-  vespertino: { label: "Vespertino", icon: "🌤️", color: "#3B82F6" },
-  noturno:    { label: "Noturno",    icon: "🌙",  color: "#6366F1" },
-  integral:   { label: "Integral",   icon: "📚",  color: "#10B981" },
+const TURNO_LABELS: Record<string, { label: string; ionicon: React.ComponentProps<typeof Ionicons>["name"]; color: string }> = {
+  matutino:   { label: "Matutino",   ionicon: "sunny-outline",        color: "#F59E0B" },
+  vespertino: { label: "Vespertino", ionicon: "partly-sunny-outline",  color: "#3B82F6" },
+  noturno:    { label: "Noturno",    ionicon: "moon-outline",          color: "#6366F1" },
+  integral:   { label: "Integral",   ionicon: "book-outline",          color: "#10B981" },
 };
 
 const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string }> = {
@@ -102,7 +103,7 @@ export default function AulaDetalheScreen() {
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
 
-  const turnoInfo = TURNO_LABELS[params.turno] ?? { label: params.turno, icon: "📅", color: "#6366F1" };
+  const turnoInfo = TURNO_LABELS[params.turno] ?? { label: params.turno, ionicon: "calendar-outline" as const, color: "#6366F1" };
 
   const carregarOpcoes = useCallback(async () => {
     setCarregando(true);
@@ -287,13 +288,13 @@ export default function AulaDetalheScreen() {
 
         <View style={s.infoGrid}>
           <View style={s.infoCard}>
-            <Text style={s.infoCardIcon}>🕐</Text>
+            <Ionicons name="time-outline" size={24} color="#1a1a2e" />
             <Text style={s.infoCardLabel}>Horário</Text>
             <Text style={s.infoCardValue}>{params.timeStart}</Text>
             <Text style={s.infoCardSub}>até {params.timeEnd}</Text>
           </View>
           <View style={s.infoCard}>
-            <Text style={s.infoCardIcon}>{turnoInfo.icon}</Text>
+            <Ionicons name={turnoInfo.ionicon} size={24} color={turnoInfo.color} />
             <Text style={s.infoCardLabel}>Turno</Text>
             <Text style={s.infoCardValue}>{turnoInfo.label}</Text>
           </View>

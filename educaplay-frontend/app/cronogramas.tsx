@@ -44,11 +44,11 @@ type CronogramaAPI = {
   }[];
 };
 
-const TURNOS: { id: TurnoId; label: string; icon: string; time: string }[] = [
-  { id: "matutino",   label: "Matutino",   icon: "☀️",  time: "07:00 - 12:00" },
-  { id: "vespertino", label: "Vespertino", icon: "🌤️", time: "13:00 - 18:00" },
-  { id: "noturno",    label: "Noturno",    icon: "🌙",  time: "18:30 - 23:00" },
-  { id: "integral",   label: "Integral",   icon: "📚",  time: "07:00 - 18:00" },
+const TURNOS: { id: TurnoId; label: string; ionicon: React.ComponentProps<typeof Ionicons>["name"]; time: string }[] = [
+  { id: "matutino",   label: "Matutino",   ionicon: "sunny-outline",       time: "07:00 - 12:00" },
+  { id: "vespertino", label: "Vespertino", ionicon: "partly-sunny-outline", time: "13:00 - 18:00" },
+  { id: "noturno",    label: "Noturno",    ionicon: "moon-outline",         time: "18:30 - 23:00" },
+  { id: "integral",   label: "Integral",   ionicon: "book-outline",         time: "07:00 - 18:00" },
 ];
 
 const TABS = [
@@ -173,7 +173,7 @@ export default function CronogramasScreen() {
                   style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]}
                   onPress={() => setSelectedTurno(turno.id)}
                 >
-                  <Text style={s.turnoIcon}>{turno.icon}</Text>
+                  <Ionicons name={turno.ionicon} size={24} color={selectedTurno === turno.id ? "#3a7d44" : "#1a1a2e"} />
                   <Text style={s.turnoLabel}>{turno.label}</Text>
                   <Text style={s.turnoTime}>{turno.time}</Text>
                 </TouchableOpacity>

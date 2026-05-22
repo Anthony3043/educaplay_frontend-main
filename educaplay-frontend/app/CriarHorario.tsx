@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type TipoSlot = "aula" | "intervalo";
@@ -24,10 +25,17 @@ type Sala = { id: string; nome: string; turma?: string | null; capacidade?: stri
 const salaLabel = (sala: Sala) => sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
 
 const TURNO_LABELS: Record<string, string> = {
-  matutino: "☀️ Matutino",
-  vespertino: "🌤️ Vespertino",
-  noturno: "🌙 Noturno",
-  integral: "📚 Integral",
+  matutino: "Matutino",
+  vespertino: "Vespertino",
+  noturno: "Noturno",
+  integral: "Integral",
+};
+
+const TURNO_ICONS: Record<string, React.ComponentProps<typeof Ionicons>["name"]> = {
+  matutino:   "sunny-outline",
+  vespertino: "partly-sunny-outline",
+  noturno:    "moon-outline",
+  integral:   "book-outline",
 };
 
 const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string }> = {
@@ -179,7 +187,7 @@ export default function CriarHorarioScreen() {
         >
           {/* Turno banner */}
           <View style={s.horarioBanner}>
-            <Text style={{ fontSize: 28 }}>📅</Text>
+            <Ionicons name={TURNO_ICONS[turno] ?? "calendar-outline"} size={28} color="#3a7d44" />
             <View>
               <Text style={s.horarioBannerTime}>{TURNO_LABELS[turno] ?? turno}</Text>
               <Text style={s.horarioBannerSub}>Novo horário</Text>
