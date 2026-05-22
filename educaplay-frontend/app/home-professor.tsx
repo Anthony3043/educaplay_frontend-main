@@ -159,7 +159,10 @@ export default function HomeProfessorScreen() {
         {/* Banner */}
         <View style={s.banner}>
           <View style={s.bannerTextArea}>
-            <Text style={s.bannerGreeting}>Olá, {userName}! <Text style={s.bannerEmoji}>👋</Text></Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={s.bannerGreeting}>Olá, {userName}!</Text>
+              <Ionicons name="hand-right-outline" size={22} color="#1a1a2e" />
+            </View>
             <Text style={s.bannerSubtitle}>
               Que bom ver você por aqui.{"\n"}
               Veja suas aulas e{"\n"}
@@ -202,7 +205,10 @@ export default function HomeProfessorScreen() {
         <TouchableOpacity style={s.dicaCard} onPress={handleDicaPress} activeOpacity={0.85}>
           <Image source={require("@/assets/images/ze_bloco_dicas.png")} style={s.dicaMascote} resizeMode="contain" />
           <View style={s.dicaTextArea}>
-            <Text style={s.dicaTitle}>Dica do Zé Bloquinho <Text style={s.dicaTitleEmoji}>💡</Text></Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Text style={s.dicaTitle}>Dica do Zé Bloquinho</Text>
+              <Ionicons name="bulb-outline" size={16} color="#f59e0b" />
+            </View>
             <Animated.Text style={[s.dicaText, { opacity: dicaOpacity }]}>{dicaTexto}</Animated.Text>
             <Text style={{ fontSize: 10, color: "#aaa", marginTop: 4 }}>Toque para ver outra dica →</Text>
           </View>
