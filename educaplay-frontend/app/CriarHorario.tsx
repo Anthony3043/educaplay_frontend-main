@@ -128,19 +128,29 @@ export default function CriarHorarioScreen() {
   useEffect(() => { carregarDados(); }, [carregarDados]);
 
   const handleSalvar = async () => {
-    if (!timeStart.trim() || !timeEnd.trim()) {
-      Alert.alert("Atenção", "Preencha o horário de início e de término.");
+    // Valida todos os campos obrigatórios de uma vez
+    const erros: string[] = [];
+
+    if (!diaSemana) erros.push("• Você não selecionou o dia da semana");
+    if (!timeStart.trim() || !timeEnd.trim()) erros.push("• Você não preencheu o horário de início e término");
+
+    if (tipoSlot === "aula") {
+      if (!materia.trim()) erros.push("• Você não preencheu a matéria");
+      if (!salaSelecionada) erros.push("• Você não escolheu a sala");
+      if (!professorSelecionado) erros.push("• Você não escolheu o professor");
+    }
+
+    if (erros.length > 0) {
+      Alert.alert("Campos obrigatórios", erros.join("\n"));
       return;
     }
-    if (tipoSlot === "aula" && !materia.trim()) {
-      Alert.alert("Atenção", "Informe o nome da matéria.");
-      return;
-    }
+
     const erroHorario = validarHorario(timeStart.trim(), timeEnd.trim(), turno);
     if (erroHorario) {
-      Alert.alert("Horário indisponível", erroHorario);
+      Alert.alert("Horário inválido", erroHorario);
       return;
     }
+
     setSalvando(true);
     try {
       await api.post("/aulas", {
@@ -158,7 +168,7 @@ export default function CriarHorarioScreen() {
       const status = err?.response?.status;
       const backendMsg = err?.response?.data?.error;
       if (status === 409) {
-        Alert.alert("Conflito de horário", backendMsg || "Já existe um conflito neste período.");
+        Alert.alert("Conflito detectado", backendMsg || "Já existe um conflito neste horário.");
       } else {
         Alert.alert("Erro", backendMsg || "Não foi possível criar o horário.");
       }
@@ -230,7 +240,9 @@ export default function CriarHorarioScreen() {
 
           {/* Dia da semana */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Dia da semana <Text style={{ fontWeight: "400", color: "#aaa" }}>(opcional)</Text></Text>
+            <Text style={s.sectionTitle}>
+              Dia da semana <Text style={{ color: "#ef4444" }}>*</Text>
+            </Text>
             <View style={ds.diasRow}>
               {DIAS.map((dia) => (
                 <TouchableOpacity
@@ -249,7 +261,7 @@ export default function CriarHorarioScreen() {
 
           {/* Horário início */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Horário de início</Text>
+            <Text style={s.sectionTitle}>Horário de início <Text style={{ color: "#ef4444" }}>*</Text></Text>
             <TextInput
               style={s.inputCard}
               value={timeStart}
@@ -263,7 +275,7 @@ export default function CriarHorarioScreen() {
 
           {/* Horário término */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Horário de término</Text>
+            <Text style={s.sectionTitle}>Horário de término <Text style={{ color: "#ef4444" }}>*</Text></Text>
             <TextInput
               style={s.inputCard}
               value={timeEnd}
@@ -286,7 +298,7 @@ export default function CriarHorarioScreen() {
             <>
               {/* Matéria */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Matéria</Text>
+                <Text style={s.sectionTitle}>Matéria <Text style={{ color: "#ef4444" }}>*</Text></Text>
                 <TextInput
                   style={s.inputCard}
                   value={materia}
@@ -298,7 +310,7 @@ export default function CriarHorarioScreen() {
 
               {/* Sala */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Sala</Text>
+                <Text style={s.sectionTitle}>Sala <Text style={{ color: "#ef4444" }}>*</Text></Text>
                 {salas.length === 0 ? (
                   <View style={s.emptyProfessores}>
                     <Ionicons name="business-outline" size={32} color="#ccc" />
@@ -335,7 +347,7 @@ export default function CriarHorarioScreen() {
 
               {/* Professor */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Professor</Text>
+                <Text style={s.sectionTitle}>Professor <Text style={{ color: "#ef4444" }}>*</Text></Text>
                 {professores.length === 0 ? (
                   <View style={s.emptyProfessores}>
                     <Ionicons name="person-outline" size={32} color="#ccc" />
