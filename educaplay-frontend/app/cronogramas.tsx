@@ -124,8 +124,10 @@ function CalendarioSemanal({
             <View style={{ flexDirection: "row", marginBottom: 6 }}>
               <View style={{ width: TIME_W }} />
               {DIAS_SEMANA.map(dia => (
-                <View key={dia} style={[cal.dayHeader, { width: COL_W }]}>
-                  <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
+                <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
+                  <View style={cal.dayHeader}>
+                    <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
+                  </View>
                 </View>
               ))}
             </View>
@@ -424,7 +426,6 @@ const cal = StyleSheet.create({
 
   dayHeader: {
     backgroundColor: "#1a1a2e",
-    marginHorizontal: 3,
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: "center",
