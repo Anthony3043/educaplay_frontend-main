@@ -8,6 +8,7 @@ import {
   Image,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -19,6 +20,19 @@ import api from "../src/services/api";
 
 type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null };
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
+
+const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
+const adDs = StyleSheet.create({
+  diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: "#F0F0F0", borderWidth: 1.5, borderColor: "transparent",
+  },
+  chipActive: { backgroundColor: "#e8f5ea", borderColor: "#3a7d44" },
+  chipText: { fontSize: 13, fontWeight: "600", color: "#666" },
+  chipTextActive: { color: "#3a7d44" },
+});
 
 const salaLabel = (sala: Sala) => sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
 
@@ -88,6 +102,7 @@ export default function AulaDetalheScreen() {
   const params = useLocalSearchParams<{
     id: string; timeStart: string; timeEnd: string;
     subject: string; teacher: string; turno: string;
+    diaSemana: string;
     professorId: string; salaId: string; salaNome: string; salaTurma: string;
   }>();
 
@@ -100,6 +115,7 @@ export default function AulaDetalheScreen() {
   const [timeStart, setTimeStart] = useState(params.timeStart);
   const [timeEnd, setTimeEnd] = useState(params.timeEnd);
   const [subject, setSubject] = useState(params.subject);
+  const [diaSemana, setDiaSemana] = useState<string | null>(params.diaSemana || null);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
 
@@ -146,6 +162,7 @@ export default function AulaDetalheScreen() {
         timeStart: timeStart.trim(),
         timeEnd: timeEnd.trim(),
         subject: subject.trim(),
+        diaSemana: diaSemana || null,
         professorId: professorSelecionado?.id ?? null,
         salaId: salaSelecionada?.id ?? null,
       });
@@ -216,6 +233,24 @@ export default function AulaDetalheScreen() {
             <View style={es.section}>
               <Text style={es.sectionTitle}>Matéria</Text>
               <TextInput style={es.inputCard} value={subject} onChangeText={setSubject} placeholder="Ex: Matemática" placeholderTextColor="#AAAAAA" />
+            </View>
+
+            <View style={es.section}>
+              <Text style={es.sectionTitle}>Dia da semana <Text style={{ fontWeight: "400", color: "#aaa" }}>(opcional)</Text></Text>
+              <View style={adDs.diasRow}>
+                {DIAS.map((dia) => (
+                  <TouchableOpacity
+                    key={dia}
+                    style={[adDs.chip, diaSemana === dia && adDs.chipActive]}
+                    onPress={() => setDiaSemana(diaSemana === dia ? null : dia)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[adDs.chipText, diaSemana === dia && adDs.chipTextActive]}>
+                      {dia.slice(0, 3)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             <View style={es.section}>
@@ -298,6 +333,13 @@ export default function AulaDetalheScreen() {
             <Text style={s.infoCardLabel}>Turno</Text>
             <Text style={s.infoCardValue}>{turnoInfo.label}</Text>
           </View>
+          {params.diaSemana ? (
+            <View style={[s.infoCard, { flex: 2 }]}>
+              <Ionicons name="calendar-outline" size={24} color="#3a7d44" />
+              <Text style={s.infoCardLabel}>Dia</Text>
+              <Text style={[s.infoCardValue, { color: "#3a7d44" }]}>{params.diaSemana}</Text>
+            </View>
+          ) : null}
         </View>
 
         {params.salaNome ? (

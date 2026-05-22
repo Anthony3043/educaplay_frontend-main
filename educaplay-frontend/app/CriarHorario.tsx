@@ -45,6 +45,8 @@ const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string
   integral:   { inicio: "07:00", fim: "18:00", label: "Integral (07:00 – 18:00)" },
 };
 
+const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+
 function toMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -100,6 +102,7 @@ export default function CriarHorarioScreen() {
   const [materia, setMateria] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
+  const [diaSemana, setDiaSemana] = useState<string | null>(null);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
   const [professores, setProfessores] = useState<Professor[]>([]);
@@ -148,6 +151,7 @@ export default function CriarHorarioScreen() {
         professorId: tipoSlot === "aula" ? (professorSelecionado?.id ?? null) : null,
         salaId: tipoSlot === "aula" ? (salaSelecionada?.id ?? null) : null,
         isInterval: tipoSlot === "intervalo",
+        diaSemana: diaSemana || null,
       });
       setSucesso(true);
     } catch (err: any) {
@@ -169,11 +173,14 @@ export default function CriarHorarioScreen() {
 
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => voltar()}>
-          <Text style={{ fontSize: 20 }}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Criar Horário</Text>
         <TouchableOpacity style={s.saveBtn} onPress={handleSalvar} disabled={salvando}>
-          <Text style={s.saveBtnText}>{salvando ? "⏳" : "✓"}</Text>
+          {salvando
+            ? <ActivityIndicator size="small" color="#3a7d44" />
+            : <Ionicons name="checkmark" size={22} color="#3a7d44" />
+          }
         </TouchableOpacity>
       </View>
 
@@ -218,6 +225,25 @@ export default function CriarHorarioScreen() {
                   <Text style={[s.toggleBtnText, tipoSlot === "intervalo" && s.toggleBtnTextActive]}>Intervalo</Text>
                 </View>
               </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Dia da semana */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Dia da semana <Text style={{ fontWeight: "400", color: "#aaa" }}>(opcional)</Text></Text>
+            <View style={ds.diasRow}>
+              {DIAS.map((dia) => (
+                <TouchableOpacity
+                  key={dia}
+                  style={[ds.chip, diaSemana === dia && ds.chipActive]}
+                  onPress={() => setDiaSemana(diaSemana === dia ? null : dia)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[ds.chipText, diaSemana === dia && ds.chipTextActive]}>
+                    {dia.slice(0, 3)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
@@ -352,7 +378,7 @@ export default function CriarHorarioScreen() {
       <Modal visible={sucesso} transparent animationType="fade">
         <View style={ms.overlay}>
           <View style={ms.box}>
-            <Text style={ms.icon}>✅</Text>
+            <Ionicons name="checkmark-circle" size={56} color="#3a7d44" />
             <Text style={ms.title}>Horário criado!</Text>
             <Text style={ms.msg}>O horário foi salvo com sucesso no cronograma.</Text>
             <TouchableOpacity style={ms.btn} onPress={() => router.replace("/cronogramas" as any)} activeOpacity={0.85}>
@@ -364,6 +390,17 @@ export default function CriarHorarioScreen() {
     </SafeAreaView>
   );
 }
+
+const ds = StyleSheet.create({
+  diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: "#F0F0F0", borderWidth: 1.5, borderColor: "transparent",
+  },
+  chipActive: { backgroundColor: "#e8f5ea", borderColor: "#3a7d44" },
+  chipText: { fontSize: 13, fontWeight: "600", color: "#666" },
+  chipTextActive: { color: "#3a7d44" },
+});
 
 const ms = StyleSheet.create({
   overlay: {
@@ -380,7 +417,6 @@ const ms = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  icon: { fontSize: 48 },
   title: { fontSize: 20, fontWeight: "700", color: "#1a1a2e", marginTop: 4 },
   msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 20 },
   btn: {

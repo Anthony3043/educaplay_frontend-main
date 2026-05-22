@@ -24,6 +24,7 @@ export type Aula = {
   subject: string;
   teacher: string;
   isInterval?: boolean;
+  diaSemana?: string | null;
   professorId?: string | null;
   salaId?: string | null;
   salaNome?: string | null;
@@ -38,6 +39,7 @@ type CronogramaAPI = {
     timeStart: string;
     timeEnd: string;
     subject: string;
+    diaSemana?: string | null;
     isInterval: boolean;
     professor: { id: string; nome: string } | null;
     sala: { id: string; nome: string; turma?: string | null } | null;
@@ -85,6 +87,7 @@ export default function CronogramasScreen() {
             subject: a.subject,
             teacher: a.professor?.nome ?? "",
             isInterval: a.isInterval,
+            diaSemana: a.diaSemana ?? null,
             professorId: a.professor?.id ?? null,
             salaId: a.sala?.id ?? null,
             salaNome: a.sala?.nome ?? null,
@@ -137,6 +140,7 @@ export default function CronogramasScreen() {
         timeEnd: aula.timeEnd,
         subject: aula.subject,
         teacher: aula.teacher,
+        diaSemana: aula.diaSemana ?? "",
         professorId: aula.professorId ?? "",
         salaId: aula.salaId ?? "",
         salaNome: aula.salaNome ?? "",
@@ -222,9 +226,16 @@ export default function CronogramasScreen() {
                     </View>
                     <View style={s.infoColumn}>
                       <Text style={s.materiaName}>{item.subject}</Text>
-                      <Text style={s.professorName}>{item.teacher}</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        {item.diaSemana ? (
+                          <View style={diaBadgeStyle.badge}>
+                            <Text style={diaBadgeStyle.text}>{item.diaSemana.slice(0, 3)}</Text>
+                          </View>
+                        ) : null}
+                        {item.teacher ? <Text style={s.professorName}>{item.teacher}</Text> : null}
+                      </View>
                     </View>
-                    <Text style={{ fontSize: 18, color: "#CCC" }}>›</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#ccc" />
                   </TouchableOpacity>
                 )
               )
@@ -252,6 +263,16 @@ export default function CronogramasScreen() {
     </SafeAreaView>
   );
 }
+
+const diaBadgeStyle = StyleSheet.create({
+  badge: {
+    backgroundColor: "#e8f5ea",
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  text: { fontSize: 11, fontWeight: "700", color: "#3a7d44" },
+});
 
 const actionStyles = StyleSheet.create({
   row: {

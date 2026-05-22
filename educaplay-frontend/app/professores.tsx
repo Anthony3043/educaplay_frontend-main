@@ -235,7 +235,7 @@ const m = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: "80%",
+    height: "75%",
     paddingTop: 12,
   },
   handle: {
@@ -263,7 +263,7 @@ const m = StyleSheet.create({
     justifyContent: "center",
     marginLeft: 8,
   },
-  sheetScroll: { flex: 1 },
+  sheetScroll: { flex: 1, minHeight: 0 },
   sheetScrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
   empty: { alignItems: "center", paddingVertical: 32, gap: 10 },
   emptyText: { fontSize: 15, fontWeight: "600", color: "#999" },
