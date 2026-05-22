@@ -54,8 +54,32 @@ function toMinutes(time: string): number {
 
 function formatarHorario(texto: string): string {
   const digitos = texto.replace(/\D/g, "").slice(0, 4);
-  if (digitos.length <= 2) return digitos;
-  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
+  // Se o primeiro dígito for ≥ 3 (impossível como dezena de hora), adiciona "0" na frente
+  // Ex: "7" → "07", "730" → "07:30"
+  let normalized = digitos;
+  if (normalized.length >= 1 && parseInt(normalized[0], 10) >= 3) {
+    normalized = "0" + normalized;
+  }
+  normalized = normalized.slice(0, 4);
+  if (normalized.length <= 2) return normalized;
+  return `${normalized.slice(0, 2)}:${normalized.slice(2)}`;
+}
+
+function validarHorarioTempoReal(value: string, campo: "inicio" | "fim", turno: string): string | null {
+  if (value.length < 5) return null;
+  const limite = TURNO_LIMITES[turno];
+  if (!limite) return null;
+  const mins = toMinutes(value);
+  if (campo === "inicio") {
+    if (mins < toMinutes(limite.inicio) || mins >= toMinutes(limite.fim)) {
+      return `Início fora do turno. Permitido: ${limite.inicio} – ${limite.fim}`;
+    }
+  } else {
+    if (mins > toMinutes(limite.fim) || mins <= toMinutes(limite.inicio)) {
+      return `Término fora do turno. Permitido: ${limite.inicio} – ${limite.fim}`;
+    }
+  }
+  return null;
 }
 
 function validarHorario(start: string, end: string, turno: string): string | null {
@@ -102,6 +126,8 @@ export default function CriarHorarioScreen() {
   const [materia, setMateria] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
+  const [erroInicio, setErroInicio] = useState<string | null>(null);
+  const [erroFim, setErroFim] = useState<string | null>(null);
   const [diaSemana, setDiaSemana] = useState<string | null>(null);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
@@ -262,29 +288,53 @@ export default function CriarHorarioScreen() {
           {/* Horário início */}
           <View style={s.section}>
             <Text style={s.sectionTitle}>Horário de início <Text style={{ color: "#ef4444" }}>*</Text></Text>
+            {TURNO_LIMITES[turno] && (
+              <Text style={{ fontSize: 12, color: "#3a7d44", marginBottom: 6, fontWeight: "600" }}>
+                🕐 Permitido: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
+              </Text>
+            )}
             <TextInput
-              style={s.inputCard}
+              style={[s.inputCard, erroInicio ? { borderColor: "#ef4444", borderWidth: 1.5 } : null]}
               value={timeStart}
-              onChangeText={(t) => setTimeStart(formatarHorario(t))}
-              placeholder="0730 → 07:30"
+              onChangeText={(t) => {
+                const formatted = formatarHorario(t);
+                setTimeStart(formatted);
+                setErroInicio(validarHorarioTempoReal(formatted, "inicio", turno));
+              }}
+              placeholder={TURNO_LIMITES[turno] ? `Ex: ${TURNO_LIMITES[turno].inicio}` : "HH:MM"}
               placeholderTextColor="#AAAAAA"
               keyboardType="numeric"
               maxLength={5}
             />
+            {erroInicio ? (
+              <Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>⚠ {erroInicio}</Text>
+            ) : null}
           </View>
 
           {/* Horário término */}
           <View style={s.section}>
             <Text style={s.sectionTitle}>Horário de término <Text style={{ color: "#ef4444" }}>*</Text></Text>
+            {TURNO_LIMITES[turno] && (
+              <Text style={{ fontSize: 12, color: "#3a7d44", marginBottom: 6, fontWeight: "600" }}>
+                🕐 Permitido: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
+              </Text>
+            )}
             <TextInput
-              style={s.inputCard}
+              style={[s.inputCard, erroFim ? { borderColor: "#ef4444", borderWidth: 1.5 } : null]}
               value={timeEnd}
-              onChangeText={(t) => setTimeEnd(formatarHorario(t))}
-              placeholder="0800 → 08:00"
+              onChangeText={(t) => {
+                const formatted = formatarHorario(t);
+                setTimeEnd(formatted);
+                setErroFim(validarHorarioTempoReal(formatted, "fim", turno));
+              }}
+              placeholder={TURNO_LIMITES[turno] ? `Ex: ${TURNO_LIMITES[turno].fim}` : "HH:MM"}
               placeholderTextColor="#AAAAAA"
               keyboardType="numeric"
               maxLength={5}
             />
+            {erroFim ? (
+              <Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>⚠ {erroFim}</Text>
+            ) : null}
           </View>
 
           {tipoSlot === "intervalo" ? (
