@@ -23,6 +23,8 @@ export default function RegisterScreen() {
   const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
   const [papelOpen, setPapelOpen] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [erroEmail, setErroEmail] = useState("");
+  const [erroNome, setErroNome] = useState("");
 
   const senhasIguais = confirmarSenha.length > 0 && senha === confirmarSenha;
   const senhasDispares = confirmarSenha.length > 0 && senha !== confirmarSenha;
@@ -30,7 +32,15 @@ export default function RegisterScreen() {
   const papeis = ["Supervisao", "Professor"];
 
   const handleRegister = async () => {
-    if (!nome.trim() || !email.trim() || !senha || !papel) {
+    setErroEmail("");
+    setErroNome("");
+
+    const nomePartes = nome.trim().split(/\s+/);
+    if (nomePartes.length < 2 || nomePartes.some((p) => p.length < 2)) {
+      setErroNome("Informe seu nome completo (nome e sobrenome).");
+      return;
+    }
+    if (!email.trim() || !senha || !papel) {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
     }
@@ -53,13 +63,11 @@ export default function RegisterScreen() {
     } catch (err: any) {
       const status = err?.response?.status;
       const backendMsg = err?.response?.data?.error || err?.response?.data?.message;
-      let msg: string;
       if (status === 409) {
-        msg = "Este e-mail já está cadastrado. Use outro e-mail ou faça login.";
+        setErroEmail("Este e-mail já está cadastrado. Use outro ou faça login.");
       } else {
-        msg = backendMsg || err?.message || "Erro ao criar conta. Tente novamente.";
+        Alert.alert("Erro no cadastro", backendMsg || err?.message || "Erro ao criar conta. Tente novamente.");
       }
-      Alert.alert("Erro no cadastro", msg);
     } finally {
       setCarregando(false);
     }
@@ -112,27 +120,33 @@ export default function RegisterScreen() {
             <Text style={s.welcomeTitle}>Crie sua conta</Text>
             <Text style={s.welcomeSubtitle}>Preencha os dados abaixo para começar</Text>
 
-            <View style={r.inlineInput}>
+            <View style={[r.inlineInput, erroNome ? { borderColor: '#ef4444', borderWidth: 1.5 } : null]}>
               <View style={r.inlineIconLabel}>
                 <Text style={r.inlineIcon}>👤</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={r.inlineLabel}>Nome completo</Text>
-                  <TextInput style={r.inlineTextInput} placeholder="Digite seu nome completo" placeholderTextColor="#bbbcc8"
-                    value={nome} onChangeText={setNome} autoCapitalize="words" />
+                  <Text style={r.inlineLabel}>Nome completo *</Text>
+                  <TextInput style={r.inlineTextInput} placeholder="Digite seu nome e sobrenome" placeholderTextColor="#bbbcc8"
+                    value={nome} onChangeText={(t) => { setNome(t); setErroNome(""); }} autoCapitalize="words" />
                 </View>
               </View>
             </View>
+            {erroNome ? (
+              <Text style={{ fontSize: 12, color: '#ef4444', marginTop: -8, marginBottom: 4, marginLeft: 2 }}>✗ {erroNome}</Text>
+            ) : null}
 
-            <View style={r.inlineInput}>
+            <View style={[r.inlineInput, erroEmail ? { borderColor: '#ef4444', borderWidth: 1.5 } : null]}>
               <View style={r.inlineIconLabel}>
                 <Text style={r.inlineIcon}>✉️</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={r.inlineLabel}>E-mail</Text>
                   <TextInput style={r.inlineTextInput} placeholder="Digite seu e-mail" placeholderTextColor="#bbbcc8"
-                    value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
+                    value={email} onChangeText={(t) => { setEmail(t); setErroEmail(""); }} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
                 </View>
               </View>
             </View>
+            {erroEmail ? (
+              <Text style={{ fontSize: 12, color: '#ef4444', marginTop: -8, marginBottom: 4, marginLeft: 2 }}>✗ {erroEmail}</Text>
+            ) : null}
 
             <View style={r.inlineInput}>
               <View style={r.inlineIconLabel}>
