@@ -109,7 +109,15 @@ export default function PerfilScreen() {
             {isEditing && <View style={s.fotoOverlay}><Ionicons name="camera-outline" size={28} color="#fff" /></View>}
           </TouchableOpacity>
           <Text style={s.perfilNome}>{nome}</Text>
-          <Text style={s.perfilCargo}>{cargo}</Text>
+          {isProfessor
+            ? (cargo ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                  <Ionicons name="book-outline" size={13} color="#3a7d44" />
+                  <Text style={[s.perfilCargo, { color: "#3a7d44", fontWeight: "600" }]}>{cargo}</Text>
+                </View>
+              ) : null)
+            : <Text style={s.perfilCargo}>{cargo}</Text>
+          }
         </View>
 
         <View style={s.section}>
@@ -133,9 +141,18 @@ export default function PerfilScreen() {
               : <Text style={s.infoValue}>{escola || "—"}</Text>}
           </View>
           <View style={s.infoGroup}>
-            <Text style={s.label}>Cargo</Text>
-            {isEditing ? <TextInput style={s.input} value={cargo} onChangeText={setCargo} placeholder="Seu cargo" placeholderTextColor="#bbb" />
-              : <Text style={s.infoValue}>{cargo || "—"}</Text>}
+            <Text style={s.label}>{isProfessor ? "Matéria" : "Cargo"}</Text>
+            {isEditing ? (
+              <TextInput
+                style={s.input}
+                value={cargo}
+                onChangeText={setCargo}
+                placeholder={isProfessor ? "Ex: Matemática, Português..." : "Seu cargo"}
+                placeholderTextColor="#bbb"
+              />
+            ) : (
+              <Text style={s.infoValue}>{cargo || "—"}</Text>
+            )}
           </View>
           <View style={s.infoGroup}>
             <Text style={s.label}>Papel</Text>

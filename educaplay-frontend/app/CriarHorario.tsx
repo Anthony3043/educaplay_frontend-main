@@ -349,7 +349,7 @@ export default function CriarHorarioScreen() {
             <>
               {/* Matéria */}
               <View style={s.section}>
-                <Text style={s.sectionTitle}>Matéria <Text style={{ color: "#ef4444" }}>*</Text></Text>
+                <Text style={s.sectionTitle}>Matéria <Text style={{ color: Colors.error }}>*</Text></Text>
                 <TextInput
                   style={s.inputCard}
                   value={materia}
@@ -357,6 +357,44 @@ export default function CriarHorarioScreen() {
                   placeholder="Ex: Matemática, Português..."
                   placeholderTextColor="#AAAAAA"
                 />
+                {/* Sugestões: professores que lecionam esta matéria */}
+                {materia.trim().length >= 2 && (() => {
+                  const sugeridos = professores.filter(
+                    (p) => p.cargo && p.cargo.toLowerCase().includes(materia.toLowerCase().trim())
+                  );
+                  if (sugeridos.length === 0) return null;
+                  return (
+                    <View style={sg.container}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 8 }}>
+                        <Ionicons name="search-outline" size={13} color={Colors.primary} />
+                        <Text style={sg.label}>Professores que lecionam esta matéria:</Text>
+                      </View>
+                      {sugeridos.map((prof) => {
+                        const selected = professorSelecionado?.id === prof.id;
+                        return (
+                          <TouchableOpacity
+                            key={prof.id}
+                            style={[sg.card, selected && sg.cardSelected]}
+                            onPress={() => {
+                              setProfessorSelecionado(selected ? null : prof);
+                              if (!selected) setMateria(prof.cargo ?? materia);
+                            }}
+                            activeOpacity={0.75}
+                          >
+                            <View style={sg.avatar}>
+                              <Ionicons name="person-outline" size={18} color={selected ? Colors.primary : Colors.textMuted} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text style={[sg.nome, selected && { color: Colors.primary }]}>{prof.nome}</Text>
+                              <Text style={sg.sub}>{prof.cargo}</Text>
+                            </View>
+                            {selected && <Ionicons name="checkmark-circle" size={18} color={Colors.primary} />}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  );
+                })()}
               </View>
 
               {/* Sala */}
@@ -453,6 +491,59 @@ export default function CriarHorarioScreen() {
     </SafeAreaView>
   );
 }
+
+// ── Sugestões de professor por matéria ───────────────────────────────────────
+const sg = StyleSheet.create({
+  container: {
+    marginTop: 8,
+    backgroundColor: Colors.primarySurface,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.primary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    backgroundColor: Colors.surface,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.transparent,
+  },
+  cardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryPale,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primaryPale,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nome: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+  },
+  sub: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginTop: 1,
+  },
+});
 
 const ds = StyleSheet.create({
   diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

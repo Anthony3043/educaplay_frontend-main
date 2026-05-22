@@ -227,6 +227,12 @@ export default function HomeScreen() {
               )}
               <Text style={s.drawerTitle}>{userName}</Text>
               <Text style={s.drawerSubtitle}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel ?? ""}</Text>
+              {usuario?.papel === "Professor" && usuario?.cargo ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                  <Ionicons name="book-outline" size={12} color="#3a7d44" />
+                  <Text style={{ fontSize: 12, color: "#3a7d44", fontWeight: "600" }}>{usuario.cargo}</Text>
+                </View>
+              ) : null}
             </View>
 
             <View style={s.drawerDivider} />

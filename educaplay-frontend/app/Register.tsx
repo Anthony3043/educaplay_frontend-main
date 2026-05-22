@@ -20,6 +20,7 @@ export default function RegisterScreen() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [instituicao, setInstituicao] = useState("");
   const [papel, setPapel] = useState("");
+  const [materia, setMateria] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
   const [papelOpen, setPapelOpen] = useState(false);
@@ -45,6 +46,10 @@ export default function RegisterScreen() {
       Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
       return;
     }
+    if (papel === "Professor" && !materia.trim()) {
+      Alert.alert("Atenção", "Informe a matéria que você leciona.");
+      return;
+    }
     if (senha !== confirmarSenha) {
       Alert.alert("Atenção", "As senhas não coincidem.");
       return;
@@ -55,7 +60,14 @@ export default function RegisterScreen() {
     }
     setCarregando(true);
     try {
-      const usuario = await register({ nome: nome.trim(), email: email.trim(), senha, papel, instituicao });
+      const usuario = await register({
+        nome: nome.trim(),
+        email: email.trim(),
+        senha,
+        papel,
+        instituicao,
+        cargo: papel === "Professor" ? materia.trim() : undefined,
+      });
       if (usuario.papel === "Professor") {
         router.replace("/home-professor");
       } else {
@@ -215,6 +227,26 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Campo matéria — visível apenas para Professor */}
+            {papel === "Professor" && (
+              <View style={[r.inlineInput, materia.trim() ? r.inlineInputActive : null]}>
+                <View style={r.inlineIconLabel}>
+                  <Ionicons name="book-outline" size={18} color="#888" style={r.inlineIcon} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={r.inlineLabel}>Matéria que você leciona *</Text>
+                    <TextInput
+                      style={r.inlineTextInput}
+                      placeholder="Ex: Matemática, Português..."
+                      placeholderTextColor="#bbbcc8"
+                      value={materia}
+                      onChangeText={setMateria}
+                      autoCapitalize="words"
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
 
             <TouchableOpacity style={s.btnEntrar} onPress={handleRegister} activeOpacity={0.85} disabled={carregando}>
               {carregando ? <ActivityIndicator color="#fff" /> : <>
