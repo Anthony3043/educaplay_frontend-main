@@ -53,12 +53,194 @@ const TURNOS: { id: TurnoId; label: string; ionicon: React.ComponentProps<typeof
   { id: "integral",   label: "Integral",   ionicon: "book-outline",         time: "07:00 - 18:00" },
 ];
 
+const TURNO_COLORS: Record<TurnoId, string> = {
+  matutino:   "#F59E0B",
+  vespertino: "#3B82F6",
+  noturno:    "#6366F1",
+  integral:   "#10B981",
+};
+
+const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+
 const TABS = [
-  { id: "home",          ionicon: "home-outline" as const, label: "Home" },
-  { id: "cronograma",    ionicon: "calendar-outline" as const, label: "Cronograma" },
-  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
+  { id: "home",          ionicon: "home-outline" as const,     label: "Home" },
+  { id: "cronograma",    ionicon: "calendar-outline" as const,  label: "Cronograma" },
+  { id: "configuracoes", ionicon: "settings-outline" as const,  label: "Configurações" },
 ];
 
+// ─── Componente do calendário semanal ────────────────────────────────────────
+const COL_W = 115;
+const TIME_W = 46;
+
+function CalendarioSemanal({
+  aulas,
+  turno,
+  onPress,
+}: {
+  aulas: Aula[];
+  turno: TurnoId;
+  onPress: (a: Aula) => void;
+}) {
+  const cor = TURNO_COLORS[turno] || "#3a7d44";
+
+  const normais   = aulas.filter(a => !a.isInterval && !!a.diaSemana);
+  const semDia    = aulas.filter(a => !a.isInterval && !a.diaSemana);
+  const intervalos = aulas.filter(a => !!a.isInterval);
+
+  // Linhas do grid = horários únicos ordenados
+  const horarios = [...new Set(normais.map(a => a.timeStart))].sort();
+
+  // Mapa rápido dia+horário → Aula
+  const lookup: Record<string, Aula> = {};
+  normais.forEach(a => {
+    const k = `${a.diaSemana}_${a.timeStart}`;
+    if (!lookup[k]) lookup[k] = a;
+  });
+
+  const vazio = normais.length === 0 && semDia.length === 0 && intervalos.length === 0;
+
+  if (vazio) {
+    return (
+      <View style={cal.empty}>
+        <Ionicons name="calendar-outline" size={48} color="#ccc" />
+        <Text style={cal.emptyText}>Nenhum horário cadastrado para este turno.</Text>
+        <Text style={cal.emptyHint}>Toque em "Criar Horário" para começar.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      {/* ── Grade semanal ── */}
+      {normais.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
+          contentContainerStyle={{ paddingBottom: 8 }}
+        >
+          <View>
+            {/* Cabeçalho dos dias */}
+            <View style={{ flexDirection: "row", marginBottom: 6 }}>
+              <View style={{ width: TIME_W }} />
+              {DIAS_SEMANA.map(dia => (
+                <View key={dia} style={[cal.dayHeader, { width: COL_W }]}>
+                  <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Linha por horário */}
+            {horarios.map(h => (
+              <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
+                {/* Rótulo de horário */}
+                <View style={[cal.timeCol, { width: TIME_W }]}>
+                  <Text style={cal.timeText}>{h}</Text>
+                </View>
+
+                {/* Células dos dias */}
+                {DIAS_SEMANA.map(dia => {
+                  const aula = lookup[`${dia}_${h}`];
+                  return (
+                    <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
+                      {aula ? (
+                        <TouchableOpacity
+                          style={[cal.aulaCard, { borderLeftColor: cor }]}
+                          onPress={() => onPress(aula)}
+                          activeOpacity={0.82}
+                        >
+                          <Text style={[cal.aulaTime, { color: cor }]}>
+                            {aula.timeStart} – {aula.timeEnd}
+                          </Text>
+                          <Text style={cal.aulaSubject} numberOfLines={2}>
+                            {aula.subject}
+                          </Text>
+                          {aula.teacher ? (
+                            <View style={cal.detail}>
+                              <Ionicons name="person-outline" size={10} color="#888" />
+                              <Text style={cal.detailText} numberOfLines={1}>{aula.teacher}</Text>
+                            </View>
+                          ) : null}
+                          {aula.salaNome ? (
+                            <View style={cal.detail}>
+                              <Ionicons name="business-outline" size={10} color="#888" />
+                              <Text style={cal.detailText} numberOfLines={1}>
+                                {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={cal.emptyCell} />
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      )}
+
+      {/* ── Aulas sem dia específico ── */}
+      {semDia.length > 0 && (
+        <View style={{ marginTop: normais.length > 0 ? 20 : 0 }}>
+          <View style={cal.sectionHeader}>
+            <Ionicons name="time-outline" size={13} color="#888" />
+            <Text style={cal.sectionHeaderText}>Sem dia específico</Text>
+          </View>
+          {semDia.map(a => (
+            <TouchableOpacity
+              key={a.id}
+              style={cal.rowCard}
+              onPress={() => onPress(a)}
+              activeOpacity={0.8}
+            >
+              <View style={cal.rowTimeBox}>
+                <Text style={cal.rowTimeStart}>{a.timeStart}</Text>
+                <Text style={cal.rowTimeEnd}>{a.timeEnd}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={cal.rowSubject}>{a.subject}</Text>
+                {a.teacher ? (
+                  <View style={cal.detail}>
+                    <Ionicons name="person-outline" size={11} color="#aaa" />
+                    <Text style={[cal.detailText, { fontSize: 11 }]} numberOfLines={1}>{a.teacher}</Text>
+                  </View>
+                ) : null}
+                {a.salaNome ? (
+                  <View style={cal.detail}>
+                    <Ionicons name="business-outline" size={11} color="#aaa" />
+                    <Text style={[cal.detailText, { fontSize: 11 }]} numberOfLines={1}>{a.salaNome}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#ccc" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
+      {/* ── Intervalos ── */}
+      {intervalos.length > 0 && (
+        <View style={{ marginTop: 16 }}>
+          <View style={cal.sectionHeader}>
+            <Ionicons name="cafe-outline" size={13} color="#92400e" />
+            <Text style={[cal.sectionHeaderText, { color: "#92400e" }]}>Intervalos</Text>
+          </View>
+          {intervalos.map(a => (
+            <View key={a.id} style={cal.intervaloCard}>
+              <Ionicons name="cafe-outline" size={14} color="#92400e" />
+              <Text style={cal.intervaloText}>{a.subject} · {a.timeStart} – {a.timeEnd}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Tela principal ───────────────────────────────────────────────────────────
 export default function CronogramasScreen() {
   const router = useRouter();
   const [selectedTurno, setSelectedTurno] = useState<TurnoId>("matutino");
@@ -118,10 +300,7 @@ export default function CronogramasScreen() {
         return;
       }
     }
-    router.push({
-      pathname: "/CriarHorario",
-      params: { cronogramaId, turno: selectedTurno },
-    });
+    router.push({ pathname: "/CriarHorario", params: { cronogramaId, turno: selectedTurno } });
   };
 
   const handleTabPress = (tabId: string) => {
@@ -150,8 +329,6 @@ export default function CronogramasScreen() {
     });
   };
 
-  const aulasDoCronograma = cronogramas[selectedTurno];
-
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="dark-content" />
@@ -168,6 +345,7 @@ export default function CronogramasScreen() {
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
         <ScrollView contentContainerStyle={s.scrollContent}>
+          {/* Seletor de turno */}
           <View style={s.section}>
             <Text style={s.sectionTitle}>Selecione o Turno</Text>
             <View style={s.turnoGrid}>
@@ -177,7 +355,11 @@ export default function CronogramasScreen() {
                   style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]}
                   onPress={() => setSelectedTurno(turno.id)}
                 >
-                  <Ionicons name={turno.ionicon} size={24} color={selectedTurno === turno.id ? "#3a7d44" : "#1a1a2e"} />
+                  <Ionicons
+                    name={turno.ionicon}
+                    size={24}
+                    color={selectedTurno === turno.id ? TURNO_COLORS[turno.id] : "#1a1a2e"}
+                  />
                   <Text style={s.turnoLabel}>{turno.label}</Text>
                   <Text style={s.turnoTime}>{turno.time}</Text>
                 </TouchableOpacity>
@@ -185,61 +367,31 @@ export default function CronogramasScreen() {
             </View>
           </View>
 
-          {/* Botão de ação */}
-          <View style={actionStyles.row}>
-            <TouchableOpacity
-              style={[actionStyles.btn, actionStyles.btnPrimary]}
-              onPress={handleCriarHorario}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="time-outline" size={18} color="#fff" />
-              <Text style={actionStyles.btnTextPrimary}>Criar Horário</Text>
+          {/* Botão criar */}
+          <View style={act.row}>
+            <TouchableOpacity style={act.btn} onPress={handleCriarHorario} activeOpacity={0.8}>
+              <Ionicons name="add-circle-outline" size={18} color="#fff" />
+              <Text style={act.btnText}>Criar Horário</Text>
             </TouchableOpacity>
           </View>
 
+          {/* Calendário */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Horários das Aulas</Text>
-            {aulasDoCronograma.length === 0 ? (
-              <View style={s.emptyState}>
-                <Ionicons name="calendar-outline" size={48} color="#ccc" />
-                <Text style={s.emptyText}>Nenhum horário cadastrado para este turno.</Text>
-              </View>
-            ) : (
-              aulasDoCronograma.map((item) =>
-                item.isInterval ? (
-                  <View key={item.id} style={s.intervalItem}>
-                    <Text style={s.intervalIcon}>☕</Text>
-                    <Text style={s.intervalText}>
-                      {item.subject} · {item.timeStart} – {item.timeEnd}
-                    </Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={s.horarioItem}
-                    activeOpacity={0.75}
-                    onPress={() => handleAulaPress(item)}
-                  >
-                    <View style={s.timeColumn}>
-                      <Text style={s.startTime}>{item.timeStart}</Text>
-                      <Text style={s.endTime}>{item.timeEnd}</Text>
-                    </View>
-                    <View style={s.infoColumn}>
-                      <Text style={s.materiaName}>{item.subject}</Text>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                        {item.diaSemana ? (
-                          <View style={diaBadgeStyle.badge}>
-                            <Text style={diaBadgeStyle.text}>{item.diaSemana.slice(0, 3)}</Text>
-                          </View>
-                        ) : null}
-                        {item.teacher ? <Text style={s.professorName}>{item.teacher}</Text> : null}
-                      </View>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color="#ccc" />
-                  </TouchableOpacity>
-                )
-              )
-            )}
+            <View style={act.calHeader}>
+              <Ionicons
+                name={TURNOS.find(t => t.id === selectedTurno)?.ionicon ?? "calendar-outline"}
+                size={16}
+                color={TURNO_COLORS[selectedTurno]}
+              />
+              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>
+                {TURNOS.find(t => t.id === selectedTurno)?.label} — Horários
+              </Text>
+            </View>
+            <CalendarioSemanal
+              aulas={cronogramas[selectedTurno]}
+              turno={selectedTurno}
+              onPress={handleAulaPress}
+            />
           </View>
         </ScrollView>
       )}
@@ -264,21 +416,102 @@ export default function CronogramasScreen() {
   );
 }
 
-const diaBadgeStyle = StyleSheet.create({
-  badge: {
-    backgroundColor: "#e8f5ea",
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+// ─── Estilos do calendário ────────────────────────────────────────────────────
+const cal = StyleSheet.create({
+  empty: { alignItems: "center", paddingVertical: 40, gap: 10 },
+  emptyText: { fontSize: 15, fontWeight: "600", color: "#aaa", textAlign: "center" },
+  emptyHint: { fontSize: 13, color: "#ccc", textAlign: "center" },
+
+  dayHeader: {
+    backgroundColor: "#1a1a2e",
+    marginHorizontal: 3,
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
   },
-  text: { fontSize: 11, fontWeight: "700", color: "#3a7d44" },
+  dayHeaderText: { fontSize: 11, fontWeight: "800", color: "#fff", letterSpacing: 0.8 },
+
+  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center" },
+  timeText: { fontSize: 10, fontWeight: "700", color: "#999" },
+
+  aulaCard: {
+    backgroundColor: "#FAFFFE",
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    padding: 9,
+    flex: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  aulaTime: { fontSize: 9, fontWeight: "700", marginBottom: 4 },
+  aulaSubject: { fontSize: 12, fontWeight: "700", color: "#1a1a2e", marginBottom: 5, lineHeight: 16 },
+  detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 3 },
+  detailText: { fontSize: 10, color: "#666", flex: 1 },
+
+  emptyCell: {
+    flex: 1,
+    minHeight: 76,
+    borderWidth: 1,
+    borderColor: "#EBEBEB",
+    borderRadius: 10,
+    borderStyle: "dashed",
+    backgroundColor: "#FAFAFA",
+  },
+
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 10,
+  },
+  sectionHeaderText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#999",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+
+  rowCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
+    gap: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  rowTimeBox: { alignItems: "center", width: 44, gap: 2 },
+  rowTimeStart: { fontSize: 12, fontWeight: "800", color: "#1a1a2e" },
+  rowTimeEnd: { fontSize: 11, color: "#aaa" },
+  rowSubject: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 3 },
+
+  intervaloCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+  },
+  intervaloText: { fontSize: 12, color: "#92400e", fontWeight: "600" },
 });
 
-const actionStyles = StyleSheet.create({
-  row: {
-    paddingHorizontal: 20,
-    marginBottom: 4,
-  },
+const act = StyleSheet.create({
+  row: { paddingHorizontal: 20, marginBottom: 4 },
   btn: {
     flexDirection: "row",
     alignItems: "center",
@@ -286,16 +519,13 @@ const actionStyles = StyleSheet.create({
     gap: 6,
     paddingVertical: 13,
     borderRadius: 14,
-  },
-  btnPrimary: {
     backgroundColor: "#3a7d44",
   },
-  btnIcon: {
-    fontSize: 16,
-  },
-  btnTextPrimary: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#fff",
+  btnText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  calHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 14,
   },
 });
