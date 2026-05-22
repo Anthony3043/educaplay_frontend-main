@@ -6,6 +6,7 @@ import {
   Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { loginStyles as s } from "../styles/loginStyles";
 import { registerStyles as r } from "../styles/registerStyles";
 import { useAuth } from "../context/AuthContext";
@@ -99,7 +100,7 @@ export default function RegisterScreen() {
             <Image source={require("@/assets/images/design_foil.png")} style={r.foil} resizeMode="cover" />
             <View style={r.headerRow}>
               <TouchableOpacity style={r.backBtn} onPress={() => router.back()}>
-                <Text style={r.backArrow}>←</Text>
+                <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
               </TouchableOpacity>
             </View>
             <View style={r.logoMascoteRow}>
@@ -122,7 +123,7 @@ export default function RegisterScreen() {
 
             <View style={[r.inlineInput, erroNome ? { borderColor: '#ef4444', borderWidth: 1.5 } : null]}>
               <View style={r.inlineIconLabel}>
-                <Text style={r.inlineIcon}>👤</Text>
+                <Ionicons name="person-outline" size={18} color="#888" style={r.inlineIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={r.inlineLabel}>Nome completo *</Text>
                   <TextInput style={r.inlineTextInput} placeholder="Digite seu nome e sobrenome" placeholderTextColor="#bbbcc8"
@@ -136,7 +137,7 @@ export default function RegisterScreen() {
 
             <View style={[r.inlineInput, erroEmail ? { borderColor: '#ef4444', borderWidth: 1.5 } : null]}>
               <View style={r.inlineIconLabel}>
-                <Text style={r.inlineIcon}>✉️</Text>
+                <Ionicons name="mail-outline" size={18} color="#888" style={r.inlineIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={r.inlineLabel}>E-mail</Text>
                   <TextInput style={r.inlineTextInput} placeholder="Digite seu e-mail" placeholderTextColor="#bbbcc8"
@@ -150,7 +151,7 @@ export default function RegisterScreen() {
 
             <View style={r.inlineInput}>
               <View style={r.inlineIconLabel}>
-                <Text style={r.inlineIcon}>🔒</Text>
+                <Ionicons name="lock-closed-outline" size={18} color="#888" style={r.inlineIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={r.inlineLabel}>Senha</Text>
                   <TextInput style={r.inlineTextInput} placeholder="Crie uma senha" placeholderTextColor="#bbbcc8"
@@ -158,13 +159,13 @@ export default function RegisterScreen() {
                 </View>
               </View>
               <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
-                <Text style={s.eyeIcon}>{senhaVisivel ? "🙈" : "👁️"}</Text>
+                <Ionicons name={senhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" style={s.eyeIcon} />
               </TouchableOpacity>
             </View>
 
             <View style={[r.inlineInput, senhasIguais && { borderColor: '#3a7d44', borderWidth: 1.5 }, senhasDispares && { borderColor: '#ef4444', borderWidth: 1.5 }]}>
               <View style={r.inlineIconLabel}>
-                <Text style={r.inlineIcon}>🔒</Text>
+                <Ionicons name="lock-closed-outline" size={18} color="#888" style={r.inlineIcon} />
                 <View style={{ flex: 1 }}>
                   <Text style={r.inlineLabel}>Confirmar senha</Text>
                   <TextInput style={r.inlineTextInput} placeholder="Digite novamente a sua senha" placeholderTextColor="#bbbcc8"
@@ -172,7 +173,7 @@ export default function RegisterScreen() {
                 </View>
               </View>
               <TouchableOpacity onPress={() => setConfirmarSenhaVisivel(!confirmarSenhaVisivel)}>
-                <Text style={s.eyeIcon}>{confirmarSenhaVisivel ? "🙈" : "👁️"}</Text>
+                <Ionicons name={confirmarSenhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" style={s.eyeIcon} />
               </TouchableOpacity>
             </View>
             {senhasDispares && (
@@ -190,7 +191,7 @@ export default function RegisterScreen() {
               <View style={r.halfField}>
                 <View style={[r.inlineInput, { flex: 1, marginBottom: 0 }]}>
                   <View style={r.inlineIconLabel}>
-                    <Text style={r.inlineIcon}>🏫</Text>
+                    <Ionicons name="school-outline" size={18} color="#888" style={r.inlineIcon} />
                     <View style={{ flex: 1 }}>
                       <Text style={r.inlineLabel}>Instituição (opcional)</Text>
                       <TextInput style={r.inlineTextInput} placeholder="Nome da escola" placeholderTextColor="#bbbcc8"
@@ -202,7 +203,7 @@ export default function RegisterScreen() {
               <View style={r.halfField}>
                 <TouchableOpacity style={[r.inlineInput, papel ? r.inlineInputActive : null, { flex: 1, marginBottom: 0 }]} onPress={() => setPapelOpen(true)} activeOpacity={0.8}>
                   <View style={r.inlineIconLabel}>
-                    <Text style={r.inlineIcon}>🛡️</Text>
+                    <Ionicons name="shield-checkmark-outline" size={18} color="#888" style={r.inlineIcon} />
                     <View style={{ flex: 1 }}>
                       <Text style={r.inlineLabel}>Seu papel *</Text>
                       <Text style={[r.inlineTextInput, { color: papel ? "#1a1a2e" : "#bbbcc8" }]}>

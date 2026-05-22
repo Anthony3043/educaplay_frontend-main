@@ -11,46 +11,47 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 const TABS = [
-  { id: "home", icon: "🏠", label: "Home" },
-  { id: "cronograma", icon: "📅", label: "Cronograma" },
-  { id: "configuracoes", icon: "⚙️", label: "Configurações" },
+  { id: "home", ionicon: "home-outline" as const, label: "Home" },
+  { id: "cronograma", ionicon: "calendar-outline" as const, label: "Cronograma" },
+  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
 ];
 
 const CONFIG_ITEMS: {
   id: string;
   title: string;
   subtitle: string;
-  icon: string;
+  ionicon: "person-outline" | "notifications-outline" | "lock-closed-outline" | "information-circle-outline";
   route?: Href;
 }[] = [
   {
     id: "perfil",
     title: "Meu Perfil",
     subtitle: "Editar informações pessoais",
-    icon: "👤",
+    ionicon: "person-outline",
     route: "/perfil",
   },
   {
     id: "notificacoes",
     title: "Notificações",
     subtitle: "Gerenciar preferências",
-    icon: "🔔",
+    ionicon: "notifications-outline",
     route: "/notificacoes",
   },
   {
     id: "privacidade",
     title: "Privacidade",
     subtitle: "Controlar acesso",
-    icon: "🔒",
+    ionicon: "lock-closed-outline",
     route: "/privacidade",
   },
   {
     id: "sobre",
     title: "Sobre",
     subtitle: "Versão e informações",
-    icon: "ℹ️",
+    ionicon: "information-circle-outline",
     route: "/sobre",
   },
 ];
@@ -77,7 +78,7 @@ export default function ConfiguracoesScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backArrow}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Configurações</Text>
         <View style={{ width: 40 }} />
@@ -97,13 +98,13 @@ export default function ConfiguracoesScreen() {
               onPress={() => item.route && router.push(item.route)}
             >
               <View style={s.configIcon}>
-                <Text style={s.configIconText}>{item.icon}</Text>
+                <Ionicons name={item.ionicon} size={20} color="#1a1a2e" />
               </View>
               <View style={s.configContent}>
                 <Text style={s.configTitle}>{item.title}</Text>
                 <Text style={s.configSubtitle}>{item.subtitle}</Text>
               </View>
-              <Text style={s.configArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={20} color="#bbbcc8" />
             </TouchableOpacity>
           ))}
         </View>
@@ -125,9 +126,7 @@ export default function ConfiguracoesScreen() {
               onPress={() => handleTabPress(tab.id)}
               activeOpacity={0.7}
             >
-              <Text style={[s.tabIcon, isActive && s.tabIconActive]}>
-                {tab.icon}
-              </Text>
+              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
               <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>
                 {tab.label}
               </Text>

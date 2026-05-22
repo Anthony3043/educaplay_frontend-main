@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 export default function ForgotPasswordScreen() {
@@ -81,7 +82,7 @@ export default function ForgotPasswordScreen() {
               onPress={() => router.back()}
               activeOpacity={0.7}
             >
-              <Text style={s.backArrow}>←</Text>
+              <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
             </TouchableOpacity>
           </View>
 
@@ -111,7 +112,7 @@ export default function ForgotPasswordScreen() {
 
             <Text style={s.label}>E-mail</Text>
             <View style={[s.inputWrapper, erro ? s.inputWrapperError : null]}>
-              <Text style={s.inputIcon}>✉️</Text>
+              <Ionicons name="mail-outline" size={18} color="#888" style={s.inputIcon} />
               <TextInput
                 style={s.input}
                 placeholder="Digite seu e-mail"
@@ -129,7 +130,7 @@ export default function ForgotPasswordScreen() {
               />
               {email.length > 0 && (
                 <TouchableOpacity onPress={() => setEmail("")}>
-                  <Text style={s.clearIcon}>✕</Text>
+                  <Ionicons name="close-circle" size={18} color="#aaa" style={s.clearIcon} />
                 </TouchableOpacity>
               )}
             </View>

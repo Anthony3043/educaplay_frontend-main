@@ -7,13 +7,14 @@ import {
   StatusBar, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
 
 const TABS = [
-  { id: "home", icon: "🏠", label: "Home" },
-  { id: "cronograma", icon: "📅", label: "Cronograma" },
-  { id: "configuracoes", icon: "⚙️", label: "Configurações" },
+  { id: "home", ionicon: "home-outline" as const, label: "Home" },
+  { id: "cronograma", ionicon: "calendar-outline" as const, label: "Cronograma" },
+  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
 ];
 
 export default function PerfilScreen() {
@@ -85,11 +86,13 @@ export default function PerfilScreen() {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backArrow}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Meu Perfil</Text>
         <TouchableOpacity onPress={() => setIsEditing(!isEditing)} activeOpacity={0.7}>
-          <Text style={s.editBtn}>{isEditing ? "✕" : "✏️"}</Text>
+          {isEditing
+            ? <Ionicons name="close" size={20} color="#1a1a2e" />
+            : <Ionicons name="pencil-outline" size={20} color="#1a1a2e" />}
         </TouchableOpacity>
       </View>
 
@@ -100,10 +103,10 @@ export default function PerfilScreen() {
               <Image source={{ uri: fotoExibir }} style={s.foto} resizeMode="cover" />
             ) : (
               <View style={[s.foto, { backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center" }]}>
-                <Text style={{ fontSize: 48 }}>👤</Text>
+                <Ionicons name="person-circle-outline" size={48} color="#bbb" />
               </View>
             )}
-            {isEditing && <View style={s.fotoOverlay}><Text style={s.fotoOverlayText}>📷</Text></View>}
+            {isEditing && <View style={s.fotoOverlay}><Ionicons name="camera-outline" size={28} color="#fff" /></View>}
           </TouchableOpacity>
           <Text style={s.perfilNome}>{nome}</Text>
           <Text style={s.perfilCargo}>{cargo}</Text>
@@ -152,7 +155,7 @@ export default function PerfilScreen() {
           const isActive = activeTab === tab.id;
           return (
             <TouchableOpacity key={tab.id} style={s.tabItem} onPress={() => handleTabPress(tab.id)} activeOpacity={0.7}>
-              <Text style={[s.tabIcon, isActive && s.tabIconActive]}>{tab.icon}</Text>
+              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
               <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );

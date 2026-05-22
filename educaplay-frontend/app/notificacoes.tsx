@@ -7,6 +7,7 @@ import {
   Switch, Text, TouchableOpacity, View, StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/services/api";
 import { agendarLembretes, cancelarLembretes } from "../hooks/useNotifications";
@@ -17,11 +18,11 @@ type Notificacao = { id: string; icon: string; titulo: string; mensagem: string;
 type Tab = "recebidas" | "preferencias";
 
 const PREFS_ITEMS = [
-  { id: "cronograma", icon: "📅", title: "Atualizações de Cronograma", subtitle: "Avisos quando um horário for alterado" },
-  { id: "professores", icon: "👥", title: "Professores", subtitle: "Novos cadastros e alterações" },
-  { id: "salas", icon: "🚪", title: "Salas", subtitle: "Conflitos e disponibilidade de salas" },
-  { id: "lembretes", icon: "⏰", title: "Lembretes", subtitle: "Lembrete diário de horários" },
-  { id: "sistema", icon: "🔧", title: "Atualizações do sistema", subtitle: "Novidades e melhorias do app" },
+  { id: "cronograma", ionicon: "calendar-outline" as const, title: "Atualizações de Cronograma", subtitle: "Avisos quando um horário for alterado" },
+  { id: "professores", ionicon: "people-outline" as const, title: "Professores", subtitle: "Novos cadastros e alterações" },
+  { id: "salas", ionicon: "grid-outline" as const, title: "Salas", subtitle: "Conflitos e disponibilidade de salas" },
+  { id: "lembretes", ionicon: "alarm-outline" as const, title: "Lembretes", subtitle: "Lembrete diário de horários" },
+  { id: "sistema", ionicon: "construct-outline" as const, title: "Atualizações do sistema", subtitle: "Novidades e melhorias do app" },
 ];
 
 function formatarTempo(dateStr: string) {
@@ -127,7 +128,7 @@ export default function NotificacoesScreen() {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backArrow}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Notificações</Text>
         <View style={{ width: 40 }} />
@@ -150,8 +151,8 @@ export default function NotificacoesScreen() {
             <>
               {notifs.length > 0 && (
                 <View style={ls.acoes}>
-                  <TouchableOpacity onPress={marcarTodasLidas}><Text style={ls.acaoText}>✓ Marcar todas como lidas</Text></TouchableOpacity>
-                  <TouchableOpacity onPress={limparTodas}><Text style={[ls.acaoText, { color: Colors.error }]}>🗑 Limpar tudo</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={marcarTodasLidas} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Ionicons name="checkmark-done-outline" size={14} color={Colors.primary} /><Text style={ls.acaoText}>Marcar todas como lidas</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={limparTodas} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Ionicons name="trash-outline" size={14} color={Colors.error} /><Text style={[ls.acaoText, { color: Colors.error }]}>Limpar tudo</Text></TouchableOpacity>
                 </View>
               )}
               {notifs.length === 0 ? (
@@ -174,7 +175,7 @@ export default function NotificacoesScreen() {
                       <Text style={ls.notifTempo}>{formatarTempo(notif.createdAt)}</Text>
                     </View>
                     <TouchableOpacity onPress={() => deletar(notif.id)} style={ls.deleteBtn}>
-                      <Text style={{ fontSize: 16, color: Colors.textMuted }}>✕</Text>
+                      <Ionicons name="close" size={16} color={Colors.textMuted} />
                     </TouchableOpacity>
                   </TouchableOpacity>
                 ))
@@ -186,7 +187,7 @@ export default function NotificacoesScreen() {
             <Text style={{ fontSize: 13, color: Colors.textMuted, fontWeight: "600", marginBottom: 4 }}>PREFERÊNCIAS</Text>
             {PREFS_ITEMS.map((item) => (
               <View key={item.id} style={[s.configItem, { justifyContent: "space-between" }]}>
-                <View style={s.configIcon}><Text style={s.configIconText}>{item.icon}</Text></View>
+                <View style={s.configIcon}><Ionicons name={item.ionicon} size={20} color="#1a1a2e" /></View>
                 <View style={s.configContent}>
                   <Text style={s.configTitle}>{item.title}</Text>
                   <Text style={s.configSubtitle}>{item.subtitle}</Text>

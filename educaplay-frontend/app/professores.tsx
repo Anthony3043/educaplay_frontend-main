@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type Professor = {
@@ -41,7 +42,7 @@ export default function ProfessoresScreen() {
 
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={{ fontSize: 20 }}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Professores</Text>
         <View style={{ width: 40 }} />
@@ -70,7 +71,7 @@ export default function ProfessoresScreen() {
                   {prof.foto ? (
                     <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
                   ) : (
-                    <Text style={s.professorAvatarText}>👤</Text>
+                    <Ionicons name="person-circle-outline" size={48} color="#bbb" />
                   )}
                 </View>
                 <View style={s.professorInfo}>
@@ -79,7 +80,10 @@ export default function ProfessoresScreen() {
                     <Text style={{ fontSize: 12, color: "#7a7f9a" }}>{prof.cargo}</Text>
                   ) : null}
                   {prof.instituicao ? (
-                    <Text style={{ fontSize: 12, color: "#7a7f9a" }}>🏫 {prof.instituicao}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                    <Ionicons name="school-outline" size={13} color="#7a7f9a" />
+                    <Text style={{ fontSize: 12, color: "#7a7f9a" }}>{prof.instituicao}</Text>
+                  </View>
                   ) : null}
                 </View>
               </View>

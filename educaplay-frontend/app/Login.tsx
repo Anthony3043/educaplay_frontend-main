@@ -5,6 +5,7 @@ import {
   TextInput, TouchableOpacity, View, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { loginStyles as s } from "../styles/loginStyles";
 import { useAuth } from "../context/AuthContext";
 
@@ -65,18 +66,18 @@ export default function LoginScreen() {
 
             <Text style={s.label}>E-mail</Text>
             <View style={s.inputWrapper}>
-              <Text style={s.inputIcon}>✉️</Text>
+              <Ionicons name="mail-outline" size={18} color="#888" style={s.inputIcon} />
               <TextInput style={s.input} placeholder="Digite seu e-mail" placeholderTextColor="#bbbcc8"
                 value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
             </View>
 
             <Text style={s.label}>Senha</Text>
             <View style={s.inputWrapper}>
-              <Text style={s.inputIcon}>🔒</Text>
+              <Ionicons name="lock-closed-outline" size={18} color="#888" style={s.inputIcon} />
               <TextInput style={s.input} placeholder="Digite sua senha" placeholderTextColor="#bbbcc8"
                 value={senha} onChangeText={setSenha} secureTextEntry={!senhaVisivel} autoCapitalize="none" />
               <TouchableOpacity onPress={() => setSenhaVisivel(!senhaVisivel)}>
-                <Text style={s.eyeIcon}>{senhaVisivel ? "🙈" : "👁️"}</Text>
+                <Ionicons name={senhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" style={s.eyeIcon} />
               </TouchableOpacity>
             </View>
 

@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { homeStyles as s } from "../styles/homeStyles";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
@@ -29,24 +30,24 @@ const DICAS = [
 ];
 
 const MENU_ITEMS = [
-  { id: "cronogramas", icon: "📅", iconBg: "#e8f5ea", title: "Cronogramas", subtitle: "Crie e gerencie\nos horários", route: "/cronogramas" },
-  { id: "professores", icon: "👥", iconBg: "#e8f0fe", title: "Professores", subtitle: "Cadastre e visualize\nos professores", route: "/professores" },
-  { id: "salas", icon: "🚪", iconBg: "#fff3e0", title: "Salas", subtitle: "Cadastre e gerencie\nas salas da escola", route: "/salas" },
+  { id: "cronogramas", ionicon: "calendar-outline" as const, iconBg: "#e8f5ea", title: "Cronogramas", subtitle: "Crie e gerencie\nos horários", route: "/cronogramas" },
+  { id: "professores", ionicon: "people-outline" as const, iconBg: "#e8f0fe", title: "Professores", subtitle: "Cadastre e visualize\nos professores", route: "/professores" },
+  { id: "salas", ionicon: "grid-outline" as const, iconBg: "#fff3e0", title: "Salas", subtitle: "Cadastre e gerencie\nas salas da escola", route: "/salas" },
 ];
 
 const TABS = [
-  { id: "home", icon: "🏠", label: "Home" },
-  { id: "cronograma", icon: "📅", label: "Cronograma" },
-  { id: "configuracoes", icon: "⚙️", label: "Configurações" },
+  { id: "home", ionicon: "home-outline" as const, label: "Home" },
+  { id: "cronograma", ionicon: "calendar-outline" as const, label: "Cronograma" },
+  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
 ];
 
 const DRAWER_ITEMS = [
-  { icon: "🏠", label: "Home", route: "/home" },
-  { icon: "📅", label: "Cronogramas", route: "/cronogramas" },
-  { icon: "👥", label: "Professores", route: "/professores" },
-  { icon: "🚪", label: "Salas", route: "/salas" },
-  { icon: "👤", label: "Perfil", route: "/perfil" },
-  { icon: "⚙️", label: "Configurações", route: "/configuracoes" },
+  { ionicon: "home-outline" as const, label: "Home", route: "/home" },
+  { ionicon: "calendar-outline" as const, label: "Cronogramas", route: "/cronogramas" },
+  { ionicon: "people-outline" as const, label: "Professores", route: "/professores" },
+  { ionicon: "grid-outline" as const, label: "Salas", route: "/salas" },
+  { ionicon: "person-outline" as const, label: "Perfil", route: "/perfil" },
+  { ionicon: "settings-outline" as const, label: "Configurações", route: "/configuracoes" },
 ];
 
 export default function HomeScreen() {
@@ -123,7 +124,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={{ position: "absolute", left: 16 }} onPress={openDrawer}>
-          <Text style={s.menuIcon}>☰</Text>
+          <Ionicons name="menu" size={26} color="#1a1a2e" />
         </TouchableOpacity>
 
         <View style={s.headerLogo}>
@@ -134,7 +135,7 @@ export default function HomeScreen() {
         </View>
 
         <TouchableOpacity style={{ position: "absolute", right: 16 }} onPress={() => { router.push("/notificacoes"); }}>
-          <Text style={s.notifIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" size={24} color="#1a1a2e" />
           {naoLidas > 0 && (
             <View style={s.notifBadge}>
               <Text style={s.notifBadgeText}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
@@ -162,7 +163,7 @@ export default function HomeScreen() {
             {MENU_ITEMS.map((item) => (
               <TouchableOpacity key={item.id} style={s.menuCard} onPress={() => router.push(item.route as any)} activeOpacity={0.75}>
                 <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
-                  <Text style={s.menuCardIconText}>{item.icon}</Text>
+                  <Ionicons name={item.ionicon} size={28} color="#1a1a2e" />
                 </View>
                 <Text style={s.menuCardTitle}>{item.title}</Text>
                 <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
@@ -173,7 +174,7 @@ export default function HomeScreen() {
 
         {/* Botão Criar Cronograma */}
         <TouchableOpacity style={s.btnCriar} onPress={() => router.push("/cronogramas")} activeOpacity={0.85}>
-          <Text style={s.btnCriarIcon}>＋</Text>
+          <Ionicons name="add" size={22} color="#fff" />
           <Text style={s.btnCriarText}>Criar Cronograma</Text>
         </TouchableOpacity>
 
@@ -194,7 +195,7 @@ export default function HomeScreen() {
           const isActive = activeTab === tab.id;
           return (
             <TouchableOpacity key={tab.id} style={s.tabItem} onPress={() => handleTabPress(tab.id)} activeOpacity={0.7}>
-              <Text style={[s.tabIcon, isActive && { color: "#3a7d44" }]}>{tab.icon}</Text>
+              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
               <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
@@ -215,7 +216,7 @@ export default function HomeScreen() {
                 <Image source={{ uri: usuario.foto }} style={s.drawerAvatar} resizeMode="cover" />
               ) : (
                 <View style={[s.drawerAvatar, { alignItems: "center", justifyContent: "center", backgroundColor: "#e8f5ea" }]}>
-                  <Text style={{ fontSize: 28 }}>👤</Text>
+                  <Ionicons name="person-outline" size={28} color="#3a7d44" />
                 </View>
               )}
               <Text style={s.drawerTitle}>{userName}</Text>
@@ -227,7 +228,7 @@ export default function HomeScreen() {
             {/* Itens do drawer */}
             {DRAWER_ITEMS.map((item) => (
               <TouchableOpacity key={item.route} style={s.drawerItem} onPress={() => handleDrawerNav(item.route)} activeOpacity={0.7}>
-                <Text style={s.drawerItemIcon}>{item.icon}</Text>
+                <Ionicons name={item.ionicon} size={22} color="#1a1a2e" style={s.drawerItemIcon} />
                 <Text style={s.drawerItemLabel}>{item.label}</Text>
               </TouchableOpacity>
             ))}
@@ -235,7 +236,7 @@ export default function HomeScreen() {
             <View style={s.drawerDivider} />
 
             <TouchableOpacity style={s.drawerLogout} onPress={() => { closeDrawer(); setTimeout(() => router.replace("/Login"), 260); }} activeOpacity={0.7}>
-              <Text style={s.drawerItemIcon}>🚪</Text>
+              <Ionicons name="log-out-outline" size={22} color="#ef4444" style={s.drawerItemIcon} />
               <Text style={[s.drawerItemLabel, { color: "#ef4444" }]}>Sair</Text>
             </TouchableOpacity>
           </Animated.View>

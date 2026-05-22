@@ -7,6 +7,7 @@ import {
   StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LocalAuthentication from "expo-local-authentication";
 import api from "../src/services/api";
@@ -86,7 +87,7 @@ export default function PrivacidadeScreen() {
 
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backArrow}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Privacidade</Text>
         <View style={{ width: 40 }} />
@@ -98,7 +99,7 @@ export default function PrivacidadeScreen() {
 
         <View style={[s.configItem, { justifyContent: "space-between", opacity: biometriaDisponivel ? 1 : 0.45 }]}>
           <View style={s.configIcon}>
-            <Text style={s.configIconText}>🔐</Text>
+            <Ionicons name="finger-print" size={20} color="#1a1a2e" />
           </View>
           <View style={s.configContent}>
             <Text style={s.configTitle}>Digital</Text>
@@ -125,13 +126,13 @@ export default function PrivacidadeScreen() {
           onPress={abrirModalExcluir}
         >
           <View style={[s.configIcon, { backgroundColor: Colors.errorBg }]}>
-            <Text style={s.configIconText}>🗑️</Text>
+            <Ionicons name="trash-outline" size={20} color={Colors.error} />
           </View>
           <View style={s.configContent}>
             <Text style={[s.configTitle, { color: Colors.error }]}>Excluir minha conta</Text>
             <Text style={s.configSubtitle}>Remove permanentemente todos os seus dados</Text>
           </View>
-          <Text style={s.configArrow}>›</Text>
+          <Ionicons name="chevron-forward" size={20} color="#bbbcc8" />
         </TouchableOpacity>
       </ScrollView>
 
@@ -139,7 +140,7 @@ export default function PrivacidadeScreen() {
       <Modal visible={modalVisivel} transparent animationType="fade" onRequestClose={() => setModalVisivel(false)}>
         <View style={ls.overlay}>
           <View style={ls.modalBox}>
-            <Text style={ls.modalIcon}>⚠️</Text>
+            <Ionicons name="warning-outline" size={36} color={Colors.error} style={{ textAlign: "center", alignSelf: "center" }} />
             <Text style={ls.modalTitulo}>Excluir conta</Text>
             <Text style={ls.modalDescricao}>
               Esta ação é <Text style={{ fontWeight: "800", color: Colors.error }}>irreversível</Text>. Todos os seus dados serão apagados permanentemente.

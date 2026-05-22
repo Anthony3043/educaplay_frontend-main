@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { homeStyles as s } from "../styles/homeStyles";
 import { useAuth } from "../context/AuthContext";
 import api from "../src/services/api";
@@ -31,7 +32,7 @@ const DICAS = [
 const MENU_ITEMS = [
   {
     id: "disponibilidade",
-    icon: "🗓️",
+    ionicon: "calendar-outline" as const,
     iconBg: "#e8f5ea",
     title: "Minha Agenda",
     subtitle: "Informe seus horários\ndisponíveis",
@@ -39,7 +40,7 @@ const MENU_ITEMS = [
   },
   {
     id: "cronogramas",
-    icon: "📅",
+    ionicon: "calendar-outline" as const,
     iconBg: "#e8f0fe",
     title: "Cronogramas",
     subtitle: "Veja as aulas\natribuídas a você",
@@ -48,17 +49,17 @@ const MENU_ITEMS = [
 ];
 
 const TABS = [
-  { id: "home", icon: "🏠", label: "Home" },
-  { id: "agenda", icon: "🗓️", label: "Minha Agenda" },
-  { id: "configuracoes", icon: "⚙️", label: "Configurações" },
+  { id: "home", ionicon: "home-outline" as const, label: "Home" },
+  { id: "agenda", ionicon: "calendar-outline" as const, label: "Minha Agenda" },
+  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
 ];
 
 const DRAWER_ITEMS = [
-  { icon: "🏠", label: "Home", route: "/home-professor" },
-  { icon: "🗓️", label: "Minha Agenda", route: "/indisponibilidade" },
-  { icon: "📅", label: "Cronogramas", route: "/cronogramas-professor" },
-  { icon: "👤", label: "Perfil", route: "/perfil" },
-  { icon: "⚙️", label: "Configurações", route: "/configuracoes" },
+  { ionicon: "home-outline" as const, label: "Home", route: "/home-professor" },
+  { ionicon: "calendar-outline" as const, label: "Minha Agenda", route: "/indisponibilidade" },
+  { ionicon: "calendar-outline" as const, label: "Cronogramas", route: "/cronogramas-professor" },
+  { ionicon: "person-outline" as const, label: "Perfil", route: "/perfil" },
+  { ionicon: "settings-outline" as const, label: "Configurações", route: "/configuracoes" },
 ];
 
 export default function HomeProfessorScreen() {
@@ -134,7 +135,7 @@ export default function HomeProfessorScreen() {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={{ position: "absolute", left: 16 }} onPress={openDrawer}>
-          <Text style={s.menuIcon}>☰</Text>
+          <Ionicons name="menu" size={26} color="#1a1a2e" />
         </TouchableOpacity>
 
         <View style={s.headerLogo}>
@@ -145,7 +146,7 @@ export default function HomeProfessorScreen() {
         </View>
 
         <TouchableOpacity style={{ position: "absolute", right: 16 }} onPress={() => router.push("/notificacoes")}>
-          <Text style={s.notifIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" size={24} color="#1a1a2e" />
           {naoLidas > 0 && (
             <View style={s.notifBadge}>
               <Text style={s.notifBadgeText}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
@@ -182,7 +183,7 @@ export default function HomeProfessorScreen() {
                 activeOpacity={0.75}
               >
                 <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
-                  <Text style={s.menuCardIconText}>{item.icon}</Text>
+                  <Ionicons name={item.ionicon} size={28} color="#1a1a2e" />
                 </View>
                 <Text style={s.menuCardTitle}>{item.title}</Text>
                 <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
@@ -193,7 +194,7 @@ export default function HomeProfessorScreen() {
 
         {/* Botão Ver Cronograma */}
         <TouchableOpacity style={s.btnCriar} onPress={() => router.push("/cronogramas-professor")} activeOpacity={0.85}>
-          <Text style={s.btnCriarIcon}>📅</Text>
+          <Ionicons name="calendar-outline" size={22} color="#fff" />
           <Text style={s.btnCriarText}>Ver Cronograma</Text>
         </TouchableOpacity>
 
@@ -214,7 +215,7 @@ export default function HomeProfessorScreen() {
           const isActive = activeTab === tab.id;
           return (
             <TouchableOpacity key={tab.id} style={s.tabItem} onPress={() => handleTabPress(tab.id)} activeOpacity={0.7}>
-              <Text style={[s.tabIcon, isActive && { color: "#3a7d44" }]}>{tab.icon}</Text>
+              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
               <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
@@ -234,7 +235,7 @@ export default function HomeProfessorScreen() {
                 <Image source={{ uri: usuario.foto }} style={s.drawerAvatar} resizeMode="cover" />
               ) : (
                 <View style={[s.drawerAvatar, { backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center" }]}>
-                  <Text style={{ fontSize: 28 }}>👤</Text>
+                  <Ionicons name="person-outline" size={28} color="#3a7d44" />
                 </View>
               )}
               <Text style={s.drawerTitle}>{userName}</Text>
@@ -245,7 +246,7 @@ export default function HomeProfessorScreen() {
 
             {DRAWER_ITEMS.map((item) => (
               <TouchableOpacity key={item.route} style={s.drawerItem} onPress={() => handleDrawerNav(item.route)} activeOpacity={0.7}>
-                <Text style={s.drawerItemIcon}>{item.icon}</Text>
+                <Ionicons name={item.ionicon} size={22} color="#1a1a2e" style={s.drawerItemIcon} />
                 <Text style={s.drawerItemLabel}>{item.label}</Text>
               </TouchableOpacity>
             ))}
@@ -257,7 +258,7 @@ export default function HomeProfessorScreen() {
               onPress={() => { closeDrawer(); setTimeout(() => router.replace("/Login"), 260); }}
               activeOpacity={0.7}
             >
-              <Text style={s.drawerItemIcon}>🚪</Text>
+              <Ionicons name="log-out-outline" size={22} color="#ef4444" style={s.drawerItemIcon} />
               <Text style={[s.drawerItemLabel, { color: "#ef4444" }]}>Sair</Text>
             </TouchableOpacity>
           </Animated.View>

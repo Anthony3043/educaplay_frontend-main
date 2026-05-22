@@ -12,30 +12,31 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/src/constants/colors";
 
 const SOBRE_ITEMS = [
-  { id: "versao", icon: "📱", title: "Versão do app", value: "1.0.0" },
+  { id: "versao", ionicon: "phone-portrait-outline" as const, title: "Versão do app", value: "1.0.0" },
 ];
 
 const LINKS = [
   {
     id: "termos",
-    icon: "📄",
+    ionicon: "document-text-outline" as const,
     title: "Termos de uso",
     subtitle: "Leia nossos termos e condições",
     url: "https://educaplay.com.br/termos",
   },
   {
     id: "politica",
-    icon: "🔒",
+    ionicon: "lock-closed-outline" as const,
     title: "Política de privacidade",
     subtitle: "Como tratamos seus dados",
     url: "https://educaplay.com.br/privacidade",
   },
   {
     id: "suporte",
-    icon: "💬",
+    ionicon: "chatbubble-outline" as const,
     title: "Suporte",
     subtitle: "Entre em contato com nossa equipe",
     url: "mailto:suporte@educaplay.com.br",
@@ -57,7 +58,7 @@ export default function SobreScreen() {
 
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={s.backArrow}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Sobre</Text>
         <View style={{ width: 40 }} />
@@ -89,7 +90,7 @@ export default function SobreScreen() {
           {SOBRE_ITEMS.map((item) => (
             <View key={item.id} style={s.configItem}>
               <View style={s.configIcon}>
-                <Text style={s.configIconText}>{item.icon}</Text>
+                <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
               </View>
               <View style={s.configContent}>
                 <Text style={s.configTitle}>{item.title}</Text>
@@ -112,13 +113,13 @@ export default function SobreScreen() {
               onPress={() => handleLink(item.url)}
             >
               <View style={s.configIcon}>
-                <Text style={s.configIconText}>{item.icon}</Text>
+                <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
               </View>
               <View style={s.configContent}>
                 <Text style={s.configTitle}>{item.title}</Text>
                 <Text style={s.configSubtitle}>{item.subtitle}</Text>
               </View>
-              <Text style={s.configArrow}>›</Text>
+              <Ionicons name="chevron-forward" size={20} color="#bbbcc8" />
             </TouchableOpacity>
           ))}
 

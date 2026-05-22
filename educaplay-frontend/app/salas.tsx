@@ -6,6 +6,8 @@ import {
   StatusBar, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/src/constants/colors";
 import api from "../src/services/api";
 
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
@@ -77,11 +79,11 @@ export default function SalasScreen() {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={{ fontSize: 20 }}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Salas</Text>
         <TouchableOpacity style={s.addBtn} onPress={abrirModalNova}>
-          <Text style={s.addBtnText}>＋</Text>
+          <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -99,21 +101,24 @@ export default function SalasScreen() {
           ) : (
             salas.map((sala) => (
               <View key={sala.id} style={s.salaCard}>
-                <View style={s.salaIconWrapper}><Text style={s.salaIcon}>🚪</Text></View>
+                <View style={s.salaIconWrapper}><Ionicons name="grid-outline" size={22} color={Colors.primary} /></View>
                 <View style={s.salaInfo}>
                   <Text style={s.salaNome}>
                     {sala.nome}{sala.turma ? ` — ${sala.turma}` : ""}
                   </Text>
                   {sala.capacidade ? (
-                    <Text style={s.salaCapacidade}>👥 {sala.capacidade}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Ionicons name="people-outline" size={13} color={Colors.textMuted} />
+                      <Text style={s.salaCapacidade}>{sala.capacidade}</Text>
+                    </View>
                   ) : null}
                 </View>
                 <View style={s.salaActions}>
                   <TouchableOpacity style={[s.actionBtn, s.editBtn]} onPress={() => abrirModalEditar(sala)} activeOpacity={0.75}>
-                    <Text style={s.actionBtnText}>✏️</Text>
+                    <Ionicons name="pencil-outline" size={16} color={Colors.primary} />
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.actionBtn, s.deleteBtn]} onPress={() => handleExcluir(sala)} activeOpacity={0.75}>
-                    <Text style={s.actionBtnText}>🗑️</Text>
+                    <Ionicons name="trash-outline" size={16} color={Colors.error} />
                   </TouchableOpacity>
                 </View>
               </View>

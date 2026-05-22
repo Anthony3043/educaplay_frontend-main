@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 export type TurnoId = "matutino" | "vespertino" | "noturno" | "integral";
@@ -51,9 +52,9 @@ const TURNOS: { id: TurnoId; label: string; icon: string; time: string }[] = [
 ];
 
 const TABS = [
-  { id: "home",          icon: "🏠", label: "Home" },
-  { id: "cronograma",    icon: "📅", label: "Cronograma" },
-  { id: "configuracoes", icon: "⚙️", label: "Configurações" },
+  { id: "home",          ionicon: "home-outline" as const, label: "Home" },
+  { id: "cronograma",    ionicon: "calendar-outline" as const, label: "Cronograma" },
+  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
 ];
 
 export default function CronogramasScreen() {
@@ -153,7 +154,7 @@ export default function CronogramasScreen() {
 
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={{ fontSize: 20 }}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Cronogramas</Text>
         <View style={{ width: 40 }} />
@@ -187,7 +188,7 @@ export default function CronogramasScreen() {
               onPress={handleCriarHorario}
               activeOpacity={0.8}
             >
-              <Text style={actionStyles.btnIcon}>⏰</Text>
+              <Ionicons name="time-outline" size={18} color="#fff" />
               <Text style={actionStyles.btnTextPrimary}>Criar Horário</Text>
             </TouchableOpacity>
           </View>
@@ -242,7 +243,7 @@ export default function CronogramasScreen() {
               onPress={() => handleTabPress(tab.id)}
               activeOpacity={0.7}
             >
-              <Text style={[s.tabIcon, isActive && s.tabIconActive]}>{tab.icon}</Text>
+              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
               <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
