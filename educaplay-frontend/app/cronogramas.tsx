@@ -197,7 +197,7 @@ export default function CronogramasScreen() {
             <Text style={s.sectionTitle}>Horários das Aulas</Text>
             {aulasDoCronograma.length === 0 ? (
               <View style={s.emptyState}>
-                <Text style={{ fontSize: 40 }}>🗓️</Text>
+                <Ionicons name="calendar-outline" size={48} color="#ccc" />
                 <Text style={s.emptyText}>Nenhum horário cadastrado para este turno.</Text>
               </View>
             ) : (

@@ -159,7 +159,7 @@ export default function CronogramasProfessorScreen() {
             <Text style={s.sectionTitle}>Minhas Aulas</Text>
             {aulasDoCronograma.length === 0 ? (
               <View style={s.emptyState}>
-                <Text style={{ fontSize: 40 }}>🗓️</Text>
+                <Ionicons name="calendar-outline" size={48} color="#ccc" />
                 <Text style={s.emptyText}>Nenhuma aula atribuída neste turno.</Text>
               </View>
             ) : (

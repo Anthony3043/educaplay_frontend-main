@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type Professor = { id: string; nome: string; materias: string[] };
@@ -88,7 +89,7 @@ export default function EditarHorarioScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={s.horarioBanner}>
-          <Text style={{ fontSize: 28 }}>🕐</Text>
+          <Ionicons name="time-outline" size={28} color="#3a7d44" />
           <View>
             <Text style={s.horarioBannerTime}>{params.timeStart} – {params.timeEnd}</Text>
             <Text style={s.horarioBannerSub}>
@@ -105,25 +106,27 @@ export default function EditarHorarioScreen() {
               onPress={() => setTipoSlot("aula")}
               activeOpacity={0.8}
             >
-              <Text style={[s.toggleBtnText, tipoSlot === "aula" && s.toggleBtnTextActive]}>
-                📖 Aula
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Ionicons name="book-outline" size={16} color={tipoSlot === "aula" ? "#3a7d44" : "#888"} />
+                <Text style={[s.toggleBtnText, tipoSlot === "aula" && s.toggleBtnTextActive]}>Aula</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[s.toggleBtn, tipoSlot === "intervalo" && s.toggleBtnActive]}
               onPress={() => setTipoSlot("intervalo")}
               activeOpacity={0.8}
             >
-              <Text style={[s.toggleBtnText, tipoSlot === "intervalo" && s.toggleBtnTextActive]}>
-                ☕ Intervalo
-              </Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Ionicons name="cafe-outline" size={16} color={tipoSlot === "intervalo" ? "#3a7d44" : "#888"} />
+                <Text style={[s.toggleBtnText, tipoSlot === "intervalo" && s.toggleBtnTextActive]}>Intervalo</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
 
         {tipoSlot === "intervalo" ? (
           <View style={s.intervaloBanner}>
-            <Text style={{ fontSize: 24 }}>☕</Text>
+            <Ionicons name="cafe-outline" size={24} color="#92400e" />
             <Text style={s.intervaloBannerText}>
               Este horário será marcado como intervalo. Nenhum professor ou matéria será atribuído.
             </Text>
@@ -147,7 +150,7 @@ export default function EditarHorarioScreen() {
                 <ActivityIndicator color="#3a7d44" />
               ) : professores.length === 0 ? (
                 <View style={s.emptyProfessores}>
-                  <Text style={{ fontSize: 32 }}>😔</Text>
+                  <Ionicons name="person-outline" size={32} color="#ccc" />
                   <Text style={s.emptyProfessoresText}>Nenhum professor cadastrado.</Text>
                 </View>
               ) : (
@@ -161,7 +164,7 @@ export default function EditarHorarioScreen() {
                       activeOpacity={0.75}
                     >
                       <View style={s.professorAvatar}>
-                        <Text style={s.professorAvatarText}>👨🏫</Text>
+                        <Ionicons name="person-outline" size={24} color="#888" />
                       </View>
                       <View style={s.professorInfo}>
                         <Text style={s.professorNome}>{prof.nome}</Text>

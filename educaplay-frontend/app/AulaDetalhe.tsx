@@ -272,17 +272,17 @@ export default function AulaDetalheScreen() {
       <StatusBar barStyle="dark-content" />
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Text style={{ fontSize: 20 }}>←</Text>
+          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Detalhe da Aula</Text>
         <TouchableOpacity style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }} onPress={() => setEditando(true)}>
-          <Text style={{ fontSize: 22 }}>✏️</Text>
+          <Ionicons name="pencil-outline" size={22} color="#1a1a2e" />
         </TouchableOpacity>
       </View>
 
       <View style={s.content}>
         <View style={[s.subjectBanner, { borderLeftColor: turnoInfo.color }]}>
-          <Text style={s.subjectEmoji}>📖</Text>
+          <Ionicons name="book-outline" size={28} color={turnoInfo.color} />
           <Text style={s.subjectTitle}>{params.subject}</Text>
         </View>
 
@@ -302,7 +302,7 @@ export default function AulaDetalheScreen() {
 
         {params.salaNome ? (
           <View style={s.teacherCard}>
-            <View style={s.teacherAvatar}><Text style={{ fontSize: 28 }}>🏫</Text></View>
+            <View style={s.teacherAvatar}><Ionicons name="business-outline" size={28} color="#888" /></View>
             <View style={s.teacherInfo}>
               <Text style={s.teacherLabel}>Sala</Text>
               <Text style={s.teacherName}>
@@ -313,7 +313,7 @@ export default function AulaDetalheScreen() {
         ) : null}
 
         <View style={s.teacherCard}>
-          <View style={s.teacherAvatar}><Text style={{ fontSize: 28 }}>👤</Text></View>
+          <View style={s.teacherAvatar}><Ionicons name="person-outline" size={28} color="#888" /></View>
           <View style={s.teacherInfo}>
             <Text style={s.teacherLabel}>Professor(a)</Text>
             <Text style={s.teacherName}>{params.teacher || "Não atribuído"}</Text>
@@ -321,7 +321,7 @@ export default function AulaDetalheScreen() {
         </View>
 
         <View style={s.durationRow}>
-          <Text style={s.durationIcon}>⏱️</Text>
+          <Ionicons name="timer-outline" size={18} color="#888" />
           <Text style={s.durationText}>Duração: {calcDuration(params.timeStart, params.timeEnd)}</Text>
         </View>
       </View>

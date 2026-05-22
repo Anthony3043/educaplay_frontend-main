@@ -203,18 +203,20 @@ export default function CriarHorarioScreen() {
                 onPress={() => setTipoSlot("aula")}
                 activeOpacity={0.8}
               >
-                <Text style={[s.toggleBtnText, tipoSlot === "aula" && s.toggleBtnTextActive]}>
-                  📖 Aula
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Ionicons name="book-outline" size={16} color={tipoSlot === "aula" ? "#3a7d44" : "#888"} />
+                  <Text style={[s.toggleBtnText, tipoSlot === "aula" && s.toggleBtnTextActive]}>Aula</Text>
+                </View>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[s.toggleBtn, tipoSlot === "intervalo" && s.toggleBtnActive]}
                 onPress={() => setTipoSlot("intervalo")}
                 activeOpacity={0.8}
               >
-                <Text style={[s.toggleBtnText, tipoSlot === "intervalo" && s.toggleBtnTextActive]}>
-                  ☕ Intervalo
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Ionicons name="cafe-outline" size={16} color={tipoSlot === "intervalo" ? "#3a7d44" : "#888"} />
+                  <Text style={[s.toggleBtnText, tipoSlot === "intervalo" && s.toggleBtnTextActive]}>Intervalo</Text>
+                </View>
               </TouchableOpacity>
             </View>
           </View>
@@ -249,7 +251,7 @@ export default function CriarHorarioScreen() {
 
           {tipoSlot === "intervalo" ? (
             <View style={s.intervaloBanner}>
-              <Text style={{ fontSize: 24 }}>☕</Text>
+              <Ionicons name="cafe-outline" size={24} color="#92400e" />
               <Text style={s.intervaloBannerText}>
                 Este horário será marcado como intervalo. Nenhum professor ou sala será atribuído.
               </Text>
@@ -273,7 +275,7 @@ export default function CriarHorarioScreen() {
                 <Text style={s.sectionTitle}>Sala</Text>
                 {salas.length === 0 ? (
                   <View style={s.emptyProfessores}>
-                    <Text style={{ fontSize: 32 }}>🏫</Text>
+                    <Ionicons name="business-outline" size={32} color="#ccc" />
                     <Text style={s.emptyProfessoresText}>Nenhuma sala cadastrada.</Text>
                   </View>
                 ) : (
@@ -287,12 +289,15 @@ export default function CriarHorarioScreen() {
                         activeOpacity={0.75}
                       >
                         <View style={s.professorAvatar}>
-                          <Text style={s.professorAvatarText}>🏫</Text>
+                          <Ionicons name="business-outline" size={24} color="#888" />
                         </View>
                         <View style={s.professorInfo}>
                           <Text style={s.professorNome}>{salaLabel(sala)}</Text>
                           {sala.capacidade ? (
-                            <Text style={s.professorMaterias}>👥 {sala.capacidade}</Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                              <Ionicons name="people-outline" size={13} color="#7a7f9a" />
+                              <Text style={s.professorMaterias}>{sala.capacidade}</Text>
+                            </View>
                           ) : null}
                         </View>
                         {selected && <Text style={s.professorCheckmark}>✓</Text>}
@@ -307,7 +312,7 @@ export default function CriarHorarioScreen() {
                 <Text style={s.sectionTitle}>Professor</Text>
                 {professores.length === 0 ? (
                   <View style={s.emptyProfessores}>
-                    <Text style={{ fontSize: 32 }}>😔</Text>
+                    <Ionicons name="person-outline" size={32} color="#ccc" />
                     <Text style={s.emptyProfessoresText}>Nenhum professor cadastrado.</Text>
                   </View>
                 ) : (
@@ -324,7 +329,7 @@ export default function CriarHorarioScreen() {
                           {prof.foto ? (
                             <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="cover" />
                           ) : (
-                            <Text style={s.professorAvatarText}>👤</Text>
+                            <Ionicons name="person-outline" size={24} color="#888" />
                           )}
                         </View>
                         <View style={s.professorInfo}>

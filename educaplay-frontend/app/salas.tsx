@@ -94,7 +94,7 @@ export default function SalasScreen() {
           <Text style={s.counter}>{salas.length} {salas.length === 1 ? "sala cadastrada" : "salas cadastradas"}</Text>
           {salas.length === 0 ? (
             <View style={s.emptyState}>
-              <Text style={s.emptyIcon}>🚪</Text>
+              <Ionicons name="grid-outline" size={48} color="#ccc" />
               <Text style={s.emptyTitle}>Nenhuma sala cadastrada</Text>
               <Text style={s.emptySubtitle}>Toque no botão ＋ para{"\n"}adicionar a primeira sala.</Text>
             </View>

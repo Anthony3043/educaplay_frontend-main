@@ -157,7 +157,7 @@ export default function NotificacoesScreen() {
               )}
               {notifs.length === 0 ? (
                 <View style={ls.empty}>
-                  <Text style={{ fontSize: 40 }}>🔔</Text>
+                  <Ionicons name="notifications-off-outline" size={48} color="#ccc" />
                   <Text style={ls.emptyTitle}>Nenhuma notificação</Text>
                   <Text style={ls.emptySubtitle}>Você está em dia com tudo!</Text>
                 </View>
