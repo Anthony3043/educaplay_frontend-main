@@ -78,18 +78,14 @@ export const homeStyles = StyleSheet.create({
   // ── Banner de boas-vindas ─────────────────────────────────
   banner: {
     backgroundColor: Colors.surface,
-    marginHorizontal: 0,
-    marginTop: 0,
     paddingLeft: 20,
     paddingTop: 18,
+    paddingRight: 148,
     paddingBottom: 0,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
     overflow: 'hidden',
-    minHeight: 120,
+    minHeight: 148,
   },
   bannerTextArea: {
-    flex: 1,
     paddingBottom: 18,
   },
   bannerGreeting: {
@@ -107,9 +103,11 @@ export const homeStyles = StyleSheet.create({
     lineHeight: 19,
   },
   bannerMascote: {
-    width: 130,
-    height: 130,
-    marginRight: -4,
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 148,
+    height: 148,
   },
 
   // ── Divisor ───────────────────────────────────────────────
@@ -222,9 +220,8 @@ export const homeStyles = StyleSheet.create({
     borderColor: Colors.primaryPale,
   },
   dicaMascote: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 90,
+    height: 90,
   },
   dicaTextArea: {
     flex: 1,
