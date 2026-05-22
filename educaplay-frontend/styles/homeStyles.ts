@@ -104,10 +104,10 @@ export const homeStyles = StyleSheet.create({
   },
   bannerMascote: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 148,
-    height: 148,
+    bottom: -45,
+    right: -30,
+    width: 218,
+    height: 218,
   },
 
   // ── Divisor ───────────────────────────────────────────────
@@ -220,8 +220,8 @@ export const homeStyles = StyleSheet.create({
     borderColor: Colors.primaryPale,
   },
   dicaMascote: {
-    width: 90,
-    height: 90,
+    width: 110,
+    height: 110,
   },
   dicaTextArea: {
     flex: 1,
