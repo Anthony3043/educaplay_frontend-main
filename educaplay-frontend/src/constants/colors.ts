@@ -27,9 +27,17 @@ export const Palette = {
   red500:    '#ef4444',
   red100:    '#fee2e2',
   yellow500: '#f59e0b',
+  yellow200: '#FFE0A0',  // borda de aviso / warning border
   yellow100: '#fef3c7',
   blue500:   '#3b82f6',
   blue100:   '#dbeafe',
+
+  // Laranja (usado em Salas como cor de destaque secundária)
+  orange500: '#FF8C00',
+  orange100: '#FFF3E0',
+
+  // Âmbar (texto sobre fundo de aviso)
+  amber800: '#92400e',
 
   // Absolutos
   white: '#ffffff',
@@ -68,8 +76,14 @@ export const LightColors = {
   errorBg:        Palette.red100,
   warning:        Palette.yellow500,
   warningBg:      Palette.yellow100,
+  warningBorder:  Palette.yellow200,
+  warningText:    Palette.amber800,
   info:           Palette.blue500,
   infoBg:         Palette.blue100,
+
+  // Destaque secundário (laranja — usado em Salas)
+  accent:         Palette.orange500,
+  accentBg:       Palette.orange100,
 
   // Sombras
   shadow:         Palette.black,
@@ -106,8 +120,14 @@ export const DarkColors = {
   errorBg:        '#3b0f0f',
   warning:        Palette.yellow500,
   warningBg:      '#3b2a0a',
+  warningBorder:  Palette.yellow500,
+  warningText:    Palette.yellow500,
   info:           Palette.blue500,
   infoBg:         '#0f1f3b',
+
+  // Destaque secundário (laranja — dark mode)
+  accent:         '#FFA040',
+  accentBg:       '#2D1800',
 
   // Sombras
   shadow:         Palette.black,
@@ -120,4 +140,5 @@ export const Colors = LightColors;
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
 export type ColorScheme = typeof LightColors;
+export type DarkColorScheme = typeof DarkColors;
 export type ColorKey = keyof ColorScheme;

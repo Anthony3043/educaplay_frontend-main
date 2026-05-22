@@ -1,4 +1,5 @@
 import { styles as s } from "@/styles/EditarHorarioStyles";
+import { Colors } from "@/src/constants/colors";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -287,14 +288,14 @@ export default function CriarHorarioScreen() {
 
           {/* Horário início */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Horário de início <Text style={{ color: "#ef4444" }}>*</Text></Text>
+            <Text style={s.sectionTitle}>Horário de início <Text style={{ color: Colors.error }}>*</Text></Text>
             {TURNO_LIMITES[turno] && (
-              <Text style={{ fontSize: 12, color: "#3a7d44", marginBottom: 6, fontWeight: "600" }}>
+              <Text style={{ fontSize: 12, color: Colors.primary, marginBottom: 6, fontWeight: "600" }}>
                 🕐 Permitido: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
               </Text>
             )}
             <TextInput
-              style={[s.inputCard, erroInicio ? { borderColor: "#ef4444", borderWidth: 1.5 } : null]}
+              style={[s.inputCard, erroInicio ? { borderColor: Colors.error, borderWidth: 1.5 } : null]}
               value={timeStart}
               onChangeText={(t) => {
                 const formatted = formatarHorario(t);
@@ -307,20 +308,20 @@ export default function CriarHorarioScreen() {
               maxLength={5}
             />
             {erroInicio ? (
-              <Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>⚠ {erroInicio}</Text>
+              <Text style={{ fontSize: 12, color: Colors.error, marginTop: 4 }}>⚠ {erroInicio}</Text>
             ) : null}
           </View>
 
           {/* Horário término */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Horário de término <Text style={{ color: "#ef4444" }}>*</Text></Text>
+            <Text style={s.sectionTitle}>Horário de término <Text style={{ color: Colors.error }}>*</Text></Text>
             {TURNO_LIMITES[turno] && (
-              <Text style={{ fontSize: 12, color: "#3a7d44", marginBottom: 6, fontWeight: "600" }}>
+              <Text style={{ fontSize: 12, color: Colors.primary, marginBottom: 6, fontWeight: "600" }}>
                 🕐 Permitido: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
               </Text>
             )}
             <TextInput
-              style={[s.inputCard, erroFim ? { borderColor: "#ef4444", borderWidth: 1.5 } : null]}
+              style={[s.inputCard, erroFim ? { borderColor: Colors.error, borderWidth: 1.5 } : null]}
               value={timeEnd}
               onChangeText={(t) => {
                 const formatted = formatarHorario(t);
@@ -333,7 +334,7 @@ export default function CriarHorarioScreen() {
               maxLength={5}
             />
             {erroFim ? (
-              <Text style={{ fontSize: 12, color: "#ef4444", marginTop: 4 }}>⚠ {erroFim}</Text>
+              <Text style={{ fontSize: 12, color: Colors.error, marginTop: 4 }}>⚠ {erroFim}</Text>
             ) : null}
           </View>
 
@@ -457,11 +458,11 @@ const ds = StyleSheet.create({
   diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: "#F0F0F0", borderWidth: 1.5, borderColor: "transparent",
+    backgroundColor: Colors.surfaceAlt, borderWidth: 1.5, borderColor: Colors.transparent,
   },
-  chipActive: { backgroundColor: "#e8f5ea", borderColor: "#3a7d44" },
-  chipText: { fontSize: 13, fontWeight: "600", color: "#666" },
-  chipTextActive: { color: "#3a7d44" },
+  chipActive: { backgroundColor: Colors.primaryPale, borderColor: Colors.primary },
+  chipText: { fontSize: 13, fontWeight: "600", color: Colors.textMuted },
+  chipTextActive: { color: Colors.primary },
 });
 
 const ms = StyleSheet.create({
@@ -472,21 +473,21 @@ const ms = StyleSheet.create({
     justifyContent: "center",
   },
   box: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: 28,
     width: "80%",
     alignItems: "center",
     gap: 8,
   },
-  title: { fontSize: 20, fontWeight: "700", color: "#1a1a2e", marginTop: 4 },
-  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 20 },
+  title: { fontSize: 20, fontWeight: "700", color: Colors.textPrimary, marginTop: 4 },
+  msg: { fontSize: 14, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 },
   btn: {
     marginTop: 12,
-    backgroundColor: "#3a7d44",
+    backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 36,
   },
-  btnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  btnText: { color: Colors.textOnPrimary, fontWeight: "700", fontSize: 15 },
 });

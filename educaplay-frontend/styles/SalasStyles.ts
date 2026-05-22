@@ -37,14 +37,14 @@ export const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: "#FF8C00",
+    backgroundColor: Colors.accent,
     alignItems: "center",
     justifyContent: "center",
     elevation: 2,
   },
   addBtnText: {
     fontSize: 22,
-    color: "#fff",
+    color: Colors.textOnPrimary,
     fontWeight: "700",
     lineHeight: 26,
   },
@@ -78,13 +78,13 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.07,
     shadowRadius: 6,
     borderLeftWidth: 4,
-    borderLeftColor: "#FF8C00",
+    borderLeftColor: Colors.accent,
   },
   salaIconWrapper: {
     width: 46,
     height: 46,
     borderRadius: 12,
-    backgroundColor: "#fff3e0",
+    backgroundColor: Colors.accentBg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -116,10 +116,10 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   editBtn: {
-    backgroundColor: "#EEF1FF",
+    backgroundColor: Colors.primaryPale,
   },
   deleteBtn: {
-    backgroundColor: "#FFEAEA",
+    backgroundColor: Colors.errorBg,
   },
   actionBtnText: {
     fontSize: 15,
@@ -192,7 +192,7 @@ export const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   modalInputFocused: {
-    borderColor: "#FF8C00",
+    borderColor: Colors.accent,
   },
   modalRow: {
     flexDirection: "row",
@@ -217,13 +217,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 13,
     borderRadius: 12,
-    backgroundColor: "#FF8C00",
+    backgroundColor: Colors.accent,
     alignItems: "center",
     elevation: 2,
   },
   modalSaveText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#fff",
+    color: Colors.textOnPrimary,
   },
 });

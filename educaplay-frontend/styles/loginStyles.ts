@@ -83,7 +83,7 @@ export const loginStyles = StyleSheet.create({
   },
   sparkle: {
     position: 'absolute',
-    color: '#d4a017',
+    color: Colors.warning,
     fontWeight: '700',
     zIndex: 2,
   },

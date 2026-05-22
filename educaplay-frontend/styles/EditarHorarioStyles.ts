@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
   },
   saveBtnText: {
     fontSize: 18,
-    color: "#fff",
+    color: Colors.textOnPrimary,
   },
 
   // --- Scroll ---
@@ -120,7 +120,7 @@ export const styles = StyleSheet.create({
     color: Colors.textMuted,
   },
   toggleBtnTextActive: {
-    color: "#fff",
+    color: Colors.textOnPrimary,
   },
 
   // --- Matéria input ---
@@ -202,18 +202,18 @@ export const styles = StyleSheet.create({
 
   // --- Intervalo info ---
   intervaloBanner: {
-    backgroundColor: "#FFF8E7",
+    backgroundColor: Colors.warningBg,
     borderRadius: 14,
     padding: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: "#FFE0A0",
+    borderColor: Colors.warningBorder,
   },
   intervaloBannerText: {
     fontSize: 14,
-    color: "#92670A",
+    color: Colors.warningText,
     fontWeight: "500",
     flex: 1,
   },
