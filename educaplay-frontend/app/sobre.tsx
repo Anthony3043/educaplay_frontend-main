@@ -36,11 +36,10 @@ const LINKS = [
   },
   {
     id: "suporte",
-    ionicon: "logo-instagram" as const,
+    ionicon: "logo-whatsapp" as const,
     title: "Suporte",
-    subtitle: "@Planejaedu_official no Instagram",
-    url: "instagram://user?username=Planejaedu_official",
-    urlFallback: "https://www.instagram.com/Planejaedu_official",
+    subtitle: "Fale conosco pelo WhatsApp",
+    url: "https://wa.me/5535999657172?text=Ol%C3%A1%2C%20preciso%20de%20suporte%20com%20o%20EducaPlay.",
   },
 ];
 
