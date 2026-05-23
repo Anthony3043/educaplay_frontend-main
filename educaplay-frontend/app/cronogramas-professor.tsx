@@ -27,6 +27,7 @@ type AulaProfessor = {
   salaNome: string | null;
   salaTurma: string | null;
   turno: TurnoId;
+  isInterval: boolean;
 };
 
 type CronogramaAPI = {
@@ -58,7 +59,7 @@ const TURNO_COLORS: Record<TurnoId, string> = {
   integral:   "#10B981",
 };
 
-const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const TABS = [
   { id: "home",          ionicon: "home-outline" as const,    label: "Home" },
@@ -79,10 +80,19 @@ function CalendarioSemanalProf({
 }) {
   const cor = TURNO_COLORS[turno] || "#3a7d44";
 
-  const normais = aulas.filter(a => !!a.diaSemana);
-  const semDia  = aulas.filter(a => !a.diaSemana);
+  const sortTime = (a: AulaProfessor, b: AulaProfessor) => a.timeStart.localeCompare(b.timeStart);
 
-  const horarios = [...new Set(normais.map(a => a.timeStart))].sort();
+  const normais    = aulas.filter(a => !a.isInterval && !!a.diaSemana);
+  const semDia     = aulas.filter(a => !a.isInterval && !a.diaSemana).sort(sortTime);
+  const intervalos = aulas.filter(a => !!a.isInterval).sort(sortTime);
+
+  const intervalosSemDia = intervalos.filter(a => !a.diaSemana);
+  const intervalosComDia = intervalos.filter(a => !!a.diaSemana);
+
+  const horarios = [...new Set([
+    ...normais.map(a => a.timeStart),
+    ...intervalos.map(a => a.timeStart),
+  ])].sort();
 
   const lookup: Record<string, AulaProfessor> = {};
   normais.forEach(a => {
@@ -90,7 +100,17 @@ function CalendarioSemanalProf({
     if (!lookup[k]) lookup[k] = a;
   });
 
-  if (normais.length === 0 && semDia.length === 0) {
+  const intervaloLookup: Record<string, AulaProfessor> = {};
+  intervalosComDia.forEach(a => {
+    const k = `${a.diaSemana}_${a.timeStart}`;
+    if (!intervaloLookup[k]) intervaloLookup[k] = a;
+  });
+
+  const timeEnds: Record<string, string> = {};
+  normais.forEach(a => { if (!timeEnds[a.timeStart]) timeEnds[a.timeStart] = a.timeEnd; });
+  intervalos.forEach(a => { if (!timeEnds[a.timeStart]) timeEnds[a.timeStart] = a.timeEnd; });
+
+  if (normais.length === 0 && semDia.length === 0 && intervalos.length === 0) {
     return (
       <View style={cal.empty}>
         <Ionicons name="calendar-outline" size={48} color="#ccc" />
@@ -102,7 +122,7 @@ function CalendarioSemanalProf({
   return (
     <View>
       {/* ── Grade semanal ── */}
-      {normais.length > 0 && (
+      {(normais.length > 0 || intervalos.length > 0) && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -114,57 +134,89 @@ function CalendarioSemanalProf({
             <View style={{ flexDirection: "row", marginBottom: 6 }}>
               <View style={{ width: TIME_W }} />
               {DIAS_SEMANA.map(dia => (
-                <View key={dia} style={[cal.dayHeader, { width: COL_W }]}>
-                  <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
+                <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
+                  <View style={cal.dayHeader}>
+                    <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
+                  </View>
                 </View>
               ))}
             </View>
 
             {/* Linhas por horário */}
-            {horarios.map(h => (
-              <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
-                {/* Rótulo de horário */}
-                <View style={[cal.timeCol, { width: TIME_W }]}>
-                  <Text style={cal.timeText}>{h}</Text>
-                </View>
-
-                {/* Células dos dias */}
-                {DIAS_SEMANA.map(dia => {
-                  const aula = lookup[`${dia}_${h}`];
-                  return (
-                    <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
-                      {aula ? (
-                        <View style={[cal.aulaCard, { borderLeftColor: cor }]}>
-                          <Text style={[cal.aulaTime, { color: cor }]}>
-                            {aula.timeStart} – {aula.timeEnd}
-                          </Text>
-                          <Text style={cal.aulaSubject} numberOfLines={2}>
-                            {aula.subject}
-                          </Text>
-                          {aula.salaNome ? (
-                            <View style={cal.detail}>
-                              <Ionicons name="business-outline" size={10} color="#888" />
-                              <Text style={cal.detailText} numberOfLines={1}>
-                                {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
-                      ) : (
-                        <View style={cal.emptyCell} />
-                      )}
+            {horarios.map(h => {
+              const faixa = intervalosSemDia.find(a => a.timeStart === h);
+              if (faixa) {
+                return (
+                  <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "center" }}>
+                    <View style={[cal.timeCol, { width: TIME_W }]}>
+                      <Text style={cal.timeText}>{h}</Text>
+                      <Text style={cal.timeTextEnd}>{faixa.timeEnd}</Text>
                     </View>
-                  );
-                })}
-              </View>
-            ))}
+                    <View style={[cal.intervaloFaixa, { width: COL_W * DIAS_SEMANA.length }]}>
+                      <Ionicons name="cafe-outline" size={14} color="#92400e" />
+                      <Text style={cal.intervaloFaixaText}>
+                        Intervalo · {h} – {faixa.timeEnd}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }
+
+              return (
+                <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
+                  <View style={[cal.timeCol, { width: TIME_W }]}>
+                    <Text style={cal.timeText}>{h}</Text>
+                    {timeEnds[h] ? (
+                      <Text style={cal.timeTextEnd}>{timeEnds[h]}</Text>
+                    ) : null}
+                  </View>
+
+                  {DIAS_SEMANA.map(dia => {
+                    const aula = lookup[`${dia}_${h}`];
+                    const intervalo = intervaloLookup[`${dia}_${h}`];
+                    return (
+                      <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
+                        {aula ? (
+                          <View style={[cal.aulaCard, { borderLeftColor: cor }]}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeStart}</Text>
+                              <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeEnd}</Text>
+                            </View>
+                            <Text style={cal.aulaSubject} numberOfLines={2}>
+                              {aula.subject}
+                            </Text>
+                            {aula.salaNome ? (
+                              <View style={cal.detail}>
+                                <Ionicons name="business-outline" size={10} color="#888" />
+                                <Text style={cal.detailText} numberOfLines={1}>
+                                  {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        ) : intervalo ? (
+                          <View style={cal.intervaloCelula}>
+                            <Ionicons name="cafe-outline" size={12} color="#92400e" />
+                            <Text style={cal.intervaloCelulaText}>Intervalo</Text>
+                            <Text style={cal.intervaloCelulaHora}>{h} – {intervalo.timeEnd}</Text>
+                          </View>
+                        ) : (
+                          <View style={cal.emptyCell} />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
       )}
 
       {/* ── Aulas sem dia específico ── */}
       {semDia.length > 0 && (
-        <View style={{ marginTop: normais.length > 0 ? 20 : 0 }}>
+        <View style={{ marginTop: (normais.length > 0 || intervalos.length > 0) ? 20 : 0 }}>
           <View style={cal.sectionHeader}>
             <Ionicons name="time-outline" size={13} color="#888" />
             <Text style={cal.sectionHeaderText}>Sem dia específico</Text>
@@ -215,7 +267,8 @@ export default function CronogramasProfessorScreen() {
         const turno = c.turno as TurnoId;
         if (!(turno in dados)) return;
         c.aulas
-          .filter((a) => !a.isInterval && a.professor?.id === usuario?.id)
+          .filter((a) => a.isInterval || a.professor?.id === usuario?.id)
+          .sort((a, b) => a.timeStart.localeCompare(b.timeStart))
           .forEach((a) => {
             dados[turno].push({
               id: a.id,
@@ -226,6 +279,7 @@ export default function CronogramasProfessorScreen() {
               salaNome: a.sala?.nome ?? null,
               salaTurma: a.sala?.turma ?? null,
               turno,
+              isInterval: a.isInterval,
             });
           });
       });
@@ -347,15 +401,15 @@ const cal = StyleSheet.create({
 
   dayHeader: {
     backgroundColor: "#1a1a2e",
-    marginHorizontal: 3,
     borderRadius: 8,
     paddingVertical: 8,
     alignItems: "center",
   },
   dayHeaderText: { fontSize: 11, fontWeight: "800", color: "#fff", letterSpacing: 0.8 },
 
-  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center" },
-  timeText: { fontSize: 10, fontWeight: "700", color: "#999" },
+  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center", gap: 1 },
+  timeText: { fontSize: 10, fontWeight: "800", color: "#555" },
+  timeTextEnd: { fontSize: 9, fontWeight: "800", color: "#555" },
 
   aulaCard: {
     backgroundColor: "#FAFFFE",
@@ -369,7 +423,7 @@ const cal = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
-  aulaTime: { fontSize: 9, fontWeight: "700", marginBottom: 4 },
+  aulaTime: { fontSize: 10, fontWeight: "800" },
   aulaSubject: { fontSize: 12, fontWeight: "700", color: "#1a1a2e", marginBottom: 5, lineHeight: 16 },
   detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 3 },
   detailText: { fontSize: 10, color: "#666", flex: 1 },
@@ -418,6 +472,34 @@ const cal = StyleSheet.create({
   rowTimeStart: { fontSize: 12, fontWeight: "800", color: "#1a1a2e" },
   rowTimeEnd: { fontSize: 11, color: "#aaa" },
   rowSubject: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 3 },
+
+  intervaloFaixa: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+  },
+  intervaloFaixaText: { fontSize: 12, color: "#92400e", fontWeight: "600", flex: 1 },
+
+  intervaloCelula: {
+    flex: 1,
+    minHeight: 54,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+    padding: 6,
+  },
+  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700" },
+  intervaloCelulaHora: { fontSize: 9, color: "#b45309" },
 });
 
 const rs = StyleSheet.create({

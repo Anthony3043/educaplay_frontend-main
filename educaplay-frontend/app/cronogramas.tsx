@@ -60,7 +60,7 @@ const TURNO_COLORS: Record<TurnoId, string> = {
   integral:   "#10B981",
 };
 
-const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const TABS = [
   { id: "home",          ionicon: "home-outline" as const,     label: "Home" },
@@ -83,19 +83,41 @@ function CalendarioSemanal({
 }) {
   const cor = TURNO_COLORS[turno] || "#3a7d44";
 
-  const normais   = aulas.filter(a => !a.isInterval && !!a.diaSemana);
-  const semDia    = aulas.filter(a => !a.isInterval && !a.diaSemana);
-  const intervalos = aulas.filter(a => !!a.isInterval);
+  const sortTime = (a: Aula, b: Aula) => a.timeStart.localeCompare(b.timeStart);
 
-  // Linhas do grid = horários únicos ordenados
-  const horarios = [...new Set(normais.map(a => a.timeStart))].sort();
+  const normais    = aulas.filter(a => !a.isInterval && !!a.diaSemana);
+  const semDia     = aulas.filter(a => !a.isInterval && !a.diaSemana).sort(sortTime);
+  const intervalos = aulas.filter(a => !!a.isInterval).sort(sortTime);
 
-  // Mapa rápido dia+horário → Aula
+  // Intervalos sem dia ficam como faixa horizontal no grid
+  // Intervalos com dia ficam na célula do dia específico
+  const intervalosSemDia = intervalos.filter(a => !a.diaSemana);
+  const intervalosComDia = intervalos.filter(a => !!a.diaSemana);
+
+  // Linhas do grid = horários únicos de aulas normais + todos os intervalos, em ordem
+  const horarios = [...new Set([
+    ...normais.map(a => a.timeStart),
+    ...intervalos.map(a => a.timeStart),
+  ])].sort();
+
+  // Mapa rápido dia+horário → Aula (normais)
   const lookup: Record<string, Aula> = {};
   normais.forEach(a => {
     const k = `${a.diaSemana}_${a.timeStart}`;
     if (!lookup[k]) lookup[k] = a;
   });
+
+  // Mapa rápido dia+horário → Aula (intervalos com dia)
+  const intervaloLookup: Record<string, Aula> = {};
+  intervalosComDia.forEach(a => {
+    const k = `${a.diaSemana}_${a.timeStart}`;
+    if (!intervaloLookup[k]) intervaloLookup[k] = a;
+  });
+
+  // Mapa timeStart → timeEnd para exibir o fim na coluna de horário
+  const timeEnds: Record<string, string> = {};
+  normais.forEach(a => { if (!timeEnds[a.timeStart]) timeEnds[a.timeStart] = a.timeEnd; });
+  intervalos.forEach(a => { if (!timeEnds[a.timeStart]) timeEnds[a.timeStart] = a.timeEnd; });
 
   const vazio = normais.length === 0 && semDia.length === 0 && intervalos.length === 0;
 
@@ -112,7 +134,7 @@ function CalendarioSemanal({
   return (
     <View>
       {/* ── Grade semanal ── */}
-      {normais.length > 0 && (
+      {(normais.length > 0 || intervalos.length > 0) && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -133,60 +155,93 @@ function CalendarioSemanal({
             </View>
 
             {/* Linha por horário */}
-            {horarios.map(h => (
-              <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
-                {/* Rótulo de horário */}
-                <View style={[cal.timeCol, { width: TIME_W }]}>
-                  <Text style={cal.timeText}>{h}</Text>
-                </View>
-
-                {/* Células dos dias */}
-                {DIAS_SEMANA.map(dia => {
-                  const aula = lookup[`${dia}_${h}`];
-                  return (
-                    <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
-                      {aula ? (
-                        <TouchableOpacity
-                          style={[cal.aulaCard, { borderLeftColor: cor }]}
-                          onPress={() => onPress(aula)}
-                          activeOpacity={0.82}
-                        >
-                          <Text style={[cal.aulaTime, { color: cor }]}>
-                            {aula.timeStart} – {aula.timeEnd}
-                          </Text>
-                          <Text style={cal.aulaSubject} numberOfLines={2}>
-                            {aula.subject}
-                          </Text>
-                          {aula.teacher ? (
-                            <View style={cal.detail}>
-                              <Ionicons name="person-outline" size={10} color="#888" />
-                              <Text style={cal.detailText} numberOfLines={1}>{aula.teacher}</Text>
-                            </View>
-                          ) : null}
-                          {aula.salaNome ? (
-                            <View style={cal.detail}>
-                              <Ionicons name="business-outline" size={10} color="#888" />
-                              <Text style={cal.detailText} numberOfLines={1}>
-                                {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </TouchableOpacity>
-                      ) : (
-                        <View style={cal.emptyCell} />
-                      )}
+            {horarios.map(h => {
+              // Intervalo sem dia → faixa horizontal que ocupa todas as colunas
+              const faixa = intervalosSemDia.find(a => a.timeStart === h);
+              if (faixa) {
+                return (
+                  <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "center" }}>
+                    <View style={[cal.timeCol, { width: TIME_W }]}>
+                      <Text style={cal.timeText}>{h}</Text>
+                      <Text style={cal.timeTextEnd}>{faixa.timeEnd}</Text>
                     </View>
-                  );
-                })}
-              </View>
-            ))}
+                    <View style={[cal.intervaloFaixa, { width: COL_W * DIAS_SEMANA.length }]}>
+                      <Ionicons name="cafe-outline" size={14} color="#92400e" />
+                      <Text style={cal.intervaloFaixaText}>
+                        Intervalo · {h} – {faixa.timeEnd}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              }
+
+              return (
+                <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
+                  {/* Rótulo de horário */}
+                  <View style={[cal.timeCol, { width: TIME_W }]}>
+                    <Text style={cal.timeText}>{h}</Text>
+                    {timeEnds[h] ? (
+                      <Text style={cal.timeTextEnd}>{timeEnds[h]}</Text>
+                    ) : null}
+                  </View>
+
+                  {/* Células dos dias */}
+                  {DIAS_SEMANA.map(dia => {
+                    const aula = lookup[`${dia}_${h}`];
+                    const intervalo = intervaloLookup[`${dia}_${h}`];
+                    return (
+                      <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
+                        {aula ? (
+                          <TouchableOpacity
+                            style={[cal.aulaCard, { borderLeftColor: cor }]}
+                            onPress={() => onPress(aula)}
+                            activeOpacity={0.82}
+                          >
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeStart}</Text>
+                              <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeEnd}</Text>
+                            </View>
+                            <Text style={cal.aulaSubject} numberOfLines={2}>
+                              {aula.subject}
+                            </Text>
+                            {aula.teacher ? (
+                              <View style={cal.detail}>
+                                <Ionicons name="person-outline" size={10} color="#888" />
+                                <Text style={cal.detailText} numberOfLines={1}>{aula.teacher}</Text>
+                              </View>
+                            ) : null}
+                            {aula.salaNome ? (
+                              <View style={cal.detail}>
+                                <Ionicons name="business-outline" size={10} color="#888" />
+                                <Text style={cal.detailText} numberOfLines={1}>
+                                  {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </TouchableOpacity>
+                        ) : intervalo ? (
+                          <View style={cal.intervaloCelula}>
+                            <Ionicons name="cafe-outline" size={12} color="#92400e" />
+                            <Text style={cal.intervaloCelulaText}>Intervalo</Text>
+                            <Text style={cal.intervaloCelulaHora}>{h} – {intervalo.timeEnd}</Text>
+                          </View>
+                        ) : (
+                          <View style={cal.emptyCell} />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
       )}
 
       {/* ── Aulas sem dia específico ── */}
       {semDia.length > 0 && (
-        <View style={{ marginTop: normais.length > 0 ? 20 : 0 }}>
+        <View style={{ marginTop: (normais.length > 0 || intervalos.length > 0) ? 20 : 0 }}>
           <View style={cal.sectionHeader}>
             <Ionicons name="time-outline" size={13} color="#888" />
             <Text style={cal.sectionHeaderText}>Sem dia específico</Text>
@@ -219,22 +274,6 @@ function CalendarioSemanal({
               </View>
               <Ionicons name="chevron-forward" size={16} color="#ccc" />
             </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {/* ── Intervalos ── */}
-      {intervalos.length > 0 && (
-        <View style={{ marginTop: 16 }}>
-          <View style={cal.sectionHeader}>
-            <Ionicons name="cafe-outline" size={13} color="#92400e" />
-            <Text style={[cal.sectionHeaderText, { color: "#92400e" }]}>Intervalos</Text>
-          </View>
-          {intervalos.map(a => (
-            <View key={a.id} style={cal.intervaloCard}>
-              <Ionicons name="cafe-outline" size={14} color="#92400e" />
-              <Text style={cal.intervaloText}>{a.subject} · {a.timeStart} – {a.timeEnd}</Text>
-            </View>
           ))}
         </View>
       )}
@@ -276,7 +315,7 @@ export default function CronogramasScreen() {
             salaId: a.sala?.id ?? null,
             salaNome: a.sala?.nome ?? null,
             salaTurma: a.sala?.turma ?? null,
-          }));
+          })).sort((a, b) => a.timeStart.localeCompare(b.timeStart));
         }
       });
       setCronogramaIds(ids);
@@ -433,8 +472,9 @@ const cal = StyleSheet.create({
   },
   dayHeaderText: { fontSize: 11, fontWeight: "800", color: "#fff", letterSpacing: 0.8 },
 
-  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center" },
-  timeText: { fontSize: 10, fontWeight: "700", color: "#999" },
+  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center", gap: 1 },
+  timeText: { fontSize: 10, fontWeight: "800", color: "#555" },
+  timeTextEnd: { fontSize: 9, fontWeight: "800", color: "#555" },
 
   aulaCard: {
     backgroundColor: "#FAFFFE",
@@ -448,7 +488,7 @@ const cal = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
-  aulaTime: { fontSize: 9, fontWeight: "700", marginBottom: 4 },
+  aulaTime: { fontSize: 10, fontWeight: "800" },
   aulaSubject: { fontSize: 12, fontWeight: "700", color: "#1a1a2e", marginBottom: 5, lineHeight: 16 },
   detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 3 },
   detailText: { fontSize: 10, color: "#666", flex: 1 },
@@ -498,18 +538,35 @@ const cal = StyleSheet.create({
   rowTimeEnd: { fontSize: 11, color: "#aaa" },
   rowSubject: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 3 },
 
-  intervaloCard: {
+  // Faixa de intervalo sem dia: ocupa toda a largura do grid
+  intervaloFaixa: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     backgroundColor: "#FFF8F0",
     borderRadius: 10,
-    padding: 10,
-    marginBottom: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderWidth: 1,
     borderColor: "#FED7AA",
   },
-  intervaloText: { fontSize: 12, color: "#92400e", fontWeight: "600" },
+  intervaloFaixaText: { fontSize: 12, color: "#92400e", fontWeight: "600", flex: 1 },
+
+  // Célula de intervalo com dia específico
+  intervaloCelula: {
+    flex: 1,
+    minHeight: 54,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+    padding: 6,
+  },
+  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700" },
+  intervaloCelulaHora: { fontSize: 9, color: "#b45309" },
 });
 
 const act = StyleSheet.create({
