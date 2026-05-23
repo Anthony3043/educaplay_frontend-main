@@ -36,20 +36,24 @@ const LINKS = [
   },
   {
     id: "suporte",
-    ionicon: "chatbubble-outline" as const,
+    ionicon: "logo-instagram" as const,
     title: "Suporte",
-    subtitle: "Entre em contato com nossa equipe",
-    url: "mailto:suporte@educaplay.com.br",
+    subtitle: "@Planejaedu_official no Instagram",
+    url: "instagram://user?username=Planejaedu_official",
+    urlFallback: "https://www.instagram.com/Planejaedu_official",
   },
 ];
 
 export default function SobreScreen() {
   const router = useRouter();
 
-  const handleLink = (url: string) => {
-    Linking.openURL(url).catch(() =>
-      Alert.alert("Erro", "Não foi possível abrir o link.")
-    );
+  const handleLink = (url: string, urlFallback?: string) => {
+    Linking.canOpenURL(url)
+      .then((canOpen) => {
+        const destino = canOpen ? url : (urlFallback ?? url);
+        return Linking.openURL(destino);
+      })
+      .catch(() => Alert.alert("Erro", "Não foi possível abrir o link."));
   };
 
   return (
@@ -110,7 +114,7 @@ export default function SobreScreen() {
               key={item.id}
               style={s.configItem}
               activeOpacity={0.7}
-              onPress={() => handleLink(item.url)}
+              onPress={() => handleLink(item.url, (item as any).urlFallback)}
             >
               <View style={s.configIcon}>
                 <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
