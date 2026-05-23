@@ -19,26 +19,33 @@ const SOBRE_ITEMS = [
   { id: "versao", ionicon: "phone-portrait-outline" as const, title: "Versão do app", value: "1.0.0" },
 ];
 
-const LINKS = [
+type LinkItem =
+  | { id: string; ionicon: React.ComponentProps<typeof Ionicons>["name"]; title: string; subtitle: string; type: "url"; url: string }
+  | { id: string; ionicon: React.ComponentProps<typeof Ionicons>["name"]; title: string; subtitle: string; type: "nav"; route: string };
+
+const LINKS: LinkItem[] = [
   {
     id: "termos",
-    ionicon: "document-text-outline" as const,
+    ionicon: "document-text-outline",
     title: "Termos de uso",
     subtitle: "Leia nossos termos e condições",
-    url: "https://educaplay.com.br/termos",
+    type: "nav",
+    route: "/termos",
   },
   {
     id: "politica",
-    ionicon: "lock-closed-outline" as const,
+    ionicon: "lock-closed-outline",
     title: "Política de privacidade",
     subtitle: "Como tratamos seus dados",
-    url: "https://educaplay.com.br/privacidade",
+    type: "nav",
+    route: "/politica",
   },
   {
     id: "suporte",
-    ionicon: "logo-whatsapp" as const,
+    ionicon: "logo-whatsapp",
     title: "Suporte",
     subtitle: "Fale conosco pelo WhatsApp",
+    type: "url",
     url: "https://wa.me/5535999657172?text=Ol%C3%A1%2C%20preciso%20de%20suporte%20com%20o%20EducaPlay.",
   },
 ];
@@ -46,13 +53,8 @@ const LINKS = [
 export default function SobreScreen() {
   const router = useRouter();
 
-  const handleLink = (url: string, urlFallback?: string) => {
-    Linking.canOpenURL(url)
-      .then((canOpen) => {
-        const destino = canOpen ? url : (urlFallback ?? url);
-        return Linking.openURL(destino);
-      })
-      .catch(() => Alert.alert("Erro", "Não foi possível abrir o link."));
+  const handleLink = (url: string) => {
+    Linking.openURL(url).catch(() => Alert.alert("Erro", "Não foi possível abrir o link."));
   };
 
   return (
@@ -113,7 +115,7 @@ export default function SobreScreen() {
               key={item.id}
               style={s.configItem}
               activeOpacity={0.7}
-              onPress={() => handleLink(item.url, (item as any).urlFallback)}
+              onPress={() => item.type === "nav" ? router.push(item.route as any) : handleLink(item.url)}
             >
               <View style={s.configIcon}>
                 <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
