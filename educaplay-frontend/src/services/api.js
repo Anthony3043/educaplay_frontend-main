@@ -5,7 +5,7 @@ const API_URL = 'https://backend-educaplay.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 30000,
+  timeout: 60000, // 60 s — necessário para o cold start do Render (free tier dorme após 15 min)
   headers: { 'Content-Type': 'application/json' },
 });
 

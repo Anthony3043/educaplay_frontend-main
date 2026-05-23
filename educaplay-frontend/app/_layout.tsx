@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
+const MIN_SPLASH_MS = 2000; // splash visível por pelo menos 2 segundos
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,13 +18,28 @@ function RootNavigator() {
   const router = useRouter();
   const [biometriaOk, setBiometriaOk] = useState(false);
   const biometriaVerificada = useRef(false);
+  const [splashPronto, setSplashPronto] = useState(false);
+  const splashStartTime = useRef(Date.now());
+
+  // Timer mínimo: garante que o splash apareça por pelo menos 2 s
+  useEffect(() => {
+    const elapsed = Date.now() - splashStartTime.current;
+    const delay = Math.max(0, MIN_SPLASH_MS - elapsed);
+    const t = setTimeout(() => setSplashPronto(true), delay);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Oculta o splash somente quando o app estiver pronto E o timer mínimo tiver passado
+  useEffect(() => {
+    if (biometriaOk && splashPronto) {
+      SplashScreen.hideAsync();
+    }
+  }, [biometriaOk, splashPronto]);
 
   useEffect(() => {
     if (carregando) return;
     if (biometriaVerificada.current) return;
     biometriaVerificada.current = true;
-
-    SplashScreen.hideAsync();
 
     const checarBiometria = async () => {
       if (!usuario) {
@@ -83,8 +99,8 @@ function RootNavigator() {
 
   if (!biometriaOk) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#3a7d44" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#3a7d44' }}>
+        <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );
   }

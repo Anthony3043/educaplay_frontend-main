@@ -17,7 +17,7 @@ type Usuario = {
 type AuthContextType = {
   usuario: Usuario | null;
   carregando: boolean;
-  login: (email: string, senha: string) => Promise<Usuario>;
+  login: (email: string, senha: string, lembrar?: boolean) => Promise<Usuario>;
   register: (dados: Partial<Usuario> & { senha: string }) => Promise<Usuario>;
   logout: () => Promise<void>;
   atualizarUsuario: (dados: Partial<Usuario>) => void;
@@ -34,18 +34,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const carregarSessao = async () => {
+    // Acorda o backend silenciosamente (Render free tier dorme após 15 min de inatividade).
+    // Não aguarda resposta — o objetivo é apenas iniciar o cold start enquanto o app carrega.
+    api.get('/health').catch(() => {});
+
     try {
+      const lembrar = await AsyncStorage.getItem('@educaplay_remember');
+      if (lembrar !== 'true') {
+        // Sessão temporária: limpa dados ao reabrir o app
+        await AsyncStorage.multiRemove(['@educaplay_token', '@educaplay_user']);
+        setCarregando(false);
+        return;
+      }
       const u = await AsyncStorage.getItem('@educaplay_user');
       if (u) setUsuario(JSON.parse(u));
     } catch {}
     setCarregando(false);
   };
 
-  const login = async (email: string, senha: string): Promise<Usuario> => {
+  const login = async (email: string, senha: string, lembrar: boolean = true): Promise<Usuario> => {
     const res = await api.post('/auth/login', { email, senha });
     const { token, usuario } = res.data;
+    // Sempre salva o token na sessão atual (o interceptor do axios precisa dele)
     await AsyncStorage.setItem('@educaplay_token', token);
     await AsyncStorage.setItem('@educaplay_user', JSON.stringify(usuario));
+    // Flag que decide se a sessão sobrevive ao fechar o app
+    if (lembrar) {
+      await AsyncStorage.setItem('@educaplay_remember', 'true');
+    } else {
+      await AsyncStorage.removeItem('@educaplay_remember');
+    }
     setUsuario(usuario);
     registrarPushToken().catch(() => {});
     return usuario;
@@ -61,8 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('@educaplay_token');
-    await AsyncStorage.removeItem('@educaplay_user');
+    await AsyncStorage.multiRemove(['@educaplay_token', '@educaplay_user', '@educaplay_remember']);
     setUsuario(null);
   };
 

@@ -1,19 +1,25 @@
 {
   "expo": {
-    "name": "educaplay-frontend",
+    "name": "EducaPlay",
     "slug": "educaplay-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "educaplayfrontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "icon": "./assets/images/Logo_PlanejaEdu.png",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/images/Logo_PlanejaEdu.png"
     },
     "android": {
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.educaplayfrontend",
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/Logo_PlanejaEdu.png",
+        "backgroundColor": "#3a7d44"
+      }
     },
     "web": {
       "output": "static",
@@ -35,9 +41,9 @@
           "image": "./assets/images/logo_icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#3a7d44",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#2d6a4f"
           }
         }
       ],
@@ -48,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "82bd4f03-c8df-487b-80a1-928dee68f7db"
+      }
     }
   }
 }

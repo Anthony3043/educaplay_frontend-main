@@ -2,7 +2,7 @@ import { styles as s } from "@/styles/SalasStyles";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, Modal, ScrollView,
+  ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
   StatusBar, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -128,38 +128,43 @@ export default function SalasScreen() {
       )}
 
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={fecharModal}>
-        <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={fecharModal}>
-          <TouchableOpacity activeOpacity={1} style={s.modalSheet}>
-            <View style={s.modalHandle} />
-            <Text style={s.modalTitle}>{editando ? "Editar Sala" : "Nova Sala"}</Text>
-            <View>
-              <Text style={s.modalLabel}>Nome da sala *</Text>
-              <TextInput style={[s.modalInput, nomeFocused && s.modalInputFocused]} value={nome} onChangeText={setNome}
-                placeholder="Ex: Sala 01, Lab. de Ciências..." placeholderTextColor="#AAAAAA"
-                onFocus={() => setNomeFocused(true)} onBlur={() => setNomeFocused(false)} />
-            </View>
-            <View>
-              <Text style={s.modalLabel}>Turma (opcional)</Text>
-              <TextInput style={[s.modalInput, turmaFocused && s.modalInputFocused]} value={turma} onChangeText={setTurma}
-                placeholder="Ex: 3º A, 2º B, 1º Ano..." placeholderTextColor="#AAAAAA"
-                onFocus={() => setTurmaFocused(true)} onBlur={() => setTurmaFocused(false)} />
-            </View>
-            <View>
-              <Text style={s.modalLabel}>Capacidade (opcional)</Text>
-              <TextInput style={[s.modalInput, capFocused && s.modalInputFocused]} value={capacidade} onChangeText={setCapacidade}
-                placeholder="Ex: 35 alunos" placeholderTextColor="#AAAAAA"
-                onFocus={() => setCapFocused(true)} onBlur={() => setCapFocused(false)} />
-            </View>
-            <View style={s.modalRow}>
-              <TouchableOpacity style={s.modalCancelBtn} onPress={fecharModal}>
-                <Text style={s.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={s.modalSaveBtn} onPress={handleSalvar} disabled={salvando}>
-                {salvando ? <ActivityIndicator color="#fff" /> : <Text style={s.modalSaveText}>{editando ? "Salvar" : "Criar"}</Text>}
-              </TouchableOpacity>
-            </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={fecharModal}>
+            <TouchableOpacity activeOpacity={1} style={s.modalSheet}>
+              <View style={s.modalHandle} />
+              <Text style={s.modalTitle}>{editando ? "Editar Sala" : "Nova Sala"}</Text>
+              <View>
+                <Text style={s.modalLabel}>Nome da sala *</Text>
+                <TextInput style={[s.modalInput, nomeFocused && s.modalInputFocused]} value={nome} onChangeText={setNome}
+                  placeholder="Ex: Sala 01, Lab. de Ciências..." placeholderTextColor="#AAAAAA"
+                  onFocus={() => setNomeFocused(true)} onBlur={() => setNomeFocused(false)} />
+              </View>
+              <View>
+                <Text style={s.modalLabel}>Turma (opcional)</Text>
+                <TextInput style={[s.modalInput, turmaFocused && s.modalInputFocused]} value={turma} onChangeText={setTurma}
+                  placeholder="Ex: 3º A, 2º B, 1º Ano..." placeholderTextColor="#AAAAAA"
+                  onFocus={() => setTurmaFocused(true)} onBlur={() => setTurmaFocused(false)} />
+              </View>
+              <View>
+                <Text style={s.modalLabel}>Capacidade (opcional)</Text>
+                <TextInput style={[s.modalInput, capFocused && s.modalInputFocused]} value={capacidade} onChangeText={setCapacidade}
+                  placeholder="Ex: 35 alunos" placeholderTextColor="#AAAAAA"
+                  onFocus={() => setCapFocused(true)} onBlur={() => setCapFocused(false)} />
+              </View>
+              <View style={s.modalRow}>
+                <TouchableOpacity style={s.modalCancelBtn} onPress={fecharModal}>
+                  <Text style={s.modalCancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={s.modalSaveBtn} onPress={handleSalvar} disabled={salvando}>
+                  {salvando ? <ActivityIndicator color="#fff" /> : <Text style={s.modalSaveText}>{editando ? "Salvar" : "Criar"}</Text>}
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
