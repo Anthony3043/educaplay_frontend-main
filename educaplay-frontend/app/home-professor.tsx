@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -76,6 +77,7 @@ export default function HomeProfessorScreen() {
   const { usuario } = useAuth();
   const userName = usuario?.nome?.split(" ")[0] ?? "";
   const cargo = usuario?.cargo ?? usuario?.papel ?? "";
+  const materias = usuario?.materias ?? [];
   const [naoLidas, setNaoLidas] = useState(0);
 
   const carregarNotifs = useCallback(async () => {
@@ -246,6 +248,15 @@ export default function HomeProfessorScreen() {
               )}
               <Text style={s.drawerTitle}>{userName}</Text>
               <Text style={s.drawerSubtitle}>{cargo}</Text>
+              {materias.length > 0 && (
+                <View style={dm.chipsRow}>
+                  {materias.map((m, idx) => (
+                    <View key={idx} style={dm.chip}>
+                      <Text style={dm.chipText}>{m}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
 
             <View style={s.drawerDivider} />
@@ -273,3 +284,25 @@ export default function HomeProfessorScreen() {
     </SafeAreaView>
   );
 }
+
+const dm = StyleSheet.create({
+  chipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 5,
+    marginTop: 8,
+  },
+  chip: {
+    backgroundColor: "rgba(255,255,255,0.18)",
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#fff",
+  },
+});

@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator, Alert, Image, ScrollView,
-  StatusBar, Text, TextInput, TouchableOpacity, View,
+  StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,10 +22,13 @@ export default function PerfilScreen() {
   const { usuario, atualizarUsuario } = useAuth();
   const [activeTab, setActiveTab] = useState("configuracoes");
   const isProfessor = usuario?.papel === "Professor";
+
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [nome, setNome] = useState(usuario?.nome || "");
   const [cargo, setCargo] = useState(usuario?.cargo || "");
   const [escola, setEscola] = useState(usuario?.instituicao || "");
+  const [materias, setMaterias] = useState<string[]>(usuario?.materias ?? []);
+  const [materiaInput, setMateriaInput] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,6 +37,7 @@ export default function PerfilScreen() {
       setNome(usuario.nome || "");
       setCargo(usuario.cargo || "");
       setEscola(usuario.instituicao || "");
+      setMaterias(usuario.materias ?? []);
     }
   }, [usuario]);
 
@@ -64,11 +68,28 @@ export default function PerfilScreen() {
     }
   };
 
+  // ── Matérias ──────────────────────────────────────────────────────────────
+  const adicionarMateria = () => {
+    const trimmed = materiaInput.trim();
+    if (!trimmed) return;
+    if (materias.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
+      setMateriaInput("");
+      return;
+    }
+    setMaterias((prev) => [...prev, trimmed]);
+    setMateriaInput("");
+  };
+
+  const removerMateria = (idx: number) => {
+    setMaterias((prev) => prev.filter((_, i) => i !== idx));
+  };
+
   const handleSave = async () => {
     setIsLoading(true);
     try {
       const payload: any = { nome, cargo, instituicao: escola };
       if (fotoPreview) payload.foto = fotoPreview;
+      if (isProfessor) payload.materias = materias;
       const res = await api.put("/auth/perfil", payload);
       atualizarUsuario(res.data);
       setFotoPreview(null);
@@ -97,6 +118,7 @@ export default function PerfilScreen() {
       </View>
 
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Avatar */}
         <View style={s.perfilCard}>
           <TouchableOpacity style={s.fotoContainer} onPress={isEditing ? pickImage : undefined} activeOpacity={isEditing ? 0.7 : 1}>
             {fotoExibir ? (
@@ -109,22 +131,28 @@ export default function PerfilScreen() {
             {isEditing && <View style={s.fotoOverlay}><Ionicons name="camera-outline" size={28} color="#fff" /></View>}
           </TouchableOpacity>
           <Text style={s.perfilNome}>{nome}</Text>
-          {isProfessor
-            ? (cargo ? (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                  <Ionicons name="book-outline" size={13} color="#3a7d44" />
-                  <Text style={[s.perfilCargo, { color: "#3a7d44", fontWeight: "600" }]}>{cargo}</Text>
+          <Text style={s.perfilCargo}>{cargo || usuario?.papel}</Text>
+
+          {/* Chips de matérias no card de perfil (somente professor) */}
+          {isProfessor && (usuario?.materias ?? []).length > 0 && (
+            <View style={pf.chipsRow}>
+              {(usuario?.materias ?? []).map((m, idx) => (
+                <View key={idx} style={pf.chip}>
+                  <Ionicons name="book-outline" size={11} color="#2d6a4f" />
+                  <Text style={pf.chipText}>{m}</Text>
                 </View>
-              ) : null)
-            : <Text style={s.perfilCargo}>{cargo}</Text>
-          }
+              ))}
+            </View>
+          )}
         </View>
 
+        {/* Informações pessoais */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Informações Pessoais</Text>
           <View style={s.infoGroup}>
             <Text style={s.label}>Nome Completo</Text>
-            {isEditing ? <TextInput style={s.input} value={nome} onChangeText={setNome} placeholder="Digite seu nome" placeholderTextColor="#bbb" />
+            {isEditing
+              ? <TextInput style={s.input} value={nome} onChangeText={setNome} placeholder="Digite seu nome" placeholderTextColor="#bbb" />
               : <Text style={s.infoValue}>{nome}</Text>}
           </View>
           <View style={s.infoGroup}>
@@ -133,26 +161,20 @@ export default function PerfilScreen() {
           </View>
         </View>
 
+        {/* Informações profissionais */}
         <View style={s.section}>
           <Text style={s.sectionTitle}>Informações Profissionais</Text>
           <View style={s.infoGroup}>
             <Text style={s.label}>Escola</Text>
-            {isEditing ? <TextInput style={s.input} value={escola} onChangeText={setEscola} placeholder="Nome da escola" placeholderTextColor="#bbb" />
+            {isEditing
+              ? <TextInput style={s.input} value={escola} onChangeText={setEscola} placeholder="Nome da escola" placeholderTextColor="#bbb" />
               : <Text style={s.infoValue}>{escola || "—"}</Text>}
           </View>
           <View style={s.infoGroup}>
-            <Text style={s.label}>{isProfessor ? "Matéria" : "Cargo"}</Text>
-            {isEditing ? (
-              <TextInput
-                style={s.input}
-                value={cargo}
-                onChangeText={setCargo}
-                placeholder={isProfessor ? "Ex: Matemática, Português..." : "Seu cargo"}
-                placeholderTextColor="#bbb"
-              />
-            ) : (
-              <Text style={s.infoValue}>{cargo || "—"}</Text>
-            )}
+            <Text style={s.label}>Cargo</Text>
+            {isEditing
+              ? <TextInput style={s.input} value={cargo} onChangeText={setCargo} placeholder="Seu cargo" placeholderTextColor="#bbb" />
+              : <Text style={s.infoValue}>{cargo || "—"}</Text>}
           </View>
           <View style={s.infoGroup}>
             <Text style={s.label}>Papel</Text>
@@ -160,8 +182,72 @@ export default function PerfilScreen() {
           </View>
         </View>
 
+        {/* Seção de matérias — somente professor */}
+        {isProfessor && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Matérias que leciono</Text>
+
+            {/* View mode: chips somente leitura */}
+            {!isEditing && (
+              materias.length > 0 ? (
+                <View style={pf.chipsRow}>
+                  {materias.map((m, idx) => (
+                    <View key={idx} style={pf.chip}>
+                      <Ionicons name="book-outline" size={12} color="#2d6a4f" />
+                      <Text style={pf.chipText}>{m}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <Text style={s.infoValue}>Nenhuma matéria adicionada.</Text>
+              )
+            )}
+
+            {/* Edit mode: chips removíveis + input */}
+            {isEditing && (
+              <View>
+                {materias.length > 0 && (
+                  <View style={pf.chipsRow}>
+                    {materias.map((m, idx) => (
+                      <View key={idx} style={pf.chip}>
+                        <Ionicons name="book-outline" size={12} color="#2d6a4f" />
+                        <Text style={pf.chipText}>{m}</Text>
+                        <TouchableOpacity onPress={() => removerMateria(idx)} hitSlop={{ top: 6, bottom: 6, left: 4, right: 6 }}>
+                          <Ionicons name="close" size={13} color="#2d6a4f" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                <View style={pf.addRow}>
+                  <TextInput
+                    style={[s.input, { flex: 1, marginBottom: 0 }]}
+                    value={materiaInput}
+                    onChangeText={setMateriaInput}
+                    placeholder="Ex: Matemática, Física..."
+                    placeholderTextColor="#bbb"
+                    autoCapitalize="words"
+                    onSubmitEditing={adicionarMateria}
+                    returnKeyType="done"
+                  />
+                  <TouchableOpacity style={pf.addBtn} onPress={adicionarMateria} activeOpacity={0.8}>
+                    <Ionicons name="add" size={20} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+                <Text style={pf.hint}>Adicione uma matéria de cada vez. Toque + ou "concluir" no teclado.</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {isEditing && (
-          <TouchableOpacity style={[s.btnSalvar, isLoading && s.btnSalvarLoading]} onPress={handleSave} disabled={isLoading} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[s.btnSalvar, isLoading && s.btnSalvarLoading]}
+            onPress={handleSave}
+            disabled={isLoading}
+            activeOpacity={0.85}
+          >
             {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={s.btnSalvarText}>Salvar Alterações</Text>}
           </TouchableOpacity>
         )}
@@ -181,3 +267,46 @@ export default function PerfilScreen() {
     </SafeAreaView>
   );
 }
+
+const pf = StyleSheet.create({
+  chipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 8,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#e8f5ea",
+    borderRadius: 20,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "#52b788",
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#2d6a4f",
+  },
+  addRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 8,
+  },
+  addBtn: {
+    backgroundColor: "#3a7d44",
+    borderRadius: 10,
+    padding: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  hint: {
+    fontSize: 11,
+    color: "#aaa",
+    marginTop: 6,
+  },
+});

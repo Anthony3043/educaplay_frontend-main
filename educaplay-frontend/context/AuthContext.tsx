@@ -11,6 +11,7 @@ type Usuario = {
   cargo?: string | null;
   instituicao?: string | null;
   foto?: string | null;
+  materias?: string[];
 };
 
 type AuthContextType = {

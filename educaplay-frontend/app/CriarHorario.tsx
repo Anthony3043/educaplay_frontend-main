@@ -20,7 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type TipoSlot = "aula" | "intervalo";
-type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null };
+type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null; materias?: string[] };
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
 
 const salaLabel = (sala: Sala) => sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
@@ -355,9 +355,14 @@ export default function CriarHorarioScreen() {
                   value={materia}
                   onChangeText={(t) => {
                     setMateria(t);
-                    // Se o professor selecionado não bate mais com o filtro, deseleciona
-                    if (professorSelecionado?.cargo && !professorSelecionado.cargo.toLowerCase().includes(t.toLowerCase().trim())) {
-                      setProfessorSelecionado(null);
+                    // Se o professor selecionado não leciona mais essa matéria, deseleciona
+                    if (professorSelecionado) {
+                      const filtro = t.toLowerCase().trim();
+                      const profMaterias = professorSelecionado.materias ?? [];
+                      const bate = profMaterias.some((m) => m.toLowerCase().includes(filtro));
+                      if (filtro.length >= 2 && profMaterias.length > 0 && !bate) {
+                        setProfessorSelecionado(null);
+                      }
                     }
                   }}
                   placeholder="Digite para filtrar professores..."
@@ -416,10 +421,15 @@ export default function CriarHorarioScreen() {
                     <Text style={s.emptyProfessoresText}>Nenhum professor cadastrado.</Text>
                   </View>
                 ) : (() => {
-                  // Filtra pelo campo matéria (peneira)
+                  // Filtra pela matéria digitada (busca no array materias do professor)
                   const filtro = materia.trim().toLowerCase();
                   const lista = filtro.length >= 2
-                    ? professores.filter((p) => p.cargo && p.cargo.toLowerCase().includes(filtro))
+                    ? professores.filter((p) => {
+                        const profMaterias = p.materias ?? [];
+                        // Professores sem matérias cadastradas ainda aparecem (não filtrar fora)
+                        if (profMaterias.length === 0) return true;
+                        return profMaterias.some((m) => m.toLowerCase().includes(filtro));
+                      })
                     : professores;
 
                   if (lista.length === 0) {
@@ -435,6 +445,7 @@ export default function CriarHorarioScreen() {
 
                   return lista.map((prof) => {
                     const selected = professorSelecionado?.id === prof.id;
+                    const profMaterias = prof.materias ?? [];
                     return (
                       <TouchableOpacity
                         key={prof.id}
@@ -442,8 +453,10 @@ export default function CriarHorarioScreen() {
                         onPress={() => {
                           const novoSelected = selected ? null : prof;
                           setProfessorSelecionado(novoSelected);
-                          // Auto-preenche a matéria com o cargo do professor selecionado
-                          if (novoSelected?.cargo) setMateria(novoSelected.cargo);
+                          // Auto-preenche a matéria com a primeira matéria do professor (se campo estiver vazio)
+                          if (novoSelected && profMaterias.length > 0 && !materia.trim()) {
+                            setMateria(profMaterias[0]);
+                          }
                         }}
                         activeOpacity={0.75}
                       >
@@ -456,8 +469,8 @@ export default function CriarHorarioScreen() {
                         </View>
                         <View style={s.professorInfo}>
                           <Text style={s.professorNome}>{prof.nome}</Text>
-                          {prof.cargo ? (
-                            <Text style={s.professorMaterias}>{prof.cargo}</Text>
+                          {profMaterias.length > 0 ? (
+                            <Text style={s.professorMaterias}>{profMaterias.join(" · ")}</Text>
                           ) : null}
                         </View>
                         {selected && <Text style={s.professorCheckmark}>✓</Text>}
