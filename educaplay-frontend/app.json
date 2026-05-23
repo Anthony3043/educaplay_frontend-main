@@ -7,17 +7,17 @@
     "scheme": "educaplayfrontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "icon": "./assets/images/Logo_PlanejaEdu.png",
+    "icon": "./assets/images/logo_icon.png",
     "ios": {
       "supportsTablet": true,
-      "icon": "./assets/images/Logo_PlanejaEdu.png"
+      "icon": "./assets/images/logo_icon.png"
     },
     "android": {
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.educaplayfrontend",
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/Logo_PlanejaEdu.png",
+        "foregroundImage": "./assets/images/logo_icon.png",
         "backgroundColor": "#3a7d44"
       }
     },
