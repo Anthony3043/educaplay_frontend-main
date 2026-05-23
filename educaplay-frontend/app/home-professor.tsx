@@ -76,7 +76,7 @@ export default function HomeProfessorScreen() {
 
   const { usuario } = useAuth();
   const userName = usuario?.nome?.split(" ")[0] ?? "";
-  const cargo = usuario?.cargo ?? usuario?.papel ?? "";
+  const cargo = usuario?.papel === "Supervisao" ? "Supervisão" : (usuario?.papel ?? "");
   const materias = usuario?.materias ?? [];
   const [naoLidas, setNaoLidas] = useState(0);
 

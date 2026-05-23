@@ -3,7 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator, Alert, Image, ScrollView,
+  ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView,
   StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -25,7 +25,6 @@ export default function PerfilScreen() {
 
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [nome, setNome] = useState(usuario?.nome || "");
-  const [cargo, setCargo] = useState(usuario?.cargo || "");
   const [escola, setEscola] = useState(usuario?.instituicao || "");
   const [materias, setMaterias] = useState<string[]>(usuario?.materias ?? []);
   const [materiaInput, setMateriaInput] = useState("");
@@ -35,7 +34,6 @@ export default function PerfilScreen() {
   useEffect(() => {
     if (usuario) {
       setNome(usuario.nome || "");
-      setCargo(usuario.cargo || "");
       setEscola(usuario.instituicao || "");
       setMaterias(usuario.materias ?? []);
     }
@@ -87,7 +85,7 @@ export default function PerfilScreen() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const payload: any = { nome, cargo, instituicao: escola };
+      const payload: any = { nome, instituicao: escola };
       if (fotoPreview) payload.foto = fotoPreview;
       if (isProfessor) payload.materias = materias;
       const res = await api.put("/auth/perfil", payload);
@@ -117,7 +115,8 @@ export default function PerfilScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Avatar */}
         <View style={s.perfilCard}>
           <TouchableOpacity style={s.fotoContainer} onPress={isEditing ? pickImage : undefined} activeOpacity={isEditing ? 0.7 : 1}>
@@ -131,7 +130,7 @@ export default function PerfilScreen() {
             {isEditing && <View style={s.fotoOverlay}><Ionicons name="camera-outline" size={28} color="#fff" /></View>}
           </TouchableOpacity>
           <Text style={s.perfilNome}>{nome}</Text>
-          <Text style={s.perfilCargo}>{cargo || usuario?.papel}</Text>
+          <Text style={s.perfilCargo}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel}</Text>
 
           {/* Chips de matérias no card de perfil (somente professor) */}
           {isProfessor && (usuario?.materias ?? []).length > 0 && (
@@ -172,12 +171,6 @@ export default function PerfilScreen() {
           </View>
           <View style={s.infoGroup}>
             <Text style={s.label}>Cargo</Text>
-            {isEditing
-              ? <TextInput style={s.input} value={cargo} onChangeText={setCargo} placeholder="Seu cargo" placeholderTextColor="#bbb" />
-              : <Text style={s.infoValue}>{cargo || "—"}</Text>}
-          </View>
-          <View style={s.infoGroup}>
-            <Text style={s.label}>Papel</Text>
             <Text style={s.infoValue}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel}</Text>
           </View>
         </View>
@@ -252,6 +245,7 @@ export default function PerfilScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       <View style={s.tabBar}>
         {TABS.map((tab) => {

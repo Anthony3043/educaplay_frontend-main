@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   Text,
@@ -83,6 +85,7 @@ export default function EditarHorarioScreen() {
         </TouchableOpacity>
       </View>
 
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <ScrollView
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -179,6 +182,7 @@ export default function EditarHorarioScreen() {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -218,6 +220,7 @@ export default function AulaDetalheScreen() {
           </TouchableOpacity>
         </View>
 
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         {carregando ? (
           <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
         ) : (
@@ -298,6 +301,7 @@ export default function AulaDetalheScreen() {
             </TouchableOpacity>
           </ScrollView>
         )}
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }

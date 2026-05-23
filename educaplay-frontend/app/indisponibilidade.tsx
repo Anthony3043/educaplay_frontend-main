@@ -3,6 +3,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -123,6 +125,7 @@ export default function IndisponibilidadeScreen() {
         <View style={{ width: 40 }} />
       </View>
 
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       {carregando ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
@@ -251,6 +254,7 @@ export default function IndisponibilidadeScreen() {
           </View>
         </ScrollView>
       )}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

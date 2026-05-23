@@ -12,7 +12,8 @@
     },
     "android": {
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.educaplayfrontend"
+      "package": "com.anonymous.educaplayfrontend",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static",

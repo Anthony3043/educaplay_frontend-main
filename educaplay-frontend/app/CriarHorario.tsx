@@ -6,7 +6,9 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -221,6 +223,7 @@ export default function CriarHorarioScreen() {
         </TouchableOpacity>
       </View>
 
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       {carregando ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
@@ -483,6 +486,7 @@ export default function CriarHorarioScreen() {
           )}
         </ScrollView>
       )}
+      </KeyboardAvoidingView>
 
       <Modal visible={sucesso} transparent animationType="fade">
         <View style={ms.overlay}>
