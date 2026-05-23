@@ -1,6 +1,6 @@
 import { styles as s } from "@/styles/Cronogramasstyles";
-import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -237,7 +237,7 @@ export default function CronogramasProfessorScreen() {
     }
   }, [usuario?.id]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);

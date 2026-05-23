@@ -169,7 +169,7 @@ export default function AulaDetalheScreen() {
         salaId: salaSelecionada?.id ?? null,
       });
       Alert.alert("Sucesso", "Horário atualizado!", [
-        { text: "OK", onPress: () => router.replace("/cronogramas" as any) },
+        { text: "OK", onPress: () => router.back() },
       ]);
     } catch (err: any) {
       const status = err?.response?.status;
@@ -196,7 +196,7 @@ export default function AulaDetalheScreen() {
           onPress: async () => {
             try {
               await api.delete(`/aulas/${params.id}`);
-              router.replace("/cronogramas" as any);
+              router.back();
             } catch {
               Alert.alert("Erro", "Não foi possível excluir a aula.");
             }

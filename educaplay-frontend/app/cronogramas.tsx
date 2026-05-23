@@ -1,6 +1,6 @@
 import { styles as s } from "@/styles/Cronogramasstyles";
-import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -288,7 +288,8 @@ export default function CronogramasScreen() {
     }
   }, []);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  // Recarrega sempre que a tela volta ao foco (ex: voltando de AulaDetalhe após deletar)
+  useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
   const handleCriarHorario = async () => {
     let cronogramaId = cronogramaIds[selectedTurno];
