@@ -130,7 +130,7 @@ export default function ResetPasswordScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="#f5f6fa" />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={s.flex}
       >
         <ScrollView

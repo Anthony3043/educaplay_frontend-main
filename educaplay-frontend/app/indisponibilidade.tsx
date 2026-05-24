@@ -125,7 +125,7 @@ export default function IndisponibilidadeScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} style={{ flex: 1 }}>
       {carregando ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (

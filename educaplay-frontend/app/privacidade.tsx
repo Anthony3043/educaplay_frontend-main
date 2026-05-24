@@ -3,8 +3,8 @@ import { Colors } from "@/src/constants/colors";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Modal, ScrollView, StatusBar,
-  StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView,
+  StatusBar, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -138,7 +138,11 @@ export default function PrivacidadeScreen() {
 
       {/* Modal de confirmação de exclusão */}
       <Modal visible={modalVisivel} transparent animationType="fade" onRequestClose={() => setModalVisivel(false)}>
-        <View style={ls.overlay}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        >
+          <View style={ls.overlay}>
           <View style={ls.modalBox}>
             <Ionicons name="warning-outline" size={36} color={Colors.error} style={{ textAlign: "center", alignSelf: "center" }} />
             <Text style={ls.modalTitulo}>Excluir conta</Text>
@@ -179,7 +183,8 @@ export default function PrivacidadeScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

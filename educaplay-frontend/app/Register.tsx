@@ -141,7 +141,7 @@ export default function RegisterScreen() {
         </TouchableOpacity>
       </Modal>
 
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.flex}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={s.flex}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={r.topBlock}>
             <Image source={require("@/assets/images/design_foil.png")} style={r.foil} resizeMode="cover" />

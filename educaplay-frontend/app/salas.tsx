@@ -130,7 +130,7 @@ export default function SalasScreen() {
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={fecharModal}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior="padding"
         >
           <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={fecharModal}>
             <TouchableOpacity activeOpacity={1} style={s.modalSheet}>
