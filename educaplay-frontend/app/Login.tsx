@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Alert, Image, KeyboardAvoidingView, Platform, ScrollView, StatusBar, Text,
-  TextInput, TouchableOpacity, View, ActivityIndicator,
+  Alert, BackHandler, Image, KeyboardAvoidingView, Platform, ScrollView,
+  StatusBar, Text, TextInput, TouchableOpacity, View, ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +18,15 @@ export default function LoginScreen() {
   const [lembrarMe, setLembrarMe] = useState(false);
   const [carregando, setCarregando] = useState(false);
 
+  // Botão voltar do Android → sai do app (Login é a tela inicial)
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      BackHandler.exitApp();
+      return true;
+    });
+    return () => sub.remove();
+  }, []);
+
   const handleLogin = async () => {
     if (!email.trim() || !senha.trim()) {
       Alert.alert("Atenção", "Preencha e-mail e senha.");
@@ -25,7 +34,7 @@ export default function LoginScreen() {
     }
     setCarregando(true);
     try {
-      const usuario = await login(email.trim(), senha);
+      const usuario = await login(email.trim(), senha, lembrarMe);
       if (usuario.papel === "Professor") {
         router.replace("/home-professor");
       } else {
@@ -41,7 +50,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.flex}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={s.flex}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={[s.topArea, { position: "relative" }]}>
             <Image source={require("@/assets/images/design_foil.png")} style={s.foilImage} resizeMode="cover" />
