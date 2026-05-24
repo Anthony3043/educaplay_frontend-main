@@ -50,6 +50,10 @@ const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
+// Remove acentos e normaliza para comparação sem necessidade de acento exato
+const normalizar = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+
 function toMinutes(time: string): number {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
@@ -217,8 +221,8 @@ export default function CriarHorarioScreen() {
         <Text style={s.headerTitle}>Criar Horário</Text>
         <TouchableOpacity style={s.saveBtn} onPress={handleSalvar} disabled={salvando}>
           {salvando
-            ? <ActivityIndicator size="small" color="#3a7d44" />
-            : <Ionicons name="checkmark" size={22} color="#3a7d44" />
+            ? <ActivityIndicator size="small" color="#fff" />
+            : <Ionicons name="checkmark" size={22} color="#fff" />
           }
         </TouchableOpacity>
       </View>
@@ -360,9 +364,9 @@ export default function CriarHorarioScreen() {
                     setMateria(t);
                     // Se o professor selecionado não leciona mais essa matéria, deseleciona
                     if (professorSelecionado) {
-                      const filtro = t.toLowerCase().trim();
+                      const filtro = normalizar(t);
                       const profMaterias = professorSelecionado.materias ?? [];
-                      const bate = profMaterias.some((m) => m.toLowerCase().includes(filtro));
+                      const bate = profMaterias.some((m) => normalizar(m).includes(filtro));
                       if (filtro.length >= 2 && profMaterias.length > 0 && !bate) {
                         setProfessorSelecionado(null);
                       }
@@ -424,14 +428,14 @@ export default function CriarHorarioScreen() {
                     <Text style={s.emptyProfessoresText}>Nenhum professor cadastrado.</Text>
                   </View>
                 ) : (() => {
-                  // Filtra pela matéria digitada (busca no array materias do professor)
-                  const filtro = materia.trim().toLowerCase();
+                  // Filtra pela matéria digitada sem precisar de acento exato
+                  const filtro = normalizar(materia.trim());
                   const lista = filtro.length >= 2
                     ? professores.filter((p) => {
                         const profMaterias = p.materias ?? [];
-                        // Professores sem matérias cadastradas ainda aparecem (não filtrar fora)
-                        if (profMaterias.length === 0) return true;
-                        return profMaterias.some((m) => m.toLowerCase().includes(filtro));
+                        // Com filtro ativo, só mostra quem tem aquela matéria cadastrada
+                        if (profMaterias.length === 0) return false;
+                        return profMaterias.some((m) => normalizar(m).includes(filtro));
                       })
                     : professores;
 
