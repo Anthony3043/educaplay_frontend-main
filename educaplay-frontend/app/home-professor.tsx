@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  BackHandler,
   Dimensions,
   Image,
   ScrollView,
@@ -88,6 +89,15 @@ export default function HomeProfessorScreen() {
   }, []);
 
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
+
+  // Botão voltar do Android → sai do app (home-professor é a tela raiz)
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      BackHandler.exitApp();
+      return true;
+    });
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     animateTroca(Math.floor(Math.random() * DICAS.length));
