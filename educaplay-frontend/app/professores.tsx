@@ -20,10 +20,9 @@ import api from "../src/services/api";
 type Professor = {
   id: string;
   nome: string;
-  email: string;
-  cargo: string | null;
-  instituicao: string | null;
+  cargo?: string | null;
   foto?: string | null;
+  materias?: string[];
 };
 
 type Bloqueio = {
@@ -126,18 +125,20 @@ export default function ProfessoresScreen() {
                 </View>
                 <View style={s.professorInfo}>
                   <Text style={s.professorNome}>{prof.nome}</Text>
-                  {prof.cargo ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                      <Ionicons name="book-outline" size={12} color="#3a7d44" />
-                      <Text style={{ fontSize: 12, color: "#3a7d44", fontWeight: "600" }}>{prof.cargo}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                    <Ionicons name="person-outline" size={12} color="#7a7f9a" />
+                    <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
+                  </View>
+                  {(prof.materias ?? []).length > 0 && (
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
+                      {(prof.materias ?? []).map((m, i) => (
+                        <View key={i} style={pc.chip}>
+                          <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                          <Text style={pc.chipText}>{m}</Text>
+                        </View>
+                      ))}
                     </View>
-                  ) : null}
-                  {prof.instituicao ? (
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                      <Ionicons name="school-outline" size={12} color="#7a7f9a" />
-                      <Text style={{ fontSize: 12, color: "#7a7f9a" }}>{prof.instituicao}</Text>
-                    </View>
-                  ) : null}
+                  )}
                 </View>
                 <Ionicons name="chevron-forward" size={18} color="#ccc" />
               </TouchableOpacity>
@@ -162,12 +163,20 @@ export default function ProfessoresScreen() {
             <View style={m.sheetHeader}>
               <View style={{ flex: 1 }}>
                 <Text style={m.sheetTitle}>{profSelecionado?.nome}</Text>
-                {profSelecionado?.cargo ? (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 3, marginBottom: 2 }}>
-                    <Ionicons name="book-outline" size={13} color="#3a7d44" />
-                    <Text style={{ fontSize: 13, color: "#3a7d44", fontWeight: "700" }}>{profSelecionado.cargo}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                  <Ionicons name="person-outline" size={12} color="#7a7f9a" />
+                  <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
+                </View>
+                {(profSelecionado?.materias ?? []).length > 0 && (
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 5, marginBottom: 2 }}>
+                    {(profSelecionado?.materias ?? []).map((mat, i) => (
+                      <View key={i} style={pc.chip}>
+                        <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                        <Text style={pc.chipText}>{mat}</Text>
+                      </View>
+                    ))}
                   </View>
-                ) : null}
+                )}
                 <Text style={m.sheetSubtitle}>Horários de indisponibilidade</Text>
               </View>
               <TouchableOpacity onPress={fecharModal} style={m.closeBtn} activeOpacity={0.7}>
@@ -233,6 +242,23 @@ function BloqueioRow({ b }: { b: Bloqueio }) {
     </View>
   );
 }
+
+const pc = StyleSheet.create({
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: "#e8f5ea",
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  chipText: {
+    fontSize: 11,
+    color: "#3a7d44",
+    fontWeight: "600",
+  },
+});
 
 const m = StyleSheet.create({
   overlay: {
