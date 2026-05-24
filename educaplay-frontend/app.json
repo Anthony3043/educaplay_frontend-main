@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "scheme": "educaplayfrontend",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "icon": "./assets/images/logo_icon.png",
     "ios": {
       "supportsTablet": true,
