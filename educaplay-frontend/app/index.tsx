@@ -13,10 +13,10 @@ import Animated, {
 
 const { width } = Dimensions.get("window");
 
-// As animações começam imediatamente ao montar o componente.
-// A splash nativa cobre os primeiros ~2 s; quando some, o Zé Bloco
-// já está totalmente visível — sem tela em branco entre as duas.
-const SPLASH_DURATION = 3500;
+// A splash nativa some em ~400 ms (MIN_SPLASH_MS em _layout.tsx).
+// Todos os elementos já começam visíveis — o usuário vê Ze Bloco
+// imediatamente, sem depender de animações de fade funcionando.
+const SPLASH_DURATION = 3800;
 
 const DOT_PULSE = 380;
 const DOT_STAGGER = 200;
@@ -24,27 +24,16 @@ const DOT_STAGGER = 200;
 export default function SplashScreen() {
   const router = useRouter();
 
-  const headerOpacity = useSharedValue(0);
-  const mascoteOpacity = useSharedValue(0);
-  const mascoteScale = useSharedValue(0.88);
-  const taglineOpacity = useSharedValue(0);
+  // Escala começa levemente menor para uma entrada suave
+  const mascoteScale = useSharedValue(0.93);
+
   const dot1Opacity = useSharedValue(0.2);
   const dot2Opacity = useSharedValue(0.2);
   const dot3Opacity = useSharedValue(0.2);
 
   useEffect(() => {
-    // Logo + nome
-    headerOpacity.value = withTiming(1, { duration: 500 });
-
-    // Mascote — escala suave, sem bounce
-    mascoteOpacity.value = withDelay(150, withTiming(1, { duration: 600 }));
-    mascoteScale.value = withDelay(
-      150,
-      withSpring(1, { damping: 20, stiffness: 100 }),
-    );
-
-    // Tagline
-    taglineOpacity.value = withDelay(500, withTiming(1, { duration: 500 }));
+    // Ze Bloco cresce suavemente até o tamanho final
+    mascoteScale.value = withSpring(1, { damping: 18, stiffness: 90 });
 
     // Pontos pulsam em sequência
     const pulse = () =>
@@ -56,22 +45,17 @@ export default function SplashScreen() {
         -1,
       );
 
-    dot1Opacity.value = withDelay(800, pulse());
-    dot2Opacity.value = withDelay(800 + DOT_STAGGER, pulse());
-    dot3Opacity.value = withDelay(800 + DOT_STAGGER * 2, pulse());
+    dot1Opacity.value = withDelay(500, pulse());
+    dot2Opacity.value = withDelay(500 + DOT_STAGGER, pulse());
+    dot3Opacity.value = withDelay(500 + DOT_STAGGER * 2, pulse());
 
     const timer = setTimeout(() => router.replace("/Login"), SPLASH_DURATION);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const headerStyle = useAnimatedStyle(() => ({ opacity: headerOpacity.value }));
-
   const mascoteStyle = useAnimatedStyle(() => ({
-    opacity: mascoteOpacity.value,
     transform: [{ scale: mascoteScale.value }],
   }));
-
-  const taglineStyle = useAnimatedStyle(() => ({ opacity: taglineOpacity.value }));
 
   const d1Style = useAnimatedStyle(() => ({ opacity: dot1Opacity.value }));
   const d2Style = useAnimatedStyle(() => ({ opacity: dot2Opacity.value }));
@@ -79,11 +63,10 @@ export default function SplashScreen() {
 
   return (
     <View style={s.container}>
-      {/* Elipse decorativa atrás do mascote */}
       <View style={s.ellipse} />
 
-      {/* Logo + nome do app */}
-      <Animated.View style={[s.header, headerStyle]}>
+      {/* Header: logo + nome — sempre visível, sem animação de opacidade */}
+      <View style={s.header}>
         <Image
           source={require("@/assets/images/logo_icon.png")}
           style={s.logoImage}
@@ -92,19 +75,17 @@ export default function SplashScreen() {
         <Text style={s.appName}>
           Educa<Text style={s.accent}>Play</Text>
         </Text>
-      </Animated.View>
+      </View>
 
-      {/* Zé Bloco centralizado */}
+      {/* Zé Bloco — sempre visível, apenas escala suave */}
       <Animated.Image
         source={require("@/assets/images/ze_bloco.png")}
         style={[s.mascote, mascoteStyle]}
         resizeMode="contain"
       />
 
-      {/* Tagline */}
-      <Animated.Text style={[s.tagline, taglineStyle]}>
-        Organize hoje, ensine melhor amanhã.
-      </Animated.Text>
+      {/* Tagline — sempre visível */}
+      <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
 
       {/* Pontos de carregamento */}
       <View style={s.dotsRow}>
@@ -123,8 +104,6 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // Elipse verde mais escura atrás do mascote para dar profundidade
   ellipse: {
     position: "absolute",
     width: width * 1.1,
@@ -134,7 +113,6 @@ const s = StyleSheet.create({
     bottom: -width * 0.3,
     alignSelf: "center",
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -154,20 +132,17 @@ const s = StyleSheet.create({
   accent: {
     color: "rgba(255,255,255,0.6)",
   },
-
   mascote: {
     width: width * 0.58,
     height: width * 0.58,
     marginBottom: 20,
   },
-
   tagline: {
     fontSize: 14,
     color: "rgba(255,255,255,0.65)",
     letterSpacing: 0.2,
     marginBottom: 16,
   },
-
   dotsRow: {
     position: "absolute",
     bottom: 56,

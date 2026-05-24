@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
-const MIN_SPLASH_MS = 2000; // splash visível por pelo menos 2 segundos
+const MIN_SPLASH_MS = 400; // tempo mínimo da splash nativa antes de revelar a JS
 
 SplashScreen.preventAutoHideAsync();
 
