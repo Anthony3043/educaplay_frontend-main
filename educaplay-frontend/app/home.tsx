@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -75,14 +75,16 @@ export default function HomeScreen() {
 
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
-  // Botão voltar do Android → sai do app (home é a tela raiz)
-  useEffect(() => {
-    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      BackHandler.exitApp();
-      return true;
-    });
-    return () => sub.remove();
-  }, []);
+  // Botão voltar do Android → só sai do app quando esta tela está em foco
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        BackHandler.exitApp();
+        return true;
+      });
+      return () => sub.remove();
+    }, [])
+  );
 
   useEffect(() => {
     animateTroca(Math.floor(Math.random() * DICAS.length));
@@ -160,7 +162,7 @@ export default function HomeScreen() {
           <View style={s.bannerTextArea}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Text style={s.bannerGreeting}>Olá, {userName}!</Text>
-              <Ionicons name="hand-right-outline" size={22} color="#1a1a2e" />
+              <Text style={{ fontSize: 20 }}>✨</Text>
             </View>
             <Text style={s.bannerSubtitle}>Que bom ver você por aqui.{"\n"}Vamos organizar um{"\n"}dia incrível de aulas!</Text>
           </View>
