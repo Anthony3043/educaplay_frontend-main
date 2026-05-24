@@ -11,11 +11,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-// Deve coincidir com MIN_SPLASH_MS em _layout.tsx
-const NATIVE_SPLASH_OFFSET = 2000;
-const SPLASH_DURATION = NATIVE_SPLASH_OFFSET + 2500;
+// As animações começam imediatamente ao montar o componente.
+// A splash nativa cobre os primeiros ~2 s; quando some, o Zé Bloco
+// já está totalmente visível — sem tela em branco entre as duas.
+const SPLASH_DURATION = 3500;
 
 const DOT_PULSE = 380;
 const DOT_STAGGER = 200;
@@ -32,20 +33,18 @@ export default function SplashScreen() {
   const dot3Opacity = useSharedValue(0.2);
 
   useEffect(() => {
-    const O = NATIVE_SPLASH_OFFSET;
+    // Logo + nome
+    headerOpacity.value = withTiming(1, { duration: 500 });
 
-    // Logo + nome aparecem primeiro
-    headerOpacity.value = withDelay(O, withTiming(1, { duration: 500 }));
-
-    // Mascote aparece com escala suave (sem bounce)
-    mascoteOpacity.value = withDelay(O + 200, withTiming(1, { duration: 600 }));
+    // Mascote — escala suave, sem bounce
+    mascoteOpacity.value = withDelay(150, withTiming(1, { duration: 600 }));
     mascoteScale.value = withDelay(
-      O + 200,
+      150,
       withSpring(1, { damping: 20, stiffness: 100 }),
     );
 
-    // Tagline aparece por último
-    taglineOpacity.value = withDelay(O + 600, withTiming(1, { duration: 500 }));
+    // Tagline
+    taglineOpacity.value = withDelay(500, withTiming(1, { duration: 500 }));
 
     // Pontos pulsam em sequência
     const pulse = () =>
@@ -57,10 +56,9 @@ export default function SplashScreen() {
         -1,
       );
 
-    const dotStart = O + 1000;
-    dot1Opacity.value = withDelay(dotStart, pulse());
-    dot2Opacity.value = withDelay(dotStart + DOT_STAGGER, pulse());
-    dot3Opacity.value = withDelay(dotStart + DOT_STAGGER * 2, pulse());
+    dot1Opacity.value = withDelay(800, pulse());
+    dot2Opacity.value = withDelay(800 + DOT_STAGGER, pulse());
+    dot3Opacity.value = withDelay(800 + DOT_STAGGER * 2, pulse());
 
     const timer = setTimeout(() => router.replace("/Login"), SPLASH_DURATION);
     return () => clearTimeout(timer);
