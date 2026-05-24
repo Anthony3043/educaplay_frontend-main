@@ -1,184 +1,186 @@
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
-import { Image, Text, View } from "react-native";
+import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withDelay,
-    withSpring,
-    withTiming,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from "react-native-reanimated";
-import { splashStyles as s } from "../styles/splashStyles";
 
-const SPLASH_DURATION = 2800;
+const { width, height } = Dimensions.get("window");
+
+// Deve coincidir com MIN_SPLASH_MS em _layout.tsx
+const NATIVE_SPLASH_OFFSET = 2000;
+const SPLASH_DURATION = NATIVE_SPLASH_OFFSET + 2500;
+
+const DOT_PULSE = 380;
+const DOT_STAGGER = 200;
 
 export default function SplashScreen() {
   const router = useRouter();
 
-  // Shared values
-  const topOpacity = useSharedValue(0);
-  const topTranslateY = useSharedValue(-20);
-
+  const headerOpacity = useSharedValue(0);
   const mascoteOpacity = useSharedValue(0);
-  const mascoteTranslateY = useSharedValue(50);
-  const mascoteScale = useSharedValue(0.85);
-
-  const shadowOpacity = useSharedValue(0);
-  const shadowScale = useSharedValue(0.4);
-
-  const loadingOpacity = useSharedValue(0);
-  const progressWidth = useSharedValue(0);
-
-  const sparkle1Opacity = useSharedValue(0);
-  const sparkle2Opacity = useSharedValue(0);
+  const mascoteScale = useSharedValue(0.88);
+  const taglineOpacity = useSharedValue(0);
+  const dot1Opacity = useSharedValue(0.2);
+  const dot2Opacity = useSharedValue(0.2);
+  const dot3Opacity = useSharedValue(0.2);
 
   useEffect(() => {
-    // Logo + tagline deslizam de cima
-    topOpacity.value = withTiming(1, { duration: 500 });
-    topTranslateY.value = withSpring(0, { damping: 14, stiffness: 100 });
+    const O = NATIVE_SPLASH_OFFSET;
 
-    // Estrelinhas piscam
-    sparkle1Opacity.value = withDelay(300, withTiming(1, { duration: 400 }));
-    sparkle2Opacity.value = withDelay(500, withTiming(1, { duration: 400 }));
+    // Logo + nome aparecem primeiro
+    headerOpacity.value = withDelay(O, withTiming(1, { duration: 500 }));
 
-    // Zé Bloco sobe com bounce
-    mascoteOpacity.value = withDelay(200, withTiming(1, { duration: 400 }));
-    mascoteTranslateY.value = withDelay(
-      200,
-      withSpring(0, { damping: 11, stiffness: 110, mass: 0.9 }),
-    );
+    // Mascote aparece com escala suave (sem bounce)
+    mascoteOpacity.value = withDelay(O + 200, withTiming(1, { duration: 600 }));
     mascoteScale.value = withDelay(
-      200,
-      withSpring(1, { damping: 9, stiffness: 100 }),
+      O + 200,
+      withSpring(1, { damping: 20, stiffness: 100 }),
     );
 
-    // Sombra do mascote
-    shadowOpacity.value = withDelay(400, withTiming(1, { duration: 300 }));
-    shadowScale.value = withDelay(
-      400,
-      withSpring(1, { damping: 12, stiffness: 100 }),
-    );
+    // Tagline aparece por último
+    taglineOpacity.value = withDelay(O + 600, withTiming(1, { duration: 500 }));
 
-    // Loading bar
-    loadingOpacity.value = withDelay(800, withTiming(1, { duration: 300 }));
-    progressWidth.value = withDelay(
-      850,
-      withTiming(140, {
-        duration: 1500,
-        easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
-      }),
-    );
+    // Pontos pulsam em sequência
+    const pulse = () =>
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: DOT_PULSE }),
+          withTiming(0.2, { duration: DOT_PULSE }),
+        ),
+        -1,
+      );
 
-    // Navega para login
-    const timer = setTimeout(() => {
-      router.replace('/Login');
-    }, SPLASH_DURATION);
+    const dotStart = O + 1000;
+    dot1Opacity.value = withDelay(dotStart, pulse());
+    dot2Opacity.value = withDelay(dotStart + DOT_STAGGER, pulse());
+    dot3Opacity.value = withDelay(dotStart + DOT_STAGGER * 2, pulse());
 
+    const timer = setTimeout(() => router.replace("/Login"), SPLASH_DURATION);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Animated styles
-  const topAnimStyle = useAnimatedStyle(() => ({
-    opacity: topOpacity.value,
-    transform: [{ translateY: topTranslateY.value }],
-  }));
+  const headerStyle = useAnimatedStyle(() => ({ opacity: headerOpacity.value }));
 
-  const mascoteAnimStyle = useAnimatedStyle(() => ({
+  const mascoteStyle = useAnimatedStyle(() => ({
     opacity: mascoteOpacity.value,
-    transform: [
-      { translateY: mascoteTranslateY.value },
-      { scale: mascoteScale.value },
-    ],
+    transform: [{ scale: mascoteScale.value }],
   }));
 
-  const shadowAnimStyle = useAnimatedStyle(() => ({
-    opacity: shadowOpacity.value,
-    transform: [{ scaleX: shadowScale.value }],
-  }));
+  const taglineStyle = useAnimatedStyle(() => ({ opacity: taglineOpacity.value }));
 
-  const loadingWrapperAnimStyle = useAnimatedStyle(() => ({
-    opacity: loadingOpacity.value,
-  }));
-
-  const loadingBarAnimStyle = useAnimatedStyle(() => ({
-    width: progressWidth.value,
-  }));
-
-  const sparkle1AnimStyle = useAnimatedStyle(() => ({
-    opacity: sparkle1Opacity.value,
-  }));
-
-  const sparkle2AnimStyle = useAnimatedStyle(() => ({
-    opacity: sparkle2Opacity.value,
-  }));
+  const d1Style = useAnimatedStyle(() => ({ opacity: dot1Opacity.value }));
+  const d2Style = useAnimatedStyle(() => ({ opacity: dot2Opacity.value }));
+  const d3Style = useAnimatedStyle(() => ({ opacity: dot3Opacity.value }));
 
   return (
     <View style={s.container}>
-      {/* Círculo verde claro de fundo */}
-      <View style={s.bgCircle} />
+      {/* Elipse decorativa atrás do mascote */}
+      <View style={s.ellipse} />
 
-      {/* Estrelinhas decorativas (amarelo-dourado como no design) */}
-      <Animated.Text
-        style={[
-          s.sparkle,
-          sparkle1AnimStyle,
-          { fontSize: 18, top: "38%", left: "12%" },
-        ]}
-      >
-        ✦
-      </Animated.Text>
-      <Animated.Text
-        style={[
-          s.sparkle,
-          sparkle2AnimStyle,
-          { fontSize: 13, top: "44%", right: "14%" },
-        ]}
-      >
-        ✦
-      </Animated.Text>
-      <Animated.Text
-        style={[
-          s.sparkle,
-          sparkle1AnimStyle,
-          { fontSize: 10, top: "52%", right: "20%" },
-        ]}
-      >
-        ✦
-      </Animated.Text>
-
-      {/* Logo + tagline */}
-      <Animated.View style={[s.topArea, topAnimStyle]}>
-        <View style={s.logoRow}>
-          <Image
-            source={require("@/assets/images/logo_icon.png")}
-            style={s.logoImage}
-            resizeMode="contain"
-          />
-          <Text style={s.logoText}>
-            Educa<Text style={s.logoTextAccent}>Play</Text>
-          </Text>
-        </View>
-        <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
-      </Animated.View>
-
-      {/* Zé Bloco */}
-      <Animated.View style={[s.mascoteWrapper, mascoteAnimStyle]}>
+      {/* Logo + nome do app */}
+      <Animated.View style={[s.header, headerStyle]}>
         <Image
-          source={require("@/assets/images/ze_bloco.png")}
-          style={s.mascoteImage}
+          source={require("@/assets/images/logo_icon.png")}
+          style={s.logoImage}
           resizeMode="contain"
         />
-        <Animated.View style={[s.mascoteShadow, shadowAnimStyle]} />
+        <Text style={s.appName}>
+          Educa<Text style={s.accent}>Play</Text>
+        </Text>
       </Animated.View>
 
-      {/* Loading bar */}
-      <Animated.View style={[s.loadingWrapper, loadingWrapperAnimStyle]}>
-        <View style={s.loadingTrack}>
-          <Animated.View style={[s.loadingBar, loadingBarAnimStyle]} />
-        </View>
-        <Text style={s.loadingText}>Carregando</Text>
-      </Animated.View>
+      {/* Zé Bloco centralizado */}
+      <Animated.Image
+        source={require("@/assets/images/ze_bloco.png")}
+        style={[s.mascote, mascoteStyle]}
+        resizeMode="contain"
+      />
+
+      {/* Tagline */}
+      <Animated.Text style={[s.tagline, taglineStyle]}>
+        Organize hoje, ensine melhor amanhã.
+      </Animated.Text>
+
+      {/* Pontos de carregamento */}
+      <View style={s.dotsRow}>
+        <Animated.View style={[s.dot, d1Style]} />
+        <Animated.View style={[s.dot, d2Style]} />
+        <Animated.View style={[s.dot, d3Style]} />
+      </View>
     </View>
   );
 }
+
+const s = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#3a7d44",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // Elipse verde mais escura atrás do mascote para dar profundidade
+  ellipse: {
+    position: "absolute",
+    width: width * 1.1,
+    height: width * 1.1,
+    borderRadius: width * 0.55,
+    backgroundColor: "rgba(0,0,0,0.08)",
+    bottom: -width * 0.3,
+    alignSelf: "center",
+  },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 32,
+  },
+  logoImage: {
+    width: 40,
+    height: 40,
+  },
+  appName: {
+    fontSize: 34,
+    fontWeight: "800",
+    color: "#ffffff",
+    letterSpacing: -0.5,
+  },
+  accent: {
+    color: "rgba(255,255,255,0.6)",
+  },
+
+  mascote: {
+    width: width * 0.58,
+    height: width * 0.58,
+    marginBottom: 20,
+  },
+
+  tagline: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.65)",
+    letterSpacing: 0.2,
+    marginBottom: 16,
+  },
+
+  dotsRow: {
+    position: "absolute",
+    bottom: 56,
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+  },
+  dot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#ffffff",
+  },
+});
