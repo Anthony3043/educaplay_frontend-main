@@ -5,11 +5,14 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -40,11 +43,18 @@ export default function ProfessoresScreen() {
   const [professores, setProfessores] = useState<Professor[]>([]);
   const [carregando, setCarregando] = useState(true);
 
-  // Modal state
+  // Modal de indisponibilidades
   const [modalVisivel, setModalVisivel] = useState(false);
   const [profSelecionado, setProfSelecionado] = useState<Professor | null>(null);
   const [bloqueios, setBloqueios] = useState<Bloqueio[]>([]);
   const [carregandoBloqueios, setCarregandoBloqueios] = useState(false);
+
+  // Modal de confirmação de exclusão
+  const [modalExcluirVisivel, setModalExcluirVisivel] = useState(false);
+  const [fraseDigitada, setFraseDigitada] = useState("");
+  const [excluindo, setExcluindo] = useState(false);
+
+  const FRASE_CONFIRMACAO = "excluir professor";
 
   useEffect(() => {
     api.get("/professores")
@@ -73,6 +83,32 @@ export default function ProfessoresScreen() {
     setProfSelecionado(null);
     setBloqueios([]);
   }, []);
+
+  const abrirModalExcluir = useCallback(() => {
+    setFraseDigitada("");
+    setModalExcluirVisivel(true);
+  }, []);
+
+  const fecharModalExcluir = useCallback(() => {
+    setModalExcluirVisivel(false);
+    setFraseDigitada("");
+  }, []);
+
+  const handleExcluirProfessor = useCallback(async () => {
+    if (!profSelecionado) return;
+    setExcluindo(true);
+    try {
+      await api.delete(`/professores/${profSelecionado.id}`);
+      setProfessores((prev) => prev.filter((p) => p.id !== profSelecionado.id));
+      fecharModalExcluir();
+      fecharModal();
+      Alert.alert("Sucesso", `A conta de ${profSelecionado.nome} foi excluída.`);
+    } catch {
+      Alert.alert("Erro", "Não foi possível excluir o professor. Tente novamente.");
+    } finally {
+      setExcluindo(false);
+    }
+  }, [profSelecionado, fecharModal, fecharModalExcluir]);
 
   const bloqueiosPorDia = DIAS.reduce<Record<string, Bloqueio[]>>((acc, dia) => {
     acc[dia] = bloqueios.filter((b) => b.diaSemana === dia);
@@ -222,8 +258,89 @@ export default function ProfessoresScreen() {
                 </>
               )}
             </ScrollView>
+
+            {/* Botão excluir professor */}
+            <TouchableOpacity style={m.excluirBtn} onPress={abrirModalExcluir} activeOpacity={0.8}>
+              <Ionicons name="trash-outline" size={18} color="#ef4444" />
+              <Text style={m.excluirBtnText}>Excluir Professor</Text>
+            </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Modal de confirmação de exclusão */}
+      <Modal
+        visible={modalExcluirVisivel}
+        transparent
+        animationType="fade"
+        onRequestClose={fecharModalExcluir}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+        >
+          <View style={ex.overlay}>
+            <View style={ex.box}>
+              {/* Ícone de aviso */}
+              <View style={ex.iconWrap}>
+                <Ionicons name="warning-outline" size={32} color="#ef4444" />
+              </View>
+
+              <Text style={ex.titulo}>Excluir Professor</Text>
+              <Text style={ex.descricao}>
+                Você está prestes a excluir permanentemente a conta de{" "}
+                <Text style={{ fontWeight: "700", color: "#1a1a2e" }}>
+                  {profSelecionado?.nome}
+                </Text>
+                .{"\n"}Esta ação não pode ser desfeita.
+              </Text>
+
+              {/* Instrução de confirmação */}
+              <View style={ex.instrucaoBox}>
+                <Text style={ex.instrucaoLabel}>Para confirmar, digite exatamente:</Text>
+                <Text style={ex.instrucaoFrase}>"excluir professor"</Text>
+              </View>
+
+              <TextInput
+                style={ex.input}
+                placeholder="excluir professor"
+                placeholderTextColor="#bbb"
+                value={fraseDigitada}
+                onChangeText={setFraseDigitada}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              {/* Botões */}
+              <View style={ex.botoesRow}>
+                <TouchableOpacity
+                  style={ex.cancelarBtn}
+                  onPress={fecharModalExcluir}
+                  activeOpacity={0.8}
+                  disabled={excluindo}
+                >
+                  <Text style={ex.cancelarText}>Cancelar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    ex.confirmarBtn,
+                    fraseDigitada !== FRASE_CONFIRMACAO && ex.confirmarBtnDesativado,
+                  ]}
+                  onPress={handleExcluirProfessor}
+                  activeOpacity={0.8}
+                  disabled={fraseDigitada !== FRASE_CONFIRMACAO || excluindo}
+                >
+                  {excluindo ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={ex.confirmarText}>Excluir</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -257,6 +374,112 @@ const pc = StyleSheet.create({
     fontSize: 11,
     color: "#3a7d44",
     fontWeight: "600",
+  },
+});
+
+const ex = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  box: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 24,
+    alignItems: "center",
+  },
+  iconWrap: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  titulo: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a2e",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  descricao: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    lineHeight: 21,
+    marginBottom: 20,
+  },
+  instrucaoBox: {
+    width: "100%",
+    backgroundColor: "#FFF5F5",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    alignItems: "center",
+  },
+  instrucaoLabel: {
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 4,
+  },
+  instrucaoFrase: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ef4444",
+    letterSpacing: 0.3,
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: "#1a1a2e",
+    marginBottom: 20,
+    backgroundColor: "#FAFAFA",
+  },
+  botoesRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  cancelarBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    alignItems: "center",
+  },
+  cancelarText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#555",
+  },
+  confirmarBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+  },
+  confirmarBtnDesativado: {
+    backgroundColor: "#FECACA",
+  },
+  confirmarText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
   },
 });
 
@@ -338,4 +561,23 @@ const m = StyleSheet.create({
   },
   bloqueioHorario: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
   bloqueioDesc: { fontSize: 12, color: "#666", marginTop: 2 },
+  excluirBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    marginTop: 8,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#FECACA",
+    backgroundColor: "#FFF5F5",
+  },
+  excluirBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#ef4444",
+  },
 });
