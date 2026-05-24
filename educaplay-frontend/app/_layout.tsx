@@ -74,7 +74,8 @@ function RootNavigator() {
     const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'AulaDetalhe'];
     const rotasProfessor = ['home-professor', 'cronogramas-professor', 'indisponibilidade'];
 
-    const rotaAtual = segments[0] as string;
+    // segments[0] é undefined na rota raiz (/) no Expo Router
+    const rotaAtual = (segments[0] as string) ?? 'index';
     const estaEmRotaPublica = rotasPublicas.includes(rotaAtual);
 
     if (!usuario && !estaEmRotaPublica) {
