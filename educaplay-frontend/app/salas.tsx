@@ -71,9 +71,25 @@ export default function SalasScreen() {
     if (!salaParaExcluir) return;
     setExcluindo(true);
     try {
+      // 1. Busca todos os cronogramas para encontrar aulas vinculadas a esta sala
+      const resCronogramas = await api.get("/cronogramas");
+      const aulasIds: string[] = [];
+      for (const cron of resCronogramas.data) {
+        for (const aula of cron.aulas) {
+          if (aula.sala?.id === salaParaExcluir.id) {
+            aulasIds.push(aula.id);
+          }
+        }
+      }
+      // 2. Exclui todas as aulas da sala em paralelo (falhas individuais são ignoradas)
+      if (aulasIds.length > 0) {
+        await Promise.allSettled(aulasIds.map((id) => api.delete(`/aulas/${id}`)));
+      }
+      // 3. Exclui a sala
       await api.delete(`/salas/${salaParaExcluir.id}`);
       setSalas((prev) => prev.filter((s) => s.id !== salaParaExcluir.id));
       setSalaParaExcluir(null);
+      setConfirmText("");
     } catch {
       Alert.alert("Erro", "Não foi possível excluir a sala.");
     } finally {
