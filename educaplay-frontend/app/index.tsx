@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { useAuth } from "../context/AuthContext";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -23,6 +24,11 @@ const DOT_STAGGER = 200;
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { usuario } = useAuth();
+
+  // Ref sempre atualizada com o usuário mais recente (evita stale closure no setTimeout)
+  const usuarioRef = useRef(usuario);
+  useEffect(() => { usuarioRef.current = usuario; }, [usuario]);
 
   // Escala começa levemente menor para uma entrada suave
   const mascoteScale = useSharedValue(0.93);
@@ -49,7 +55,14 @@ export default function SplashScreen() {
     dot2Opacity.value = withDelay(500 + DOT_STAGGER, pulse());
     dot3Opacity.value = withDelay(500 + DOT_STAGGER * 2, pulse());
 
-    const timer = setTimeout(() => router.replace("/Login"), SPLASH_DURATION);
+    const timer = setTimeout(() => {
+      const u = usuarioRef.current;
+      if (u) {
+        router.replace(u.papel === "Professor" ? "/home-professor" : "/home");
+      } else {
+        router.replace("/Login");
+      }
+    }, SPLASH_DURATION);
     return () => clearTimeout(timer);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
