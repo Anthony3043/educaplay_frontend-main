@@ -4,7 +4,6 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -62,18 +61,6 @@ const TURNO_COLORS: Record<TurnoId, string> = {
 };
 
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-
-function calcIntervalDuration(start: string, end: string): string {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  const totalMin = eh * 60 + em - (sh * 60 + sm);
-  if (totalMin <= 0) return "—";
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  if (h > 0 && m > 0) return `${h}h ${m}min`;
-  if (h > 0) return `${h}h`;
-  return `${m} min`;
-}
 
 // ─── Calendário semanal ───────────────────────────────────────────────────────
 const COL_W = 115;
@@ -276,7 +263,6 @@ export default function CronogramaSalaScreen() {
     matutino: null, vespertino: null, noturno: null, integral: null,
   });
   const [carregando, setCarregando] = useState(true);
-  const [intervaloModal, setIntervaloModal] = useState<Aula | null>(null);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -341,34 +327,7 @@ export default function CronogramaSalaScreen() {
     });
   };
 
-  const handleExcluirIntervalo = (id: string) => {
-    Alert.alert(
-      "Excluir intervalo",
-      "Tem certeza que deseja excluir este intervalo? Esta ação não pode ser desfeita.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await api.delete(`/aulas/${id}`);
-              setIntervaloModal(null);
-              carregar();
-            } catch {
-              Alert.alert("Erro", "Não foi possível excluir o intervalo.");
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleAulaPress = (aula: Aula) => {
-    if (aula.isInterval) {
-      setIntervaloModal(aula);
-      return;
-    }
     router.push({
       pathname: "/AulaDetalhe",
       params: {
@@ -383,6 +342,7 @@ export default function CronogramaSalaScreen() {
         salaNome: aula.salaNome ?? "",
         salaTurma: aula.salaTurma ?? "",
         turno: selectedTurno,
+        isInterval: aula.isInterval ? "true" : "false",
       },
     });
   };
@@ -431,7 +391,7 @@ export default function CronogramaSalaScreen() {
           <View style={act.botoesRow}>
             <TouchableOpacity
               style={act.btnSecondary}
-              onPress={() => router.push({ pathname: "/HorarioAulas", params: { turno: selectedTurno } })}
+              onPress={() => router.push({ pathname: "/HorarioAulas", params: { turno: selectedTurno, salaId } })}
               activeOpacity={0.8}
             >
               <Ionicons name="time-outline" size={17} color="#3a7d44" />
@@ -464,101 +424,6 @@ export default function CronogramaSalaScreen() {
         </ScrollView>
       )}
 
-      {/* Modal de detalhes do intervalo */}
-      <Modal
-        visible={!!intervaloModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setIntervaloModal(null)}
-      >
-        <TouchableOpacity
-          style={intModal.overlay}
-          activeOpacity={1}
-          onPress={() => setIntervaloModal(null)}
-        >
-          <TouchableOpacity activeOpacity={1} style={intModal.card}>
-            <View style={intModal.header}>
-              <View style={intModal.headerIcon}>
-                <Ionicons name="cafe-outline" size={22} color="#92400e" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={intModal.headerTitle}>Intervalo</Text>
-                <Text style={intModal.headerSub}>
-                  {intervaloModal?.timeStart} – {intervaloModal?.timeEnd}
-                  {intervaloModal?.diaSemana ? ` · ${intervaloModal.diaSemana}` : " · Todos os dias"}
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => setIntervaloModal(null)}>
-                <Ionicons name="close" size={22} color="#aaa" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={intModal.infoRow}>
-              <Ionicons name="timer-outline" size={16} color="#92400e" />
-              <Text style={intModal.infoText}>
-                Duração: {intervaloModal ? calcIntervalDuration(intervaloModal.timeStart, intervaloModal.timeEnd) : "—"}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={intModal.actionBtn}
-              activeOpacity={0.75}
-              onPress={() => {
-                setIntervaloModal(null);
-                router.push({
-                  pathname: "/EditarHorario",
-                  params: {
-                    id: intervaloModal!.id,
-                    timeStart: intervaloModal!.timeStart,
-                    timeEnd: intervaloModal!.timeEnd,
-                    subject: intervaloModal!.subject,
-                    turno: selectedTurno,
-                    isInterval: "true",
-                    diaSemana: intervaloModal!.diaSemana ?? "",
-                  },
-                });
-              }}
-            >
-              <Ionicons name="pencil-outline" size={20} color="#3a7d44" />
-              <Text style={intModal.actionText}>Editar intervalo</Text>
-              <Ionicons name="chevron-forward" size={16} color="#ccc" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={intModal.actionBtn}
-              activeOpacity={0.75}
-              onPress={() => {
-                setIntervaloModal(null);
-                router.push({
-                  pathname: "/EditarHorario",
-                  params: {
-                    id: intervaloModal!.id,
-                    timeStart: intervaloModal!.timeStart,
-                    timeEnd: intervaloModal!.timeEnd,
-                    subject: "",
-                    turno: selectedTurno,
-                    isInterval: "false",
-                    diaSemana: intervaloModal!.diaSemana ?? "",
-                  },
-                });
-              }}
-            >
-              <Ionicons name="book-outline" size={20} color="#3B82F6" />
-              <Text style={[intModal.actionText, { color: "#3B82F6" }]}>Converter para Aula</Text>
-              <Ionicons name="chevron-forward" size={16} color="#ccc" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[intModal.actionBtn, intModal.deleteBtn]}
-              activeOpacity={0.75}
-              onPress={() => { if (intervaloModal) handleExcluirIntervalo(intervaloModal.id); }}
-            >
-              <Ionicons name="trash-outline" size={20} color="#DC2626" />
-              <Text style={[intModal.actionText, { color: "#DC2626" }]}>Excluir intervalo</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -701,64 +566,4 @@ const act = StyleSheet.create({
     gap: 8,
     marginBottom: 14,
   },
-});
-
-const intModal = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 36,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#FED7AA",
-    marginBottom: 14,
-  },
-  headerIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: "#FFF8F0",
-    borderWidth: 1,
-    borderColor: "#FED7AA",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: { fontSize: 17, fontWeight: "800", color: "#92400e" },
-  headerSub: { fontSize: 13, color: "#b45309", marginTop: 2, fontWeight: "500" },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#FFF8F0",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#FED7AA",
-  },
-  infoText: { fontSize: 13, color: "#92400e", fontWeight: "600" },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-  },
-  actionText: { fontSize: 15, fontWeight: "600", color: "#1a1a2e", flex: 1 },
-  deleteBtn: { borderTopColor: "#FEE2E2" },
 });

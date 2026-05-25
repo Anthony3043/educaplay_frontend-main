@@ -19,50 +19,9 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type Professor = { id: string; nome: string; materias: string[] };
-type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
 type TipoSlot = "aula" | "intervalo";
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
-
-const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string }> = {
-  matutino:   { inicio: "07:00", fim: "12:35", label: "Matutino (07:00 – 12:35)" },
-  vespertino: { inicio: "13:00", fim: "18:00", label: "Vespertino (13:00 – 18:00)" },
-  noturno:    { inicio: "18:30", fim: "23:00", label: "Noturno (18:30 – 23:00)" },
-  integral:   { inicio: "07:00", fim: "18:00", label: "Integral (07:00 – 18:00)" },
-};
-
-function formatarHorario(texto: string): string {
-  const digitos = texto.replace(/\D/g, "").slice(0, 4);
-  if (digitos.length <= 2) return digitos;
-  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
-}
-
-function toMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function validarHorario(start: string, end: string, turno: string): string | null {
-  const formato = /^\d{2}:\d{2}$/;
-  if (!formato.test(start) || !formato.test(end)) {
-    return "Use o formato HH:MM (ex: 07:00, 13:30).";
-  }
-  if (toMinutes(start) < toMinutes("07:00")) {
-    return "Não existem aulas antes das 07:00.";
-  }
-  if (toMinutes(end) <= toMinutes(start)) {
-    return "O horário de término deve ser após o horário de início.";
-  }
-  const limite = TURNO_LIMITES[turno];
-  if (!limite) return null;
-  if (toMinutes(start) < toMinutes(limite.inicio) || toMinutes(start) >= toMinutes(limite.fim)) {
-    return `Horário de início fora do turno ${limite.label}.`;
-  }
-  if (toMinutes(end) > toMinutes(limite.fim)) {
-    return `Horário de término fora do turno ${limite.label}.`;
-  }
-  return null;
-}
 
 export default function EditarHorarioScreen() {
   const router = useRouter();
@@ -79,30 +38,21 @@ export default function EditarHorarioScreen() {
 
   const isIntervalOriginal = params.isInterval === "true";
   const [tipoSlot, setTipoSlot] = useState<TipoSlot>(isIntervalOriginal ? "intervalo" : "aula");
-  const [timeStart, setTimeStart] = useState(params.timeStart);
-  const [timeEnd, setTimeEnd] = useState(params.timeEnd);
   const [diaSemana, setDiaSemana] = useState<string | null>(params.diaSemana || null);
   const [materia, setMateria] = useState(isIntervalOriginal ? "" : params.subject);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
   const [professores, setProfessores] = useState<Professor[]>([]);
-  const [salas, setSalas] = useState<Sala[]>([]);
-  const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    Promise.all([api.get("/professores"), api.get("/salas")])
-      .then(([rp, rs]) => {
-        setProfessores(rp.data);
-        setSalas(rs.data);
-      })
-      .catch(() => Alert.alert("Erro", "Não foi possível carregar os dados."))
+    api.get("/professores")
+      .then((rp) => setProfessores(rp.data))
+      .catch(() => Alert.alert("Erro", "Não foi possível carregar os professores."))
       .finally(() => setCarregando(false));
   }, []);
 
   const handleSalvar = async () => {
-    const erroHorario = validarHorario(timeStart.trim(), timeEnd.trim(), params.turno);
-    if (erroHorario) { Alert.alert("Horário indisponível", erroHorario); return; }
     if (tipoSlot === "aula") {
       if (!materia.trim()) { Alert.alert("Atenção", "Informe o nome da matéria."); return; }
       if (!professorSelecionado) { Alert.alert("Atenção", "Selecione um professor."); return; }
@@ -111,12 +61,12 @@ export default function EditarHorarioScreen() {
     try {
       await api.put(`/aulas/${params.id}`, {
         subject: tipoSlot === "intervalo" ? "Intervalo" : materia.trim(),
-        timeStart: timeStart.trim(),
-        timeEnd: timeEnd.trim(),
+        timeStart: params.timeStart,
+        timeEnd: params.timeEnd,
         isInterval: tipoSlot === "intervalo",
         diaSemana: diaSemana || null,
         professorId: tipoSlot === "intervalo" ? null : professorSelecionado?.id,
-        salaId: tipoSlot === "intervalo" ? null : salaSelecionada?.id ?? null,
+        salaId: null,
       });
       Alert.alert("Salvo!", "Horário atualizado com sucesso.", [
         { text: "OK", onPress: () => router.back() },
@@ -148,29 +98,16 @@ export default function EditarHorarioScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Horário de início</Text>
-          <TextInput
-            style={s.inputCard}
-            value={timeStart}
-            onChangeText={(t) => setTimeStart(formatarHorario(t))}
-            placeholder="0730 → 07:30"
-            placeholderTextColor="#AAAAAA"
-            keyboardType="numeric"
-            maxLength={5}
-          />
-        </View>
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Horário de término</Text>
-          <TextInput
-            style={s.inputCard}
-            value={timeEnd}
-            onChangeText={(t) => setTimeEnd(formatarHorario(t))}
-            placeholder="0800 → 08:00"
-            placeholderTextColor="#AAAAAA"
-            keyboardType="numeric"
-            maxLength={5}
-          />
+        {/* Banner de horário – somente leitura */}
+        <View style={ehEx.horarioBanner}>
+          <View style={ehEx.horarioIconBox}>
+            <Ionicons name="time-outline" size={22} color="#3a7d44" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={ehEx.horarioLabel}>Horário (não editável)</Text>
+            <Text style={ehEx.horarioValue}>{params.timeStart} – {params.timeEnd}</Text>
+          </View>
+          <Ionicons name="lock-closed-outline" size={16} color="#aaa" />
         </View>
 
         <View style={s.section}>
@@ -235,42 +172,6 @@ export default function EditarHorarioScreen() {
                 placeholder="Ex: Matemática, Português..."
                 placeholderTextColor="#AAAAAA"
               />
-            </View>
-
-            <View style={s.section}>
-              <Text style={s.sectionTitle}>Sala <Text style={{ fontWeight: "400", color: "#aaa" }}>(opcional)</Text></Text>
-              {carregando ? (
-                <ActivityIndicator color="#3a7d44" />
-              ) : salas.length === 0 ? (
-                <View style={s.emptyProfessores}>
-                  <Ionicons name="business-outline" size={32} color="#ccc" />
-                  <Text style={s.emptyProfessoresText}>Nenhuma sala cadastrada.</Text>
-                </View>
-              ) : (
-                salas.map((sala) => {
-                  const sel = salaSelecionada?.id === sala.id;
-                  const label = sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
-                  return (
-                    <TouchableOpacity
-                      key={sala.id}
-                      style={[s.professorCard, sel && s.professorCardSelected]}
-                      onPress={() => setSalaSelecionada(sel ? null : sala)}
-                      activeOpacity={0.75}
-                    >
-                      <View style={s.professorAvatar}>
-                        <Text style={s.professorAvatarText}>🏫</Text>
-                      </View>
-                      <View style={s.professorInfo}>
-                        <Text style={s.professorNome}>{label}</Text>
-                        {sala.capacidade ? (
-                          <Text style={s.professorMaterias}>👥 {sala.capacidade}</Text>
-                        ) : null}
-                      </View>
-                      {sel && <Text style={s.professorCheckmark}>✓</Text>}
-                    </TouchableOpacity>
-                  );
-                })
-              )}
             </View>
 
             <View style={s.section}>
@@ -350,4 +251,30 @@ const eh = StyleSheet.create({
   chipActive: { backgroundColor: "#e8f5ea", borderColor: "#3a7d44" },
   chipText: { fontSize: 13, fontWeight: "600", color: "#666" },
   chipTextActive: { color: "#3a7d44" },
+});
+
+const ehEx = StyleSheet.create({
+  horarioBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 4,
+    backgroundColor: "#F0FDF4",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: "#BBF7D0",
+  },
+  horarioIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "#DCFCE7",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  horarioLabel: { fontSize: 11, color: "#6B7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.4 },
+  horarioValue: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", marginTop: 2 },
 });

@@ -133,6 +133,7 @@ export default function CriarHorarioScreen() {
 
   const [tipoSlot, setTipoSlot] = useState<TipoSlot>("aula");
   const [sucesso, setSucesso] = useState(false);
+  const [conflictMsg, setConflictMsg] = useState<string | null>(null);
   const [materia, setMateria] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
@@ -168,12 +169,12 @@ export default function CriarHorarioScreen() {
 
   useEffect(() => { carregarDados(); }, [carregarDados]);
 
-  // Carrega slots configurados para o turno
+  // Carrega slots configurados para o turno/sala
   useEffect(() => {
-    AsyncStorage.getItem(storageKeyHorarios(turno))
+    AsyncStorage.getItem(storageKeyHorarios(turno, salaIdPre || undefined))
       .then((val) => setSlots(val ? JSON.parse(val) : []))
       .catch(() => setSlots([]));
-  }, [turno]);
+  }, [turno, salaIdPre]);
 
   const handleSalvar = async () => {
     // Valida todos os campos obrigatórios de uma vez
@@ -184,7 +185,6 @@ export default function CriarHorarioScreen() {
 
     if (tipoSlot === "aula") {
       if (!materia.trim()) erros.push("• Você não preencheu a matéria");
-      if (!salaSelecionada) erros.push("• Você não escolheu a sala");
       if (!professorSelecionado) erros.push("• Você não escolheu o professor");
     }
 
@@ -207,7 +207,7 @@ export default function CriarHorarioScreen() {
         timeEnd: timeEnd.trim(),
         subject: tipoSlot === "intervalo" ? "Intervalo" : materia.trim(),
         professorId: tipoSlot === "aula" ? (professorSelecionado?.id ?? null) : null,
-        salaId: tipoSlot === "aula" ? (salaSelecionada?.id ?? null) : null,
+        salaId: tipoSlot === "aula" ? (salaIdPre || null) : null,
         isInterval: tipoSlot === "intervalo",
         diaSemana: diaSemana || null,
       });
@@ -216,7 +216,7 @@ export default function CriarHorarioScreen() {
       const status = err?.response?.status;
       const backendMsg = err?.response?.data?.error;
       if (status === 409) {
-        Alert.alert("Conflito detectado", backendMsg || "Já existe um conflito neste horário.");
+        setConflictMsg(backendMsg || "Já existe um horário cadastrado neste mesmo horário e dia.");
       } else {
         Alert.alert("Erro", backendMsg || "Não foi possível criar o horário.");
       }
@@ -385,43 +385,6 @@ export default function CriarHorarioScreen() {
                 )}
               </View>
 
-              {/* Sala */}
-              <View style={s.section}>
-                <Text style={s.sectionTitle}>Sala <Text style={{ color: "#ef4444" }}>*</Text></Text>
-                {salas.length === 0 ? (
-                  <View style={s.emptyProfessores}>
-                    <Ionicons name="business-outline" size={32} color="#ccc" />
-                    <Text style={s.emptyProfessoresText}>Nenhuma sala cadastrada.</Text>
-                  </View>
-                ) : (
-                  salas.map((sala) => {
-                    const selected = salaSelecionada?.id === sala.id;
-                    return (
-                      <TouchableOpacity
-                        key={sala.id}
-                        style={[s.professorCard, selected && s.professorCardSelected]}
-                        onPress={() => setSalaSelecionada(selected ? null : sala)}
-                        activeOpacity={0.75}
-                      >
-                        <View style={s.professorAvatar}>
-                          <Ionicons name="business-outline" size={24} color="#888" />
-                        </View>
-                        <View style={s.professorInfo}>
-                          <Text style={s.professorNome}>{salaLabel(sala)}</Text>
-                          {sala.capacidade ? (
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                              <Ionicons name="people-outline" size={13} color="#7a7f9a" />
-                              <Text style={s.professorMaterias}>{sala.capacidade}</Text>
-                            </View>
-                          ) : null}
-                        </View>
-                        {selected && <Text style={s.professorCheckmark}>✓</Text>}
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </View>
-
               {/* Professor */}
               <View style={s.section}>
                 <Text style={s.sectionTitle}>Professor <Text style={{ color: Colors.error }}>*</Text></Text>
@@ -507,9 +470,118 @@ export default function CriarHorarioScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de conflito estilizado */}
+      <Modal visible={!!conflictMsg} transparent animationType="fade" onRequestClose={() => setConflictMsg(null)}>
+        <View style={cf.overlay}>
+          <View style={cf.card}>
+            <View style={cf.iconBox}>
+              <Ionicons name="warning" size={32} color="#DC2626" />
+            </View>
+            <Text style={cf.title}>Conflito de Horário</Text>
+            <Text style={cf.desc}>{conflictMsg}</Text>
+            <View style={cf.divider} />
+            <View style={cf.dica}>
+              <Ionicons name="bulb-outline" size={16} color="#92400e" />
+              <Text style={cf.dicaText}>
+                Verifique se já existe uma aula neste horário e dia para este turno, ou escolha um horário diferente.
+              </Text>
+            </View>
+            <TouchableOpacity style={cf.btn} onPress={() => setConflictMsg(null)} activeOpacity={0.85}>
+              <Text style={cf.btnText}>Entendido</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const cf = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    padding: 24,
+    width: "100%",
+    alignItems: "center",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    borderWidth: 1.5,
+    borderColor: "#FEE2E2",
+  },
+  iconBox: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    borderWidth: 3,
+    borderColor: "#FECACA",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#DC2626",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  desc: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  divider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#FEE2E2",
+    marginBottom: 14,
+  },
+  dica: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 12,
+    padding: 12,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    marginBottom: 20,
+  },
+  dicaText: {
+    fontSize: 12,
+    color: "#92400e",
+    flex: 1,
+    lineHeight: 18,
+  },
+  btn: {
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+  },
+  btnText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 15,
+    letterSpacing: 0.3,
+  },
+});
 
 const ds = StyleSheet.create({
   diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

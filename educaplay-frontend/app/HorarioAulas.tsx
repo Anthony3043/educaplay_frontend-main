@@ -39,8 +39,8 @@ const TURNO_LIMITES: Record<string, { inicio: string; fim: string }> = {
   integral:   { inicio: "07:00", fim: "18:00" },
 };
 
-export function storageKeyHorarios(turno: string) {
-  return `@educaplay_horarios_${turno}`;
+export function storageKeyHorarios(turno: string, salaId?: string) {
+  return salaId ? `@educaplay_horarios_${salaId}_${turno}` : `@educaplay_horarios_${turno}`;
 }
 
 function toMinutes(time: string): number {
@@ -71,7 +71,7 @@ function calcDuracao(start: string, end: string): string {
 
 export default function HorarioAulasScreen() {
   const router = useRouter();
-  const { turno } = useLocalSearchParams<{ turno: string }>();
+  const { turno, salaId } = useLocalSearchParams<{ turno: string; salaId?: string }>();
 
   const [slots, setSlots] = useState<Slot[]>([]);
   const [addModal, setAddModal] = useState(false);
@@ -84,13 +84,13 @@ export default function HorarioAulasScreen() {
   const FRASE_CONFIRMAR = "limpar horários";
 
   useEffect(() => {
-    AsyncStorage.getItem(storageKeyHorarios(turno))
+    AsyncStorage.getItem(storageKeyHorarios(turno, salaId || undefined))
       .then((val) => setSlots(val ? JSON.parse(val) : []))
       .catch(() => setSlots([]));
   }, [turno]);
 
   const salvarSlots = async (novos: Slot[]) => {
-    await AsyncStorage.setItem(storageKeyHorarios(turno), JSON.stringify(novos));
+    await AsyncStorage.setItem(storageKeyHorarios(turno, salaId || undefined), JSON.stringify(novos));
     setSlots(novos);
   };
 

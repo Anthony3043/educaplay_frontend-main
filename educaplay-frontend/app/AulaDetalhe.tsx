@@ -21,7 +21,6 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 
 type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null };
-type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
@@ -36,56 +35,12 @@ const adDs = StyleSheet.create({
   chipTextActive: { color: "#3a7d44" },
 });
 
-const salaLabel = (sala: Sala) => sala.turma ? `${sala.nome} — ${sala.turma}` : sala.nome;
-
 const TURNO_LABELS: Record<string, { label: string; ionicon: React.ComponentProps<typeof Ionicons>["name"]; color: string }> = {
   matutino:   { label: "Matutino",   ionicon: "sunny-outline",        color: "#F59E0B" },
   vespertino: { label: "Vespertino", ionicon: "partly-sunny-outline",  color: "#3B82F6" },
   noturno:    { label: "Noturno",    ionicon: "moon-outline",          color: "#6366F1" },
   integral:   { label: "Integral",   ionicon: "book-outline",          color: "#10B981" },
 };
-
-const TURNO_LIMITES: Record<string, { inicio: string; fim: string; label: string }> = {
-  matutino:   { inicio: "07:00", fim: "12:35", label: "Matutino (07:00 – 12:35)" },
-  vespertino: { inicio: "13:00", fim: "18:00", label: "Vespertino (13:00 – 18:00)" },
-  noturno:    { inicio: "18:30", fim: "23:00", label: "Noturno (18:30 – 23:00)" },
-  integral:   { inicio: "07:00", fim: "18:00", label: "Integral (07:00 – 18:00)" },
-};
-
-function formatarHorario(texto: string): string {
-  const digitos = texto.replace(/\D/g, "").slice(0, 4);
-  if (digitos.length <= 2) return digitos;
-  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
-}
-
-function toMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function validarHorario(start: string, end: string, turno: string): string | null {
-  const formato = /^\d{2}:\d{2}$/;
-  if (!formato.test(start) || !formato.test(end)) {
-    return "Use o formato HH:MM (ex: 07:00, 13:30).";
-  }
-  const s = toMinutes(start);
-  const e = toMinutes(end);
-  if (s < toMinutes("07:00")) {
-    return "Não existem aulas antes das 07:00. O horário mínimo permitido é 07:00.";
-  }
-  if (e <= s) {
-    return "O horário de término deve ser após o horário de início.";
-  }
-  const limite = TURNO_LIMITES[turno];
-  if (!limite) return null;
-  if (s < toMinutes(limite.inicio) || s >= toMinutes(limite.fim)) {
-    return `Horário de início fora do turno ${limite.label}.`;
-  }
-  if (e > toMinutes(limite.fim)) {
-    return `Horário de término fora do turno ${limite.label}.`;
-  }
-  return null;
-}
 
 function calcDuration(start: string, end: string): string {
   const [sh, sm] = start.split(":").map(Number);
@@ -106,67 +61,56 @@ export default function AulaDetalheScreen() {
     subject: string; teacher: string; turno: string;
     diaSemana: string;
     professorId: string; salaId: string; salaNome: string; salaTurma: string;
+    isInterval?: string;
   }>();
+
+  const ehIntervalo = params.isInterval === "true";
 
   const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [professores, setProfessores] = useState<Professor[]>([]);
-  const [salas, setSalas] = useState<Sala[]>([]);
 
-  const [timeStart, setTimeStart] = useState(params.timeStart);
-  const [timeEnd, setTimeEnd] = useState(params.timeEnd);
   const [subject, setSubject] = useState(params.subject);
   const [diaSemana, setDiaSemana] = useState<string | null>(params.diaSemana || null);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
-  const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
 
   const turnoInfo = TURNO_LABELS[params.turno] ?? { label: params.turno, ionicon: "calendar-outline" as const, color: "#6366F1" };
 
   const carregarOpcoes = useCallback(async () => {
     setCarregando(true);
     try {
-      const [rp, rs] = await Promise.all([api.get("/professores"), api.get("/salas")]);
+      const rp = await api.get("/professores");
       setProfessores(rp.data);
-      setSalas(rs.data);
       if (params.professorId) {
         const p = rp.data.find((x: Professor) => x.id === params.professorId);
         if (p) setProfessorSelecionado(p);
       }
-      if (params.salaId) {
-        const sl = rs.data.find((x: Sala) => x.id === params.salaId);
-        if (sl) setSalaSelecionada(sl);
-      }
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar professores/salas.");
+      Alert.alert("Erro", "Não foi possível carregar os professores.");
     } finally {
       setCarregando(false);
     }
-  }, [params.professorId, params.salaId]);
+  }, [params.professorId]);
 
   useEffect(() => {
     if (editando) carregarOpcoes();
   }, [editando, carregarOpcoes]);
 
   const handleSalvar = async () => {
-    if (!timeStart.trim() || !timeEnd.trim() || !subject.trim()) {
-      Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
-      return;
-    }
-    const erroHorario = validarHorario(timeStart.trim(), timeEnd.trim(), params.turno);
-    if (erroHorario) {
-      Alert.alert("Horário indisponível", erroHorario);
+    if (!subject.trim()) {
+      Alert.alert("Atenção", "Informe o nome da matéria.");
       return;
     }
     setSalvando(true);
     try {
       await api.put(`/aulas/${params.id}`, {
-        timeStart: timeStart.trim(),
-        timeEnd: timeEnd.trim(),
+        timeStart: params.timeStart,
+        timeEnd: params.timeEnd,
         subject: subject.trim(),
         diaSemana: diaSemana || null,
         professorId: professorSelecionado?.id ?? null,
-        salaId: salaSelecionada?.id ?? null,
+        salaId: params.salaId || null,
       });
       Alert.alert("Sucesso", "Horário atualizado!", [
         { text: "OK", onPress: () => router.back() },
@@ -225,14 +169,18 @@ export default function AulaDetalheScreen() {
           <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
         ) : (
           <ScrollView contentContainerStyle={es.scrollContent} keyboardShouldPersistTaps="handled">
-            <View style={es.section}>
-              <Text style={es.sectionTitle}>Horário de início</Text>
-              <TextInput style={es.inputCard} value={timeStart} onChangeText={(t) => setTimeStart(formatarHorario(t))} placeholder="0730 → 07:30" placeholderTextColor="#AAAAAA" keyboardType="numeric" maxLength={5} />
+            {/* Banner de horário (somente leitura) */}
+            <View style={adEd.horarioBanner}>
+              <View style={adEd.horarioIconBox}>
+                <Ionicons name="time-outline" size={22} color="#3a7d44" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={adEd.horarioLabel}>Horário (não editável)</Text>
+                <Text style={adEd.horarioValue}>{params.timeStart} – {params.timeEnd}</Text>
+              </View>
+              <Ionicons name="lock-closed-outline" size={16} color="#aaa" />
             </View>
-            <View style={es.section}>
-              <Text style={es.sectionTitle}>Horário de término</Text>
-              <TextInput style={es.inputCard} value={timeEnd} onChangeText={(t) => setTimeEnd(formatarHorario(t))} placeholder="0800 → 08:00" placeholderTextColor="#AAAAAA" keyboardType="numeric" maxLength={5} />
-            </View>
+
             <View style={es.section}>
               <Text style={es.sectionTitle}>Matéria</Text>
               <TextInput style={es.inputCard} value={subject} onChangeText={setSubject} placeholder="Ex: Matemática" placeholderTextColor="#AAAAAA" />
@@ -254,23 +202,6 @@ export default function AulaDetalheScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
-            </View>
-
-            <View style={es.section}>
-              <Text style={es.sectionTitle}>Sala</Text>
-              {salas.map((sala) => {
-                const sel = salaSelecionada?.id === sala.id;
-                return (
-                  <TouchableOpacity key={sala.id} style={[es.professorCard, sel && es.professorCardSelected]} onPress={() => setSalaSelecionada(sel ? null : sala)} activeOpacity={0.75}>
-                    <View style={es.professorAvatar}><Text style={es.professorAvatarText}>🏫</Text></View>
-                    <View style={es.professorInfo}>
-                      <Text style={es.professorNome}>{salaLabel(sala)}</Text>
-                      {sala.capacidade ? <Text style={es.professorMaterias}>👥 {sala.capacidade}</Text> : null}
-                    </View>
-                    {sel && <Text style={es.professorCheckmark}>✓</Text>}
-                  </TouchableOpacity>
-                );
-              })}
             </View>
 
             <View style={es.section}>
@@ -313,17 +244,53 @@ export default function AulaDetalheScreen() {
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>Detalhe da Aula</Text>
-        <TouchableOpacity style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }} onPress={() => setEditando(true)}>
+        <Text style={s.headerTitle}>{ehIntervalo ? "Detalhe do Intervalo" : "Detalhe da Aula"}</Text>
+        <TouchableOpacity
+          style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+          onPress={() => {
+            if (ehIntervalo) {
+              router.push({
+                pathname: "/EditarHorario",
+                params: {
+                  id: params.id,
+                  timeStart: params.timeStart,
+                  timeEnd: params.timeEnd,
+                  subject: params.subject,
+                  turno: params.turno,
+                  isInterval: "true",
+                  diaSemana: params.diaSemana ?? "",
+                },
+              });
+            } else {
+              setEditando(true);
+            }
+          }}
+        >
           <Ionicons name="pencil-outline" size={22} color="#1a1a2e" />
         </TouchableOpacity>
       </View>
 
       <View style={s.content}>
-        <View style={[s.subjectBanner, { borderLeftColor: turnoInfo.color }]}>
-          <Ionicons name="book-outline" size={28} color={turnoInfo.color} />
-          <Text style={s.subjectTitle}>{params.subject}</Text>
-        </View>
+        {ehIntervalo ? (
+          /* ── Detalhe de Intervalo ── */
+          <View style={adInt.banner}>
+            <View style={adInt.iconBox}>
+              <Ionicons name="cafe-outline" size={32} color="#92400e" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={adInt.title}>Intervalo</Text>
+              <Text style={adInt.sub}>
+                {params.timeStart} – {params.timeEnd}
+                {params.diaSemana ? `  ·  ${params.diaSemana}` : "  ·  Todos os dias"}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={[s.subjectBanner, { borderLeftColor: turnoInfo.color }]}>
+            <Ionicons name="book-outline" size={28} color={turnoInfo.color} />
+            <Text style={s.subjectTitle}>{params.subject}</Text>
+          </View>
+        )}
 
         <View style={s.infoGrid}>
           <View style={s.infoCard}>
@@ -346,7 +313,7 @@ export default function AulaDetalheScreen() {
           ) : null}
         </View>
 
-        {params.salaNome ? (
+        {!ehIntervalo && params.salaNome ? (
           <View style={s.teacherCard}>
             <View style={s.teacherAvatar}><Ionicons name="business-outline" size={28} color="#888" /></View>
             <View style={s.teacherInfo}>
@@ -358,19 +325,83 @@ export default function AulaDetalheScreen() {
           </View>
         ) : null}
 
-        <View style={s.teacherCard}>
-          <View style={s.teacherAvatar}><Ionicons name="person-outline" size={28} color="#888" /></View>
-          <View style={s.teacherInfo}>
-            <Text style={s.teacherLabel}>Professor(a)</Text>
-            <Text style={s.teacherName}>{params.teacher || "Não atribuído"}</Text>
+        {!ehIntervalo && (
+          <View style={s.teacherCard}>
+            <View style={s.teacherAvatar}><Ionicons name="person-outline" size={28} color="#888" /></View>
+            <View style={s.teacherInfo}>
+              <Text style={s.teacherLabel}>Professor(a)</Text>
+              <Text style={s.teacherName}>{params.teacher || "Não atribuído"}</Text>
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={s.durationRow}>
           <Ionicons name="timer-outline" size={18} color="#888" />
           <Text style={s.durationText}>Duração: {calcDuration(params.timeStart, params.timeEnd)}</Text>
         </View>
+
+        {!ehIntervalo && (
+          <TouchableOpacity
+            onPress={handleExcluir}
+            style={{ marginTop: 16, padding: 14, backgroundColor: "#fee2e2", borderRadius: 12, alignItems: "center" }}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: "#dc2626", fontWeight: "700", fontSize: 15 }}>🗑️ Excluir este horário</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
 }
+
+const adEd = StyleSheet.create({
+  horarioBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 4,
+    backgroundColor: "#F0FDF4",
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: "#BBF7D0",
+  },
+  horarioIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "#DCFCE7",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  horarioLabel: { fontSize: 11, color: "#6B7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.4 },
+  horarioValue: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", marginTop: 2 },
+});
+
+const adInt = StyleSheet.create({
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: "#FFF8F0",
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: "#FED7AA",
+    marginBottom: 4,
+  },
+  iconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "#FEF3C7",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#FDE68A",
+  },
+  title: { fontSize: 20, fontWeight: "800", color: "#92400e" },
+  sub: { fontSize: 13, color: "#b45309", marginTop: 4, fontWeight: "500" },
+});
