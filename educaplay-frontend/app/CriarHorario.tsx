@@ -117,9 +117,10 @@ function validarHorario(start: string, end: string, turno: string): string | nul
 
 export default function CriarHorarioScreen() {
   const router = useRouter();
-  const { cronogramaId, turno } = useLocalSearchParams<{
+  const { cronogramaId, turno, salaIdPre } = useLocalSearchParams<{
     cronogramaId: string;
     turno: string;
+    salaIdPre?: string;
   }>();
 
   const voltar = () => {
@@ -151,13 +152,19 @@ export default function CriarHorarioScreen() {
         api.get("/salas"),
       ]);
       setProfessores(resProfessores.data);
-      setSalas(resSalas.data);
+      const listaSalas: Sala[] = resSalas.data;
+      setSalas(listaSalas);
+      // Pré-seleciona a sala se vier do fluxo CronogramaSala
+      if (salaIdPre) {
+        const salaPre = listaSalas.find(sl => sl.id === salaIdPre);
+        if (salaPre) setSalaSelecionada(salaPre);
+      }
     } catch {
       Alert.alert("Erro", "Não foi possível carregar os dados.");
     } finally {
       setCarregando(false);
     }
-  }, []);
+  }, [salaIdPre]);
 
   useEffect(() => { carregarDados(); }, [carregarDados]);
 
@@ -494,7 +501,7 @@ export default function CriarHorarioScreen() {
             <Ionicons name="checkmark-circle" size={56} color="#3a7d44" />
             <Text style={ms.title}>Horário criado!</Text>
             <Text style={ms.msg}>O horário foi salvo com sucesso no cronograma.</Text>
-            <TouchableOpacity style={ms.btn} onPress={() => router.replace("/cronogramas" as any)} activeOpacity={0.85}>
+            <TouchableOpacity style={ms.btn} onPress={() => router.back()} activeOpacity={0.85}>
               <Text style={ms.btnText}>Confirmar</Text>
             </TouchableOpacity>
           </View>

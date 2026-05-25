@@ -78,6 +78,10 @@ export default function HorarioAulasScreen() {
   const [novoStart, setNovoStart] = useState("");
   const [novoEnd, setNovoEnd] = useState("");
   const [erroAdd, setErroAdd] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState(false);
+  const [textoConfirm, setTextoConfirm] = useState("");
+
+  const FRASE_CONFIRMAR = "limpar horários";
 
   useEffect(() => {
     AsyncStorage.getItem(storageKeyHorarios(turno))
@@ -141,14 +145,14 @@ export default function HorarioAulasScreen() {
   };
 
   const limparTudo = () => {
-    Alert.alert(
-      "Limpar lista",
-      "Remover todos os horários configurados para este turno?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Limpar", style: "destructive", onPress: () => salvarSlots([]) },
-      ]
-    );
+    setTextoConfirm("");
+    setConfirmModal(true);
+  };
+
+  const confirmarLimpeza = () => {
+    salvarSlots([]);
+    setConfirmModal(false);
+    setTextoConfirm("");
   };
 
   return (
@@ -224,6 +228,75 @@ export default function HorarioAulasScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Modal confirmação limpar tudo */}
+      <Modal visible={confirmModal} transparent animationType="fade" onRequestClose={() => setConfirmModal(false)}>
+        <View style={ha.confirmOverlay}>
+          <View style={ha.confirmCard}>
+            {/* Ícone de aviso */}
+            <View style={ha.confirmIconBox}>
+              <Ionicons name="warning-outline" size={32} color="#DC2626" />
+            </View>
+
+            <Text style={ha.confirmTitle}>Limpar todos os horários?</Text>
+            <Text style={ha.confirmSubtitle}>
+              Esta ação removerá <Text style={{ fontWeight: "800" }}>todos</Text> os horários configurados para o turno{" "}
+              <Text style={{ fontWeight: "800" }}>{TURNO_LABELS[turno] ?? turno}</Text> e não poderá ser desfeita.
+            </Text>
+
+            {/* Instrução de digitação */}
+            <View style={ha.confirmPhraseBox}>
+              <Text style={ha.confirmPhraseLabel}>Para confirmar, digite:</Text>
+              <Text style={ha.confirmPhrase}>"{FRASE_CONFIRMAR}"</Text>
+            </View>
+
+            <TextInput
+              style={[
+                ha.confirmInput,
+                textoConfirm === FRASE_CONFIRMAR && ha.confirmInputOk,
+              ]}
+              value={textoConfirm}
+              onChangeText={setTextoConfirm}
+              placeholder={FRASE_CONFIRMAR}
+              placeholderTextColor="#ccc"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            {/* Progresso visual */}
+            {textoConfirm.length > 0 && textoConfirm !== FRASE_CONFIRMAR && (
+              <Text style={ha.confirmProgresso}>
+                {textoConfirm.length}/{FRASE_CONFIRMAR.length} caracteres
+              </Text>
+            )}
+            {textoConfirm === FRASE_CONFIRMAR && (
+              <Text style={ha.confirmOkText}>✓ Frase confirmada</Text>
+            )}
+
+            <View style={ha.confirmBtns}>
+              <TouchableOpacity
+                style={ha.confirmBtnCancelar}
+                onPress={() => setConfirmModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={ha.confirmBtnCancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  ha.confirmBtnLimpar,
+                  textoConfirm !== FRASE_CONFIRMAR && ha.confirmBtnDisabled,
+                ]}
+                onPress={confirmarLimpeza}
+                disabled={textoConfirm !== FRASE_CONFIRMAR}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="trash-outline" size={16} color="#fff" />
+                <Text style={ha.confirmBtnLimparText}>Limpar tudo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal adicionar slot */}
       <Modal visible={addModal} transparent animationType="slide" onRequestClose={() => setAddModal(false)}>
@@ -381,4 +454,141 @@ const ha = StyleSheet.create({
     marginTop: 4,
   },
   addConfirmBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+
+  // — Modal confirmação limpar tudo —
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  confirmCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 24,
+    width: "100%",
+    alignItems: "center",
+    gap: 0,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  confirmIconBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1a1a2e",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  confirmSubtitle: {
+    fontSize: 13,
+    color: "#555",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 18,
+  },
+  confirmPhraseBox: {
+    backgroundColor: "#FEF2F2",
+    borderRadius: 10,
+    padding: 12,
+    width: "100%",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    marginBottom: 14,
+  },
+  confirmPhraseLabel: {
+    fontSize: 11,
+    color: "#888",
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  confirmPhrase: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#DC2626",
+    letterSpacing: 0.3,
+  },
+  confirmInput: {
+    width: "100%",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: "#1a1a2e",
+    fontWeight: "500",
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  confirmInputOk: {
+    borderColor: "#3a7d44",
+    backgroundColor: "#F0FDF4",
+  },
+  confirmProgresso: {
+    fontSize: 11,
+    color: "#aaa",
+    marginBottom: 18,
+    alignSelf: "flex-end",
+  },
+  confirmOkText: {
+    fontSize: 12,
+    color: "#3a7d44",
+    fontWeight: "700",
+    marginBottom: 18,
+    alignSelf: "flex-start",
+  },
+  confirmBtns: {
+    flexDirection: "row",
+    gap: 10,
+    width: "100%",
+    marginTop: 4,
+  },
+  confirmBtnCancelar: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+  },
+  confirmBtnCancelarText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#555",
+  },
+  confirmBtnLimpar: {
+    flex: 1,
+    flexDirection: "row",
+    gap: 6,
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmBtnDisabled: {
+    backgroundColor: "#FCA5A5",
+  },
+  confirmBtnLimparText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fff",
+  },
 });

@@ -71,7 +71,7 @@ function RootNavigator() {
     if (carregando || !biometriaOk) return;
 
     const rotasPublicas = ['index', 'Login', 'Register', 'ForgotPassword', 'CheckEmail', 'Resetpassword'];
-    const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'AulaDetalhe'];
+    const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'AulaDetalhe', 'CronogramaSala', 'HorarioAulas', 'EditarHorario'];
     const rotasProfessor = ['home-professor', 'cronogramas-professor', 'indisponibilidade'];
 
     // segments[0] é undefined na rota raiz (/) no Expo Router
