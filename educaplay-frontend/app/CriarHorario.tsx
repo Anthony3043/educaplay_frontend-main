@@ -1,7 +1,9 @@
 import { styles as s } from "@/styles/EditarHorarioStyles";
 import { Colors } from "@/src/constants/colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
+import { storageKeyHorarios } from "./HorarioAulas";
 import {
   ActivityIndicator,
   Alert,
@@ -133,8 +135,7 @@ export default function CriarHorarioScreen() {
   const [materia, setMateria] = useState("");
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
-  const [erroInicio, setErroInicio] = useState<string | null>(null);
-  const [erroFim, setErroFim] = useState<string | null>(null);
+  const [slots, setSlots] = useState<{ start: string; end: string }[]>([]);
   const [diaSemana, setDiaSemana] = useState<string | null>(null);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
@@ -160,12 +161,19 @@ export default function CriarHorarioScreen() {
 
   useEffect(() => { carregarDados(); }, [carregarDados]);
 
+  // Carrega slots configurados para o turno
+  useEffect(() => {
+    AsyncStorage.getItem(storageKeyHorarios(turno))
+      .then((val) => setSlots(val ? JSON.parse(val) : []))
+      .catch(() => setSlots([]));
+  }, [turno]);
+
   const handleSalvar = async () => {
     // Valida todos os campos obrigatórios de uma vez
     const erros: string[] = [];
 
     if (!diaSemana) erros.push("• Você não selecionou o dia da semana");
-    if (!timeStart.trim() || !timeEnd.trim()) erros.push("• Você não preencheu o horário de início e término");
+    if (!timeStart || !timeEnd) erros.push("• Você não selecionou o horário da aula");
 
     if (tipoSlot === "aula") {
       if (!materia.trim()) erros.push("• Você não preencheu a matéria");
@@ -293,56 +301,44 @@ export default function CriarHorarioScreen() {
             </View>
           </View>
 
-          {/* Horário início */}
+          {/* Seletor de horário */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Horário de início <Text style={{ color: Colors.error }}>*</Text></Text>
-            {TURNO_LIMITES[turno] && (
-              <Text style={{ fontSize: 12, color: Colors.primary, marginBottom: 6, fontWeight: "600" }}>
-                🕐 Permitido: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
-              </Text>
+            <Text style={s.sectionTitle}>
+              Horário <Text style={{ color: Colors.error }}>*</Text>
+            </Text>
+            {slots.length === 0 ? (
+              <TouchableOpacity
+                style={ch.semSlots}
+                onPress={() => router.push({ pathname: "/HorarioAulas", params: { turno } })}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="time-outline" size={20} color="#888" />
+                <Text style={ch.semSlotsText}>Nenhum horário configurado.</Text>
+                <Text style={ch.semSlotsLink}>Configurar agora →</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={ch.slotsGrid}>
+                {slots.map((slot, idx) => {
+                  const sel = timeStart === slot.start && timeEnd === slot.end;
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[ch.slotBtn, sel && ch.slotBtnActive]}
+                      onPress={() => { setTimeStart(slot.start); setTimeEnd(slot.end); }}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[ch.slotBtnTime, sel && ch.slotBtnTimeActive]}>
+                        {slot.start}
+                      </Text>
+                      <Text style={[ch.slotBtnSep, sel && ch.slotBtnTimeActive]}>–</Text>
+                      <Text style={[ch.slotBtnTime, sel && ch.slotBtnTimeActive]}>
+                        {slot.end}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             )}
-            <TextInput
-              style={[s.inputCard, erroInicio ? { borderColor: Colors.error, borderWidth: 1.5 } : null]}
-              value={timeStart}
-              onChangeText={(t) => {
-                const formatted = formatarHorario(t);
-                setTimeStart(formatted);
-                setErroInicio(validarHorarioTempoReal(formatted, "inicio", turno));
-              }}
-              placeholder={TURNO_LIMITES[turno] ? `Ex: ${TURNO_LIMITES[turno].inicio}` : "HH:MM"}
-              placeholderTextColor="#AAAAAA"
-              keyboardType="numeric"
-              maxLength={5}
-            />
-            {erroInicio ? (
-              <Text style={{ fontSize: 12, color: Colors.error, marginTop: 4 }}>⚠ {erroInicio}</Text>
-            ) : null}
-          </View>
-
-          {/* Horário término */}
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Horário de término <Text style={{ color: Colors.error }}>*</Text></Text>
-            {TURNO_LIMITES[turno] && (
-              <Text style={{ fontSize: 12, color: Colors.primary, marginBottom: 6, fontWeight: "600" }}>
-                🕐 Permitido: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
-              </Text>
-            )}
-            <TextInput
-              style={[s.inputCard, erroFim ? { borderColor: Colors.error, borderWidth: 1.5 } : null]}
-              value={timeEnd}
-              onChangeText={(t) => {
-                const formatted = formatarHorario(t);
-                setTimeEnd(formatted);
-                setErroFim(validarHorarioTempoReal(formatted, "fim", turno));
-              }}
-              placeholder={TURNO_LIMITES[turno] ? `Ex: ${TURNO_LIMITES[turno].fim}` : "HH:MM"}
-              placeholderTextColor="#AAAAAA"
-              keyboardType="numeric"
-              maxLength={5}
-            />
-            {erroFim ? (
-              <Text style={{ fontSize: 12, color: Colors.error, marginTop: 4 }}>⚠ {erroFim}</Text>
-            ) : null}
           </View>
 
           {tipoSlot === "intervalo" ? (
@@ -517,6 +513,46 @@ const ds = StyleSheet.create({
   chipActive: { backgroundColor: Colors.primaryPale, borderColor: Colors.primary },
   chipText: { fontSize: 13, fontWeight: "600", color: Colors.textMuted },
   chipTextActive: { color: Colors.primary },
+});
+
+const ch = StyleSheet.create({
+  semSlots: {
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: 14,
+    padding: 16,
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.border ?? "#E5E7EB",
+    borderStyle: "dashed",
+  },
+  semSlotsText: { fontSize: 14, color: "#888", fontWeight: "500" },
+  semSlotsLink: { fontSize: 13, color: Colors.primary, fontWeight: "700" },
+
+  slotsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  slotBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.surfaceAlt,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  slotBtnActive: {
+    backgroundColor: Colors.primarySurface,
+    borderColor: Colors.primary,
+  },
+  slotBtnTime: { fontSize: 14, fontWeight: "800", color: "#555" },
+  slotBtnSep: { fontSize: 12, color: "#aaa" },
+  slotBtnTimeActive: { color: Colors.primary },
 });
 
 const ms = StyleSheet.create({

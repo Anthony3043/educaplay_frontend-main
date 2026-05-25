@@ -458,10 +458,18 @@ export default function CronogramasScreen() {
             </View>
           </View>
 
-          {/* Botão criar */}
-          <View style={act.row}>
+          {/* Botões de ação */}
+          <View style={act.botoesRow}>
+            <TouchableOpacity
+              style={act.btnSecondary}
+              onPress={() => router.push({ pathname: "/HorarioAulas", params: { turno: selectedTurno } })}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="time-outline" size={17} color="#3a7d44" />
+              <Text style={act.btnSecondaryText}>Horário das Aulas</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={act.btn} onPress={handleCriarHorario} activeOpacity={0.8}>
-              <Ionicons name="add-circle-outline" size={18} color="#fff" />
+              <Ionicons name="add-circle-outline" size={17} color="#fff" />
               <Text style={act.btnText}>Criar Horário</Text>
             </TouchableOpacity>
           </View>
@@ -720,8 +728,14 @@ const cal = StyleSheet.create({
 });
 
 const act = StyleSheet.create({
-  row: { paddingHorizontal: 20, marginBottom: 4 },
+  botoesRow: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginBottom: 4,
+    gap: 10,
+  },
   btn: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -730,7 +744,20 @@ const act = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: "#3a7d44",
   },
-  btnText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  btnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  btnSecondary: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderColor: "#3a7d44",
+  },
+  btnSecondaryText: { fontSize: 13, fontWeight: "700", color: "#3a7d44" },
   calHeader: {
     flexDirection: "row",
     alignItems: "center",
