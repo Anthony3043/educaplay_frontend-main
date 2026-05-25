@@ -54,7 +54,8 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.surface,
     borderRadius: 16,
-    padding: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 10,
     marginHorizontal: 4,
     alignItems: "center",
     borderWidth: 2,
@@ -70,9 +71,10 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
   },
   turnoLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "700",
     color: Colors.textSecondary,
+    textAlign: "center",
   },
   turnoTime: {
     fontSize: 10,
@@ -149,7 +151,7 @@ export const styles = StyleSheet.create({
     color: Colors.primary,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textMuted,
     fontWeight: "500",
   },

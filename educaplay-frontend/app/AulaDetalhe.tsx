@@ -62,9 +62,11 @@ export default function AulaDetalheScreen() {
     diaSemana: string;
     professorId: string; salaId: string; salaNome: string; salaTurma: string;
     isInterval?: string;
+    readOnly?: string;
   }>();
 
   const ehIntervalo = params.isInterval === "true";
+  const ehReadOnly = params.readOnly === "true";
 
   const [editando, setEditando] = useState(false);
   const [salvando, setSalvando] = useState(false);
@@ -245,29 +247,33 @@ export default function AulaDetalheScreen() {
           <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{ehIntervalo ? "Detalhe do Intervalo" : "Detalhe da Aula"}</Text>
-        <TouchableOpacity
-          style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
-          onPress={() => {
-            if (ehIntervalo) {
-              router.push({
-                pathname: "/EditarHorario",
-                params: {
-                  id: params.id,
-                  timeStart: params.timeStart,
-                  timeEnd: params.timeEnd,
-                  subject: params.subject,
-                  turno: params.turno,
-                  isInterval: "true",
-                  diaSemana: params.diaSemana ?? "",
-                },
-              });
-            } else {
-              setEditando(true);
-            }
-          }}
-        >
-          <Ionicons name="pencil-outline" size={22} color="#1a1a2e" />
-        </TouchableOpacity>
+        {ehReadOnly ? (
+          <View style={{ width: 40 }} />
+        ) : (
+          <TouchableOpacity
+            style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+            onPress={() => {
+              if (ehIntervalo) {
+                router.push({
+                  pathname: "/EditarHorario",
+                  params: {
+                    id: params.id,
+                    timeStart: params.timeStart,
+                    timeEnd: params.timeEnd,
+                    subject: params.subject,
+                    turno: params.turno,
+                    isInterval: "true",
+                    diaSemana: params.diaSemana ?? "",
+                  },
+                });
+              } else {
+                setEditando(true);
+              }
+            }}
+          >
+            <Ionicons name="pencil-outline" size={22} color="#1a1a2e" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={s.content}>
@@ -340,7 +346,7 @@ export default function AulaDetalheScreen() {
           <Text style={s.durationText}>Duração: {calcDuration(params.timeStart, params.timeEnd)}</Text>
         </View>
 
-        {!ehIntervalo && (
+        {!ehIntervalo && !ehReadOnly && (
           <TouchableOpacity
             onPress={handleExcluir}
             style={{ marginTop: 16, padding: 14, backgroundColor: "#fee2e2", borderRadius: 12, alignItems: "center" }}

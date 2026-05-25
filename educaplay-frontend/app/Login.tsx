@@ -15,7 +15,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
-  const [lembrarMe, setLembrarMe] = useState(false);
+  const [lembrarMe, setLembrarMe] = useState(true);
   const [carregando, setCarregando] = useState(false);
 
   // Botão voltar do Android → sai do app (Login é a tela inicial)

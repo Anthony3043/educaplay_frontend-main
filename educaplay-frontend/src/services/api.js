@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { handleUnauthorized } from '../utils/authState';
 
 const API_URL = 'https://backend-educaplay.onrender.com/api';
 
@@ -20,8 +21,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      AsyncStorage.removeItem('@educaplay_token');
-      AsyncStorage.removeItem('@educaplay_user');
+      handleUnauthorized();
     }
     return Promise.reject(error);
   }

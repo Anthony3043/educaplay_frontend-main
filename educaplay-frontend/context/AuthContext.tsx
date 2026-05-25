@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../src/services/api';
 import { registrarPushToken } from '../hooks/useNotifications';
+import { registerUnauthorizedHandler } from '../src/utils/authState';
 
 type Usuario = {
   id: string;
@@ -34,14 +35,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const carregarSessao = async () => {
-    // Acorda o backend silenciosamente (Render free tier dorme após 15 min de inatividade).
-    // Não aguarda resposta — o objetivo é apenas iniciar o cold start enquanto o app carrega.
-    api.get('/health').catch(() => {});
-
     try {
       const lembrar = await AsyncStorage.getItem('@educaplay_remember');
       if (lembrar !== 'true') {
-        // Sessão temporária: limpa dados ao reabrir o app
         await AsyncStorage.multiRemove(['@educaplay_token', '@educaplay_user']);
         setCarregando(false);
         return;
@@ -50,6 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u) setUsuario(JSON.parse(u));
     } catch {}
     setCarregando(false);
+    // Acorda o backend APÓS a sessão ser restaurada, evitando race condition com o interceptor 401.
+    api.get('/health').catch(() => {});
   };
 
   const login = async (email: string, senha: string, lembrar: boolean = true): Promise<Usuario> => {
@@ -78,10 +76,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return usuario;
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await AsyncStorage.multiRemove(['@educaplay_token', '@educaplay_user', '@educaplay_remember']);
     setUsuario(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    registerUnauthorizedHandler(logout);
+  }, [logout]);
 
   const atualizarUsuario = (dados: Partial<Usuario>) => {
     const novo = { ...usuario, ...dados } as Usuario;

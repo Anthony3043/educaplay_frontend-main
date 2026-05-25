@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
-  StatusBar, Text, TextInput, TouchableOpacity, View,
+  StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +25,9 @@ export default function SalasScreen() {
   const [nomeFocused, setNomeFocused] = useState(false);
   const [turmaFocused, setTurmaFocused] = useState(false);
   const [capFocused, setCapFocused] = useState(false);
+  const [salaParaExcluir, setSalaParaExcluir] = useState<Sala | null>(null);
+  const [excluindo, setExcluindo] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
 
   useEffect(() => { carregar(); }, []);
 
@@ -62,16 +65,20 @@ export default function SalasScreen() {
     }
   };
 
-  const handleExcluir = (sala: Sala) => {
-    Alert.alert("Excluir sala", `Deseja excluir "${sala.nome}"?`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Excluir", style: "destructive", onPress: async () => {
-        try {
-          await api.delete(`/salas/${sala.id}`);
-          setSalas((prev) => prev.filter((s) => s.id !== sala.id));
-        } catch { Alert.alert("Erro", "Não foi possível excluir."); }
-      }},
-    ]);
+  const handleExcluir = (sala: Sala) => { setConfirmText(""); setSalaParaExcluir(sala); };
+
+  const confirmarExclusao = async () => {
+    if (!salaParaExcluir) return;
+    setExcluindo(true);
+    try {
+      await api.delete(`/salas/${salaParaExcluir.id}`);
+      setSalas((prev) => prev.filter((s) => s.id !== salaParaExcluir.id));
+      setSalaParaExcluir(null);
+    } catch {
+      Alert.alert("Erro", "Não foi possível excluir a sala.");
+    } finally {
+      setExcluindo(false);
+    }
   };
 
   return (
@@ -127,6 +134,62 @@ export default function SalasScreen() {
         </ScrollView>
       )}
 
+      {/* Modal de confirmação de exclusão */}
+      <Modal
+        visible={!!salaParaExcluir}
+        transparent
+        animationType="fade"
+        onRequestClose={() => { setSalaParaExcluir(null); setConfirmText(""); }}
+      >
+        <View style={del.overlay}>
+          <View style={del.card}>
+            <View style={del.iconCircle}>
+              <Ionicons name="trash-outline" size={30} color="#DC2626" />
+            </View>
+            <Text style={del.title}>Excluir Sala</Text>
+            <Text style={del.msg}>
+              Para confirmar, digite exatamente:{"\n"}
+              <Text style={del.nomeSala}>
+                Excluir sala {salaParaExcluir?.nome}{salaParaExcluir?.turma ? ` — ${salaParaExcluir.turma}` : ""}
+              </Text>
+            </Text>
+            <Text style={del.aviso}>Esta ação não pode ser desfeita.</Text>
+            <TextInput
+              style={[del.input, confirmText === `Excluir sala ${salaParaExcluir?.nome}${salaParaExcluir?.turma ? ` — ${salaParaExcluir.turma}` : ""}` && del.inputOk]}
+              value={confirmText}
+              onChangeText={setConfirmText}
+              placeholder={`Excluir sala ${salaParaExcluir?.nome ?? ""}`}
+              placeholderTextColor="#BBBBBB"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={del.btnRow}>
+              <TouchableOpacity
+                style={del.btnCancelar}
+                onPress={() => { setSalaParaExcluir(null); setConfirmText(""); }}
+                activeOpacity={0.8}
+              >
+                <Text style={del.btnCancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  del.btnExcluir,
+                  confirmText !== `Excluir sala ${salaParaExcluir?.nome}${salaParaExcluir?.turma ? ` — ${salaParaExcluir.turma}` : ""}` && del.btnExcluirDisabled,
+                ]}
+                onPress={confirmarExclusao}
+                disabled={excluindo || confirmText !== `Excluir sala ${salaParaExcluir?.nome}${salaParaExcluir?.turma ? ` — ${salaParaExcluir.turma}` : ""}`}
+                activeOpacity={0.85}
+              >
+                {excluindo
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={del.btnExcluirText}>Excluir</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={fecharModal}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -169,3 +232,112 @@ export default function SalasScreen() {
     </SafeAreaView>
   );
 }
+
+const del = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 28,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    padding: 28,
+    width: "100%",
+    alignItems: "center",
+    gap: 6,
+    elevation: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
+    borderWidth: 1.5,
+    borderColor: "#FEE2E2",
+  },
+  iconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
+    borderWidth: 3,
+    borderColor: "#FECACA",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#DC2626",
+    marginBottom: 4,
+  },
+  msg: {
+    fontSize: 14,
+    color: "#444",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  nomeSala: {
+    fontWeight: "700",
+    color: "#1a1a2e",
+  },
+  aviso: {
+    fontSize: 12,
+    color: "#aaa",
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  btnRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+    width: "100%",
+  },
+  btnCancelar: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+  },
+  btnCancelarText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#555",
+  },
+  btnExcluir: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+  },
+  btnExcluirDisabled: {
+    backgroundColor: "#F0A0A0",
+  },
+  btnExcluirText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#fff",
+    letterSpacing: 0.3,
+  },
+  input: {
+    width: "100%",
+    borderWidth: 1.5,
+    borderColor: "#E5E7EB",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 13,
+    color: "#1a1a2e",
+    backgroundColor: "#FAFAFA",
+    marginTop: 4,
+  },
+  inputOk: {
+    borderColor: "#16A34A",
+    backgroundColor: "#F0FDF4",
+  },
+});

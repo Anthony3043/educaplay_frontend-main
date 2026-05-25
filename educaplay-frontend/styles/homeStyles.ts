@@ -164,7 +164,7 @@ export const homeStyles = StyleSheet.create({
     fontSize: 26,
   },
   menuCardTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '700',
     color: Colors.textPrimary,
     textAlign: 'center',

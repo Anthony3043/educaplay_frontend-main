@@ -1,6 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { styles as s } from "@/styles/Cronogramasstyles";
+import {
+  computeAulaSlots, intervalStorageKey,
+  DEFAULT_INT1_GAP, DEFAULT_INT2_GAP,
+} from "@/src/constants/slots";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 import { useAuth } from "../context/AuthContext";
 
-type TurnoId = "matutino" | "vespertino" | "noturno" | "integral";
+type TurnoId = "matutino" | "vespertino";
 
 type AulaProfessor = {
   id: string;
@@ -26,8 +31,8 @@ type AulaProfessor = {
   diaSemana: string | null;
   salaNome: string | null;
   salaTurma: string | null;
+  salaId: string | null;
   turno: TurnoId;
-  isInterval: boolean;
 };
 
 type CronogramaAPI = {
@@ -46,17 +51,13 @@ type CronogramaAPI = {
 };
 
 const TURNOS: { id: TurnoId; label: string; ionicon: React.ComponentProps<typeof Ionicons>["name"]; time: string }[] = [
-  { id: "matutino",   label: "Matutino",   ionicon: "sunny-outline",       time: "07:00 - 12:00" },
-  { id: "vespertino", label: "Vespertino", ionicon: "partly-sunny-outline", time: "13:00 - 18:00" },
-  { id: "noturno",    label: "Noturno",    ionicon: "moon-outline",         time: "18:30 - 23:00" },
-  { id: "integral",   label: "Integral",   ionicon: "book-outline",         time: "07:00 - 18:00" },
+  { id: "matutino",   label: "Matutino",   ionicon: "sunny-outline",       time: "07:00 - 12:15" },
+  { id: "vespertino", label: "Vespertino", ionicon: "partly-sunny-outline", time: "13:00 - 18:15" },
 ];
 
 const TURNO_COLORS: Record<TurnoId, string> = {
   matutino:   "#F59E0B",
   vespertino: "#3B82F6",
-  noturno:    "#6366F1",
-  integral:   "#10B981",
 };
 
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -64,213 +65,31 @@ const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"
 const TABS = [
   { id: "home",          ionicon: "home-outline" as const,    label: "Home" },
   { id: "cronograma",    ionicon: "calendar-outline" as const, label: "Cronograma" },
-  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
+  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Config." },
 ];
 
-// ─── Grade semanal (visão do professor) ──────────────────────────────────────
-const COL_W = 115;
-const TIME_W = 46;
-
-function CalendarioSemanalProf({
-  aulas,
-  turno,
-}: {
-  aulas: AulaProfessor[];
-  turno: TurnoId;
-}) {
-  const cor = TURNO_COLORS[turno] || "#3a7d44";
-
-  const sortTime = (a: AulaProfessor, b: AulaProfessor) => a.timeStart.localeCompare(b.timeStart);
-
-  const normais    = aulas.filter(a => !a.isInterval && !!a.diaSemana);
-  const semDia     = aulas.filter(a => !a.isInterval && !a.diaSemana).sort(sortTime);
-  const intervalos = aulas.filter(a => !!a.isInterval).sort(sortTime);
-
-  const intervalosSemDia = intervalos.filter(a => !a.diaSemana);
-  const intervalosComDia = intervalos.filter(a => !!a.diaSemana);
-
-  const horarios = [...new Set([
-    ...normais.map(a => a.timeStart),
-    ...intervalos.map(a => a.timeStart),
-  ])].sort();
-
-  const lookup: Record<string, AulaProfessor> = {};
-  normais.forEach(a => {
-    const k = `${a.diaSemana}_${a.timeStart}`;
-    if (!lookup[k]) lookup[k] = a;
-  });
-
-  const intervaloLookup: Record<string, AulaProfessor> = {};
-  intervalosComDia.forEach(a => {
-    const k = `${a.diaSemana}_${a.timeStart}`;
-    if (!intervaloLookup[k]) intervaloLookup[k] = a;
-  });
-
-  const timeEnds: Record<string, string> = {};
-  normais.forEach(a => { if (!timeEnds[a.timeStart]) timeEnds[a.timeStart] = a.timeEnd; });
-  intervalos.forEach(a => { if (!timeEnds[a.timeStart]) timeEnds[a.timeStart] = a.timeEnd; });
-
-  if (normais.length === 0 && semDia.length === 0 && intervalos.length === 0) {
-    return (
-      <View style={cal.empty}>
-        <Ionicons name="calendar-outline" size={48} color="#ccc" />
-        <Text style={cal.emptyText}>Nenhuma aula atribuída neste turno.</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View>
-      {/* ── Grade semanal ── */}
-      {(normais.length > 0 || intervalos.length > 0) && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          nestedScrollEnabled
-          contentContainerStyle={{ paddingBottom: 8 }}
-        >
-          <View>
-            {/* Cabeçalho dos dias */}
-            <View style={{ flexDirection: "row", marginBottom: 6 }}>
-              <View style={{ width: TIME_W }} />
-              {DIAS_SEMANA.map(dia => (
-                <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
-                  <View style={cal.dayHeader}>
-                    <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            {/* Linhas por horário */}
-            {horarios.map(h => {
-              const faixa = intervalosSemDia.find(a => a.timeStart === h);
-              if (faixa) {
-                return (
-                  <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "center" }}>
-                    <View style={[cal.timeCol, { width: TIME_W }]}>
-                      <Text style={cal.timeText}>{h}</Text>
-                      <Text style={cal.timeTextEnd}>{faixa.timeEnd}</Text>
-                    </View>
-                    <View style={[cal.intervaloFaixa, { width: COL_W * DIAS_SEMANA.length }]}>
-                      <Ionicons name="cafe-outline" size={14} color="#92400e" />
-                      <Text style={cal.intervaloFaixaText}>
-                        Intervalo · {h} – {faixa.timeEnd}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              }
-
-              return (
-                <View key={h} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
-                  <View style={[cal.timeCol, { width: TIME_W }]}>
-                    <Text style={cal.timeText}>{h}</Text>
-                    {timeEnds[h] ? (
-                      <Text style={cal.timeTextEnd}>{timeEnds[h]}</Text>
-                    ) : null}
-                  </View>
-
-                  {DIAS_SEMANA.map(dia => {
-                    const aula = lookup[`${dia}_${h}`];
-                    const intervalo = intervaloLookup[`${dia}_${h}`];
-                    return (
-                      <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
-                        {aula ? (
-                          <View style={[cal.aulaCard, { borderLeftColor: cor }]}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
-                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeStart}</Text>
-                              <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
-                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeEnd}</Text>
-                            </View>
-                            <Text style={cal.aulaSubject} numberOfLines={2}>
-                              {aula.subject}
-                            </Text>
-                            {aula.salaNome ? (
-                              <View style={cal.detail}>
-                                <Ionicons name="business-outline" size={10} color="#888" />
-                                <Text style={cal.detailText} numberOfLines={1}>
-                                  {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-                        ) : intervalo ? (
-                          <View style={cal.intervaloCelula}>
-                            <Ionicons name="cafe-outline" size={12} color="#92400e" />
-                            <Text style={cal.intervaloCelulaText}>Intervalo</Text>
-                            <Text style={cal.intervaloCelulaHora}>{h} – {intervalo.timeEnd}</Text>
-                          </View>
-                        ) : (
-                          <View style={cal.emptyCell} />
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              );
-            })}
-          </View>
-        </ScrollView>
-      )}
-
-      {/* ── Aulas sem dia específico ── */}
-      {semDia.length > 0 && (
-        <View style={{ marginTop: (normais.length > 0 || intervalos.length > 0) ? 20 : 0 }}>
-          <View style={cal.sectionHeader}>
-            <Ionicons name="time-outline" size={13} color="#888" />
-            <Text style={cal.sectionHeaderText}>Sem dia específico</Text>
-          </View>
-          {semDia.map(a => (
-            <View key={a.id} style={cal.rowCard}>
-              <View style={cal.rowTimeBox}>
-                <Text style={cal.rowTimeStart}>{a.timeStart}</Text>
-                <Text style={cal.rowTimeEnd}>{a.timeEnd}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={cal.rowSubject}>{a.subject}</Text>
-                {a.salaNome ? (
-                  <View style={cal.detail}>
-                    <Ionicons name="business-outline" size={11} color="#aaa" />
-                    <Text style={[cal.detailText, { fontSize: 11 }]} numberOfLines={1}>
-                      {a.salaNome}{a.salaTurma ? ` — ${a.salaTurma}` : ""}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ─── Tela principal ───────────────────────────────────────────────────────────
 export default function CronogramasProfessorScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
   const [selectedTurno, setSelectedTurno] = useState<TurnoId>("matutino");
-  const [activeTab, setActiveTab] = useState("cronograma");
-  const [minhasAulas, setMinhasAulas] = useState<Record<TurnoId, AulaProfessor[]>>({
-    matutino: [], vespertino: [], noturno: [], integral: [],
-  });
-  const [carregando, setCarregando] = useState(true);
+  const [selectedDia, setSelectedDia]     = useState<string | null>(null);
+  const [activeTab, setActiveTab]         = useState("cronograma");
+  const [minhasAulas, setMinhasAulas]     = useState<AulaProfessor[]>([]);
+  const [carregando, setCarregando]       = useState(true);
+  const [int1Gap, setInt1Gap]             = useState(DEFAULT_INT1_GAP);
+  const [int2Gap, setInt2Gap]             = useState(DEFAULT_INT2_GAP);
 
   const carregar = useCallback(async () => {
     try {
       const res = await api.get("/cronogramas");
-      const dados: Record<TurnoId, AulaProfessor[]> = {
-        matutino: [], vespertino: [], noturno: [], integral: [],
-      };
+      const dados: AulaProfessor[] = [];
       (res.data as CronogramaAPI[]).forEach((c) => {
         const turno = c.turno as TurnoId;
-        if (!(turno in dados)) return;
+        if (!["matutino", "vespertino"].includes(turno)) return;
         c.aulas
-          .filter((a) => a.isInterval || a.professor?.id === usuario?.id)
-          .sort((a, b) => a.timeStart.localeCompare(b.timeStart))
+          .filter((a) => !a.isInterval && a.professor?.id === usuario?.id)
           .forEach((a) => {
-            dados[turno].push({
+            dados.push({
               id: a.id,
               timeStart: a.timeStart,
               timeEnd: a.timeEnd,
@@ -278,8 +97,8 @@ export default function CronogramasProfessorScreen() {
               diaSemana: a.diaSemana ?? null,
               salaNome: a.sala?.nome ?? null,
               salaTurma: a.sala?.turma ?? null,
+              salaId: a.sala?.id ?? null,
               turno,
-              isInterval: a.isInterval,
             });
           });
       });
@@ -293,13 +112,61 @@ export default function CronogramasProfessorScreen() {
 
   useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
+  useEffect(() => {
+    setInt1Gap(DEFAULT_INT1_GAP);
+    setInt2Gap(DEFAULT_INT2_GAP);
+    AsyncStorage.getItem(intervalStorageKey(selectedTurno)).then(raw => {
+      if (!raw) return;
+      try {
+        const { g1, g2 } = JSON.parse(raw) as { g1: number; g2: number };
+        if (Number.isInteger(g1) && Number.isInteger(g2) && g1 >= 0 && g2 <= 7 && g1 < g2) {
+          setInt1Gap(g1);
+          setInt2Gap(g2);
+        }
+      } catch {}
+    });
+  }, [selectedTurno]);
+
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
     if (tabId === "home") router.push("/home-professor");
     else if (tabId === "configuracoes") router.push("/configuracoes");
   };
 
-  const totalAulas = Object.values(minhasAulas).reduce((sum, list) => sum + list.length, 0);
+  const handleAulaPress = (aula: AulaProfessor) => {
+    router.push({
+      pathname: "/AulaDetalhe",
+      params: {
+        id: aula.id,
+        timeStart: aula.timeStart,
+        timeEnd: aula.timeEnd,
+        subject: aula.subject,
+        teacher: usuario?.nome ?? "",
+        diaSemana: aula.diaSemana ?? "",
+        professorId: usuario?.id ?? "",
+        salaId: aula.salaId ?? "",
+        salaNome: aula.salaNome ?? "",
+        salaTurma: aula.salaTurma ?? "",
+        turno: aula.turno,
+        isInterval: "false",
+        readOnly: "true",
+      },
+    });
+  };
+
+  const todosSlots = computeAulaSlots(selectedTurno, int1Gap, int2Gap);
+
+  // Aulas do professor no turno+dia selecionados
+  const aulasNoDia = selectedDia
+    ? minhasAulas.filter(a => a.turno === selectedTurno && a.diaSemana === selectedDia)
+    : [];
+
+  const slotEntries = todosSlots.map(s => ({
+    slot: s,
+    aula: aulasNoDia.find(a => a.timeStart === s.start) ?? null,
+  }));
+
+  const totalAulas = minhasAulas.length;
 
   return (
     <SafeAreaView style={s.container}>
@@ -316,7 +183,7 @@ export default function CronogramasProfessorScreen() {
       {carregando ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
-        <ScrollView contentContainerStyle={s.scrollContent}>
+        <ScrollView contentContainerStyle={[s.scrollContent, { paddingBottom: 80 }]}>
           {/* Resumo */}
           <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
             <View style={rs.card}>
@@ -326,7 +193,7 @@ export default function CronogramasProfessorScreen() {
                   {totalAulas} aula{totalAulas !== 1 ? "s" : ""} atribuída{totalAulas !== 1 ? "s" : ""}
                 </Text>
                 <Text style={rs.subtotal}>
-                  Olá, {usuario?.nome?.split(" ")[0]}! Veja suas aulas abaixo.
+                  Olá, {usuario?.nome?.split(" ")[0]}! Veja seus horários abaixo.
                 </Text>
               </View>
             </View>
@@ -334,46 +201,104 @@ export default function CronogramasProfessorScreen() {
 
           {/* Seletor de turno */}
           <View style={s.section}>
-            <Text style={s.sectionTitle}>Selecione o Turno</Text>
-            <View style={s.turnoGrid}>
+            <Text style={s.sectionTitle}>Turno</Text>
+            <View style={[s.turnoGrid, { justifyContent: "flex-start" }]}>
               {TURNOS.map((turno) => (
                 <TouchableOpacity
                   key={turno.id}
                   style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]}
-                  onPress={() => setSelectedTurno(turno.id)}
+                  onPress={() => { setSelectedTurno(turno.id); setSelectedDia(null); }}
                 >
                   <Ionicons
                     name={turno.ionicon}
                     size={24}
                     color={selectedTurno === turno.id ? TURNO_COLORS[turno.id] : "#1a1a2e"}
                   />
-                  <Text style={s.turnoLabel}>{turno.label}</Text>
-                  <Text style={s.turnoTime}>{turno.time}</Text>
+                  <Text style={s.turnoLabel} numberOfLines={1}>{turno.label}</Text>
+                  <Text style={s.turnoTime} numberOfLines={1}>{turno.time}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* Calendário */}
+          {/* Seletor de dia */}
           <View style={s.section}>
-            <View style={act.calHeader}>
-              <Ionicons
-                name={TURNOS.find(t => t.id === selectedTurno)?.ionicon ?? "calendar-outline"}
-                size={16}
-                color={TURNO_COLORS[selectedTurno]}
-              />
-              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>
-                {TURNOS.find(t => t.id === selectedTurno)?.label} — Minhas Aulas
-              </Text>
+            <Text style={s.sectionTitle}>Dia da semana</Text>
+            <View style={pv.diasRow}>
+              {DIAS_SEMANA.map((dia) => (
+                <TouchableOpacity
+                  key={dia}
+                  style={[pv.diaChip, selectedDia === dia && pv.diaChipActive]}
+                  onPress={() => setSelectedDia(selectedDia === dia ? null : dia)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[pv.diaChipText, selectedDia === dia && pv.diaChipTextActive]}>
+                    {dia.slice(0, 3)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-            <CalendarioSemanalProf
-              aulas={minhasAulas[selectedTurno]}
-              turno={selectedTurno}
-            />
+          </View>
+
+          {/* Grade de horários */}
+          <View style={s.section}>
+            <Text style={[s.sectionTitle, { marginBottom: 14 }]}>
+              {selectedDia ? `${selectedDia} · ${TURNOS.find(t => t.id === selectedTurno)?.label}` : "Selecione um dia"}
+            </Text>
+
+            {!selectedDia ? (
+              <View style={pv.promptBox}>
+                <Ionicons name="calendar-outline" size={44} color="#ccc" />
+                <Text style={pv.promptTitle}>Selecione um dia acima</Text>
+                <Text style={pv.promptSub}>Seus horários aparecerão aqui</Text>
+              </View>
+            ) : (
+              <View style={{ gap: 10 }}>
+                {slotEntries.map(({ slot, aula }) =>
+                  aula ? (
+                    <TouchableOpacity
+                      key={slot.start}
+                      style={[pv.aulaCard, { borderLeftColor: TURNO_COLORS[selectedTurno] }]}
+                      onPress={() => handleAulaPress(aula)}
+                      activeOpacity={0.82}
+                    >
+                      <View style={[pv.aulaTimeBox, { backgroundColor: TURNO_COLORS[selectedTurno] + "18" }]}>
+                        <Text style={[pv.aulaTime, { color: TURNO_COLORS[selectedTurno] }]}>{slot.start}</Text>
+                        <Text style={[pv.aulaTimeEnd, { color: TURNO_COLORS[selectedTurno] + "AA" }]}>{slot.end}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={pv.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
+                        {aula.salaNome ? (
+                          <View style={pv.aulaDetail}>
+                            <Ionicons name="business-outline" size={11} color="#888" />
+                            <Text style={pv.aulaDetailText} numberOfLines={1}>
+                              {aula.salaNome}{aula.salaTurma ? ` — ${aula.salaTurma}` : ""}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color="#ccc" />
+                    </TouchableOpacity>
+                  ) : (
+                    <View key={slot.start} style={pv.vagoCard}>
+                      <View style={pv.vagoTimeBox}>
+                        <Text style={pv.vagoTime}>{slot.start}</Text>
+                        <Text style={pv.vagoTimeEnd}>{slot.end}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={pv.vagoText}>Horário vago</Text>
+                      </View>
+                      <Ionicons name="time-outline" size={18} color="#ddd" />
+                    </View>
+                  )
+                )}
+              </View>
+            )}
           </View>
         </ScrollView>
       )}
 
+      {/* Tab bar */}
       <View style={s.tabBar}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -385,7 +310,7 @@ export default function CronogramasProfessorScreen() {
               activeOpacity={0.7}
             >
               <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
-              <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
+              <Text style={[s.tabLabel, isActive && s.tabLabelActive]} numberOfLines={1}>{tab.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -394,133 +319,51 @@ export default function CronogramasProfessorScreen() {
   );
 }
 
-// ─── Estilos ──────────────────────────────────────────────────────────────────
-const cal = StyleSheet.create({
-  empty: { alignItems: "center", paddingVertical: 40, gap: 10 },
-  emptyText: { fontSize: 15, fontWeight: "600", color: "#aaa", textAlign: "center" },
-
-  dayHeader: {
-    backgroundColor: "#1a1a2e",
-    borderRadius: 8,
-    paddingVertical: 8,
-    alignItems: "center",
-  },
-  dayHeaderText: { fontSize: 11, fontWeight: "800", color: "#fff", letterSpacing: 0.8 },
-
-  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center", gap: 1 },
-  timeText: { fontSize: 10, fontWeight: "800", color: "#555" },
-  timeTextEnd: { fontSize: 9, fontWeight: "800", color: "#555" },
-
-  aulaCard: {
-    backgroundColor: "#FAFFFE",
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    padding: 9,
-    flex: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
-  aulaTime: { fontSize: 10, fontWeight: "800" },
-  aulaSubject: { fontSize: 12, fontWeight: "700", color: "#1a1a2e", marginBottom: 5, lineHeight: 16 },
-  detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 3 },
-  detailText: { fontSize: 10, color: "#666", flex: 1 },
-
-  emptyCell: {
-    flex: 1,
-    minHeight: 76,
-    borderWidth: 1,
-    borderColor: "#EBEBEB",
-    borderRadius: 10,
-    borderStyle: "dashed",
-    backgroundColor: "#FAFAFA",
-  },
-
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 10,
-  },
-  sectionHeaderText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#999",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-  },
-
-  rowCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#F0F0F0",
-    gap: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-  },
-  rowTimeBox: { alignItems: "center", width: 44, gap: 2 },
-  rowTimeStart: { fontSize: 12, fontWeight: "800", color: "#1a1a2e" },
-  rowTimeEnd: { fontSize: 11, color: "#aaa" },
-  rowSubject: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 3 },
-
-  intervaloFaixa: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#FFF8F0",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: "#FED7AA",
-  },
-  intervaloFaixaText: { fontSize: 12, color: "#92400e", fontWeight: "600", flex: 1 },
-
-  intervaloCelula: {
-    flex: 1,
-    minHeight: 54,
-    backgroundColor: "#FFF8F0",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#FED7AA",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-    padding: 6,
-  },
-  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700" },
-  intervaloCelulaHora: { fontSize: 9, color: "#b45309" },
-});
-
 const rs = StyleSheet.create({
   card: {
-    backgroundColor: "#e8f5ea",
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 4,
+    backgroundColor: "#e8f5ea", borderRadius: 14, padding: 16,
+    flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 4,
   },
   total: { fontSize: 16, fontWeight: "700", color: "#2d6a4f" },
   subtotal: { fontSize: 12, color: "#52b788", marginTop: 2 },
 });
 
-const act = StyleSheet.create({
-  calHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 14,
+const pv = StyleSheet.create({
+  diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  diaChip: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: "#F0F0F0", borderWidth: 1.5, borderColor: "transparent",
   },
+  diaChipActive: { backgroundColor: "#e8f5ea", borderColor: "#3a7d44" },
+  diaChipText: { fontSize: 13, fontWeight: "600", color: "#666" },
+  diaChipTextActive: { color: "#3a7d44" },
+
+  promptBox: { alignItems: "center", paddingVertical: 40, gap: 8 },
+  promptTitle: { fontSize: 16, fontWeight: "700", color: "#aaa" },
+  promptSub: { fontSize: 13, color: "#ccc" },
+
+  aulaCard: {
+    flexDirection: "row", alignItems: "center", backgroundColor: "#fff",
+    borderRadius: 14, padding: 14, borderLeftWidth: 4, gap: 12,
+    elevation: 2, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
+  },
+  aulaTimeBox: {
+    alignItems: "center", width: 52, borderRadius: 10,
+    paddingVertical: 8, paddingHorizontal: 4, gap: 2,
+  },
+  aulaTime: { fontSize: 13, fontWeight: "800" },
+  aulaTimeEnd: { fontSize: 10, fontWeight: "600" },
+  aulaSubject: { fontSize: 14, fontWeight: "700", color: "#1a1a2e", marginBottom: 4 },
+  aulaDetail: { flexDirection: "row", alignItems: "center", gap: 4 },
+  aulaDetailText: { fontSize: 11, color: "#888", flex: 1 },
+
+  vagoCard: {
+    flexDirection: "row", alignItems: "center", backgroundColor: "#FAFAFA",
+    borderRadius: 14, padding: 14, borderWidth: 1.5,
+    borderColor: "#EBEBEB", borderStyle: "dashed", gap: 12,
+  },
+  vagoTimeBox: { alignItems: "center", width: 52, gap: 2 },
+  vagoTime: { fontSize: 13, fontWeight: "700", color: "#ccc" },
+  vagoTimeEnd: { fontSize: 10, color: "#ddd" },
+  vagoText: { fontSize: 13, fontWeight: "600", color: "#ccc", fontStyle: "italic" },
 });

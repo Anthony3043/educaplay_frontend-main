@@ -1,159 +1,167 @@
-import { styles as s } from "@/styles/EditarHorarioStyles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Modal,
+  computeSchedule,
+  intervalStorageKey,
+  DEFAULT_INT1_GAP,
+  DEFAULT_INT2_GAP,
+  SLOT_H,
+  INT_H,
+} from "@/src/constants/slots";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  LayoutAnimation,
+  PanResponder,
+  Platform,
+  UIManager,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { styles as s } from "@/styles/EditarHorarioStyles";
 
-type Slot = { start: string; end: string };
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const SNAP = Math.round((SLOT_H + 8) / 2);
 
 const TURNO_LABELS: Record<string, string> = {
   matutino: "Matutino",
   vespertino: "Vespertino",
-  noturno: "Noturno",
-  integral: "Integral",
 };
-
 const TURNO_ICONS: Record<string, React.ComponentProps<typeof Ionicons>["name"]> = {
-  matutino:   "sunny-outline",
+  matutino: "sunny-outline",
   vespertino: "partly-sunny-outline",
-  noturno:    "moon-outline",
-  integral:   "book-outline",
 };
-
-const TURNO_LIMITES: Record<string, { inicio: string; fim: string }> = {
-  matutino:   { inicio: "07:00", fim: "12:35" },
-  vespertino: { inicio: "13:00", fim: "18:00" },
-  noturno:    { inicio: "18:30", fim: "23:00" },
-  integral:   { inicio: "07:00", fim: "18:00" },
-};
-
-export function storageKeyHorarios(turno: string, salaId?: string) {
-  return salaId ? `@educaplay_horarios_${salaId}_${turno}` : `@educaplay_horarios_${turno}`;
-}
-
-function toMinutes(time: string): number {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function formatarHorario(texto: string): string {
-  const digitos = texto.replace(/\D/g, "").slice(0, 4);
-  let normalized = digitos;
-  if (normalized.length >= 1 && parseInt(normalized[0], 10) >= 3) {
-    normalized = "0" + normalized;
-  }
-  normalized = normalized.slice(0, 4);
-  if (normalized.length <= 2) return normalized;
-  return `${normalized.slice(0, 2)}:${normalized.slice(2)}`;
-}
-
-function calcDuracao(start: string, end: string): string {
-  const totalMin = toMinutes(end) - toMinutes(start);
-  if (totalMin <= 0) return "";
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  if (h > 0 && m > 0) return `${h}h ${m}min`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
 
 export default function HorarioAulasScreen() {
   const router = useRouter();
-  const { turno, salaId } = useLocalSearchParams<{ turno: string; salaId?: string }>();
+  const { turno } = useLocalSearchParams<{ turno: string }>();
 
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [addModal, setAddModal] = useState(false);
-  const [novoStart, setNovoStart] = useState("");
-  const [novoEnd, setNovoEnd] = useState("");
-  const [erroAdd, setErroAdd] = useState<string | null>(null);
-  const [confirmModal, setConfirmModal] = useState(false);
-  const [textoConfirm, setTextoConfirm] = useState("");
+  const [int1Gap, setInt1Gap] = useState(DEFAULT_INT1_GAP);
+  const [int2Gap, setInt2Gap] = useState(DEFAULT_INT2_GAP);
+  const [dragging, setDragging] = useState<"i1" | "i2" | null>(null);
+  const [scrollEnabled, setScrollEnabled] = useState(true);
 
-  const FRASE_CONFIRMAR = "limpar horários";
+  // Refs for mutable drag state — safe to access inside PanResponder closures
+  const i1Ref = useRef(DEFAULT_INT1_GAP);
+  const i2Ref = useRef(DEFAULT_INT2_GAP);
+  const base1 = useRef(0);
+  const base2 = useRef(0);
+  const anim1 = useRef(new Animated.Value(0)).current;
+  const anim2 = useRef(new Animated.Value(0)).current;
+
+  const storageKey = intervalStorageKey(turno);
 
   useEffect(() => {
-    AsyncStorage.getItem(storageKeyHorarios(turno, salaId || undefined))
-      .then((val) => setSlots(val ? JSON.parse(val) : []))
-      .catch(() => setSlots([]));
-  }, [turno]);
+    AsyncStorage.getItem(storageKey).then(raw => {
+      if (!raw) return;
+      try {
+        const { g1, g2 } = JSON.parse(raw) as { g1: number; g2: number };
+        if (Number.isInteger(g1) && Number.isInteger(g2) && g1 >= 0 && g2 <= 7 && g1 < g2) {
+          i1Ref.current = g1;
+          i2Ref.current = g2;
+          setInt1Gap(g1);
+          setInt2Gap(g2);
+        }
+      } catch {}
+    });
+  }, [storageKey]);
 
-  const salvarSlots = async (novos: Slot[]) => {
-    await AsyncStorage.setItem(storageKeyHorarios(turno, salaId || undefined), JSON.stringify(novos));
-    setSlots(novos);
-  };
+  // Called on release — storageKey is stable, refs are always current
+  const save = () =>
+    AsyncStorage.setItem(storageKey, JSON.stringify({ g1: i1Ref.current, g2: i2Ref.current }));
 
-  const adicionarSlot = () => {
-    const formato = /^\d{2}:\d{2}$/;
-    if (!formato.test(novoStart) || !formato.test(novoEnd)) {
-      setErroAdd("Use o formato HH:MM (ex: 07:00, 07:50).");
-      return;
-    }
-    if (toMinutes(novoEnd) <= toMinutes(novoStart)) {
-      setErroAdd("O término deve ser após o início.");
-      return;
-    }
-    const limite = TURNO_LIMITES[turno];
-    if (limite) {
-      if (toMinutes(novoStart) < toMinutes(limite.inicio) || toMinutes(novoStart) >= toMinutes(limite.fim)) {
-        setErroAdd(`Início fora do turno (${limite.inicio} – ${limite.fim}).`);
-        return;
-      }
-      if (toMinutes(novoEnd) > toMinutes(limite.fim)) {
-        setErroAdd(`Término fora do turno (${limite.inicio} – ${limite.fim}).`);
-        return;
-      }
-    }
-    const jaExiste = slots.some((sl) => sl.start === novoStart && sl.end === novoEnd);
-    if (jaExiste) {
-      setErroAdd("Este horário já está na lista.");
-      return;
-    }
-    const novos = [...slots, { start: novoStart, end: novoEnd }]
-      .sort((a, b) => a.start.localeCompare(b.start));
-    salvarSlots(novos);
-    setAddModal(false);
-    setNovoStart("");
-    setNovoEnd("");
-    setErroAdd(null);
-  };
+  const panResponder1 = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (_, gs) => {
+        base1.current = gs.dy;
+        setDragging("i1");
+        setScrollEnabled(false);
+      },
+      onPanResponderMove: (_, gs) => {
+        const rel = gs.dy - base1.current;
+        anim1.setValue(rel);
+        // Move down: i1 must stay strictly below i2
+        if (rel > SNAP && i1Ref.current + 1 < i2Ref.current) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          base1.current = gs.dy;
+          anim1.setValue(0);
+          i1Ref.current++;
+          setInt1Gap(i1Ref.current);
+        } else if (rel < -SNAP && i1Ref.current > 0) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          base1.current = gs.dy;
+          anim1.setValue(0);
+          i1Ref.current--;
+          setInt1Gap(i1Ref.current);
+        }
+      },
+      onPanResponderRelease: () => {
+        anim1.setValue(0);
+        setDragging(null);
+        setScrollEnabled(true);
+        save();
+      },
+      onPanResponderTerminate: () => {
+        anim1.setValue(0);
+        setDragging(null);
+        setScrollEnabled(true);
+      },
+    })
+  ).current;
 
-  const removerSlot = (index: number) => {
-    Alert.alert(
-      "Remover horário",
-      `Remover ${slots[index].start} – ${slots[index].end} da lista?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Remover",
-          style: "destructive",
-          onPress: () => salvarSlots(slots.filter((_, i) => i !== index)),
-        },
-      ]
-    );
-  };
+  const panResponder2 = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (_, gs) => {
+        base2.current = gs.dy;
+        setDragging("i2");
+        setScrollEnabled(false);
+      },
+      onPanResponderMove: (_, gs) => {
+        const rel = gs.dy - base2.current;
+        anim2.setValue(rel);
+        // Move down: i2 can go up to gap 7 (after last slot)
+        if (rel > SNAP && i2Ref.current < 7) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          base2.current = gs.dy;
+          anim2.setValue(0);
+          i2Ref.current++;
+          setInt2Gap(i2Ref.current);
+        } else if (rel < -SNAP && i2Ref.current - 1 > i1Ref.current) {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          base2.current = gs.dy;
+          anim2.setValue(0);
+          i2Ref.current--;
+          setInt2Gap(i2Ref.current);
+        }
+      },
+      onPanResponderRelease: () => {
+        anim2.setValue(0);
+        setDragging(null);
+        setScrollEnabled(true);
+        save();
+      },
+      onPanResponderTerminate: () => {
+        anim2.setValue(0);
+        setDragging(null);
+        setScrollEnabled(true);
+      },
+    })
+  ).current;
 
-  const limparTudo = () => {
-    setTextoConfirm("");
-    setConfirmModal(true);
-  };
-
-  const confirmarLimpeza = () => {
-    salvarSlots([]);
-    setConfirmModal(false);
-    setTextoConfirm("");
-  };
+  const schedule = computeSchedule(turno, int1Gap, int2Gap);
 
   return (
     <SafeAreaView style={s.container}>
@@ -164,431 +172,128 @@ export default function HorarioAulasScreen() {
           <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Horário das Aulas</Text>
-        <TouchableOpacity
-          style={[s.saveBtn, { backgroundColor: "#fff", borderWidth: 1.5, borderColor: "#3a7d44" }]}
-          onPress={() => setAddModal(true)}
-        >
-          <Ionicons name="add" size={22} color="#3a7d44" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40, gap: 16 }}>
-        {/* Banner do turno */}
-        <View style={s.horarioBanner}>
-          <Ionicons name={TURNO_ICONS[turno] ?? "calendar-outline"} size={28} color="#3a7d44" />
+      <ScrollView
+        scrollEnabled={scrollEnabled}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
+      >
+        <View style={ha.banner}>
+          <Ionicons name={TURNO_ICONS[turno] ?? "calendar-outline"} size={26} color="#3a7d44" />
           <View style={{ flex: 1 }}>
-            <Text style={s.horarioBannerTime}>{TURNO_LABELS[turno] ?? turno}</Text>
-            <Text style={s.horarioBannerSub}>
-              {slots.length === 0
-                ? "Nenhum horário configurado"
-                : `${slots.length} horário${slots.length > 1 ? "s" : ""} configurado${slots.length > 1 ? "s" : ""}`}
-            </Text>
+            <Text style={ha.bannerTitle}>{TURNO_LABELS[turno] ?? turno}</Text>
+            <Text style={ha.bannerSub}>7 aulas · 2 intervalos · 45 min por aula</Text>
           </View>
         </View>
 
-        {/* Explicação */}
         <View style={ha.infoBanner}>
-          <Ionicons name="information-circle-outline" size={18} color="#1d4ed8" />
+          <Ionicons name="hand-left-outline" size={16} color="#1d4ed8" />
           <Text style={ha.infoText}>
-            Os horários definidos aqui serão usados ao criar novas aulas, garantindo que todas as colunas fiquem com tempos idênticos.
+            Arraste os intervalos (em laranja) para mudar de posição. Os horários das aulas se ajustam automaticamente.
           </Text>
         </View>
 
-        {/* Lista de slots */}
-        {slots.length === 0 ? (
-          <View style={ha.empty}>
-            <Ionicons name="time-outline" size={48} color="#ccc" />
-            <Text style={ha.emptyTitle}>Nenhum horário configurado</Text>
-            <Text style={ha.emptyHint}>Toque em "+" para adicionar o primeiro horário.</Text>
-          </View>
-        ) : (
-          <>
-            {slots.map((slot, idx) => (
-              <View key={idx} style={ha.slotCard}>
-                <View style={ha.slotIconBox}>
-                  <Ionicons name="time-outline" size={22} color="#3a7d44" />
+        <View style={{ marginTop: 12, gap: 8 }}>
+          {schedule.map(item => {
+            if (item.type === "intervalo") {
+              const isI1 = item.intervalId === "i1";
+              const anim = isI1 ? anim1 : anim2;
+              const panHandlers = isI1 ? panResponder1.panHandlers : panResponder2.panHandlers;
+              const isDragging = dragging === item.intervalId;
+
+              return (
+                <Animated.View
+                  key={item.key}
+                  style={[
+                    ha.intervaloCard,
+                    isDragging && ha.intervaloCardDragging,
+                    { transform: [{ translateY: anim }], zIndex: isDragging ? 10 : 1 },
+                  ]}
+                  {...panHandlers}
+                >
+                  <View style={ha.intervaloTimeBox}>
+                    <Text style={ha.intervaloTime}>{item.start}</Text>
+                    <Text style={ha.intervaloTimeEnd}>{item.end}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={ha.intervaloLabel}>{item.label}</Text>
+                    <Text style={ha.intervaloDur}>15 min · arraste para mover</Text>
+                  </View>
+                  <Ionicons name="reorder-three-outline" size={24} color="#b45309" />
+                </Animated.View>
+              );
+            }
+
+            return (
+              <View key={item.key} style={ha.slotCard}>
+                <View style={ha.slotNum}>
+                  <Text style={ha.slotNumText}>{item.slotIndex}</Text>
+                </View>
+                <View style={{ alignItems: "center", width: 52, gap: 2 }}>
+                  <Text style={ha.slotTime}>{item.start}</Text>
+                  <Text style={ha.slotTimeEnd}>{item.end}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={ha.slotTime}>{slot.start} – {slot.end}</Text>
-                  <Text style={ha.slotDur}>{calcDuracao(slot.start, slot.end)}</Text>
+                  <Text style={ha.slotLabel}>Aula {item.slotIndex}</Text>
+                  <Text style={ha.slotDur}>45 min</Text>
                 </View>
-                <TouchableOpacity
-                  onPress={() => removerSlot(idx)}
-                  style={ha.deleteBtn}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={18} color="#DC2626" />
-                </TouchableOpacity>
+                <Ionicons name="lock-closed-outline" size={14} color="#ccc" />
               </View>
-            ))}
-
-            <TouchableOpacity onPress={limparTudo} style={ha.clearBtn} activeOpacity={0.8}>
-              <Text style={ha.clearBtnText}>🗑️ Limpar todos os horários</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </ScrollView>
-
-      {/* Modal confirmação limpar tudo */}
-      <Modal visible={confirmModal} transparent animationType="fade" onRequestClose={() => setConfirmModal(false)}>
-        <View style={ha.confirmOverlay}>
-          <View style={ha.confirmCard}>
-            {/* Ícone de aviso */}
-            <View style={ha.confirmIconBox}>
-              <Ionicons name="warning-outline" size={32} color="#DC2626" />
-            </View>
-
-            <Text style={ha.confirmTitle}>Limpar todos os horários?</Text>
-            <Text style={ha.confirmSubtitle}>
-              Esta ação removerá <Text style={{ fontWeight: "800" }}>todos</Text> os horários configurados para o turno{" "}
-              <Text style={{ fontWeight: "800" }}>{TURNO_LABELS[turno] ?? turno}</Text> e não poderá ser desfeita.
-            </Text>
-
-            {/* Instrução de digitação */}
-            <View style={ha.confirmPhraseBox}>
-              <Text style={ha.confirmPhraseLabel}>Para confirmar, digite:</Text>
-              <Text style={ha.confirmPhrase}>"{FRASE_CONFIRMAR}"</Text>
-            </View>
-
-            <TextInput
-              style={[
-                ha.confirmInput,
-                textoConfirm === FRASE_CONFIRMAR && ha.confirmInputOk,
-              ]}
-              value={textoConfirm}
-              onChangeText={setTextoConfirm}
-              placeholder={FRASE_CONFIRMAR}
-              placeholderTextColor="#ccc"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-
-            {/* Progresso visual */}
-            {textoConfirm.length > 0 && textoConfirm !== FRASE_CONFIRMAR && (
-              <Text style={ha.confirmProgresso}>
-                {textoConfirm.length}/{FRASE_CONFIRMAR.length} caracteres
-              </Text>
-            )}
-            {textoConfirm === FRASE_CONFIRMAR && (
-              <Text style={ha.confirmOkText}>✓ Frase confirmada</Text>
-            )}
-
-            <View style={ha.confirmBtns}>
-              <TouchableOpacity
-                style={ha.confirmBtnCancelar}
-                onPress={() => setConfirmModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={ha.confirmBtnCancelarText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  ha.confirmBtnLimpar,
-                  textoConfirm !== FRASE_CONFIRMAR && ha.confirmBtnDisabled,
-                ]}
-                onPress={confirmarLimpeza}
-                disabled={textoConfirm !== FRASE_CONFIRMAR}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="trash-outline" size={16} color="#fff" />
-                <Text style={ha.confirmBtnLimparText}>Limpar tudo</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            );
+          })}
         </View>
-      </Modal>
-
-      {/* Modal adicionar slot */}
-      <Modal visible={addModal} transparent animationType="slide" onRequestClose={() => setAddModal(false)}>
-        <TouchableOpacity
-          style={ha.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setAddModal(false)}
-        >
-          <TouchableOpacity activeOpacity={1} style={ha.modalCard}>
-            <View style={ha.modalHeader}>
-              <Text style={ha.modalTitle}>Adicionar horário</Text>
-              <TouchableOpacity onPress={() => setAddModal(false)}>
-                <Ionicons name="close" size={22} color="#aaa" />
-              </TouchableOpacity>
-            </View>
-
-            {TURNO_LIMITES[turno] && (
-              <Text style={ha.limiteHint}>
-                🕐 Turno: {TURNO_LIMITES[turno].inicio} – {TURNO_LIMITES[turno].fim}
-              </Text>
-            )}
-
-            <Text style={s.sectionTitle}>Início</Text>
-            <TextInput
-              style={[s.inputCard, { marginBottom: 14 }]}
-              value={novoStart}
-              onChangeText={(t) => { setNovoStart(formatarHorario(t)); setErroAdd(null); }}
-              placeholder="Ex: 07:00"
-              placeholderTextColor="#aaa"
-              keyboardType="numeric"
-              maxLength={5}
-              autoFocus
-            />
-
-            <Text style={s.sectionTitle}>Término</Text>
-            <TextInput
-              style={[s.inputCard, { marginBottom: 14 }]}
-              value={novoEnd}
-              onChangeText={(t) => { setNovoEnd(formatarHorario(t)); setErroAdd(null); }}
-              placeholder="Ex: 07:50"
-              placeholderTextColor="#aaa"
-              keyboardType="numeric"
-              maxLength={5}
-            />
-
-            {erroAdd ? (
-              <Text style={ha.erroText}>⚠ {erroAdd}</Text>
-            ) : null}
-
-            <TouchableOpacity style={ha.addConfirmBtn} onPress={adicionarSlot} activeOpacity={0.85}>
-              <Ionicons name="checkmark" size={18} color="#fff" />
-              <Text style={ha.addConfirmBtnText}>Adicionar</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const ha = StyleSheet.create({
-  infoBanner: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    backgroundColor: "#EFF6FF",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
+  banner: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#E8F5EA", borderRadius: 14, padding: 14, marginBottom: 12,
   },
-  infoText: { fontSize: 13, color: "#1d4ed8", flex: 1, lineHeight: 18 },
+  bannerTitle: { fontSize: 15, fontWeight: "800", color: "#2d6a4f" },
+  bannerSub: { fontSize: 12, color: "#52b788", marginTop: 2 },
 
-  empty: { alignItems: "center", paddingVertical: 40, gap: 10 },
-  emptyTitle: { fontSize: 15, fontWeight: "600", color: "#aaa" },
-  emptyHint: { fontSize: 13, color: "#ccc", textAlign: "center" },
+  infoBanner: {
+    flexDirection: "row", alignItems: "flex-start", gap: 10,
+    backgroundColor: "#EFF6FF", borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: "#BFDBFE",
+  },
+  infoText: { fontSize: 12, color: "#1d4ed8", flex: 1, lineHeight: 18 },
 
   slotCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1.5,
-    borderColor: "#E8F5EA",
-    gap: 12,
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#fff", borderRadius: 14, padding: 14,
+    borderWidth: 1.5, borderColor: "#E8F5EA", gap: 12,
+    elevation: 1, shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 }, minHeight: SLOT_H,
   },
-  slotIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: "#E8F5EA",
-    alignItems: "center",
-    justifyContent: "center",
+  slotNum: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: "#E8F5EA", alignItems: "center", justifyContent: "center",
   },
-  slotTime: { fontSize: 16, fontWeight: "800", color: "#1a1a2e" },
-  slotDur: { fontSize: 12, color: "#888", marginTop: 2 },
-  deleteBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#FEE2E2",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  slotNumText: { fontSize: 11, fontWeight: "800", color: "#3a7d44" },
+  slotTime: { fontSize: 14, fontWeight: "800", color: "#1a1a2e" },
+  slotTimeEnd: { fontSize: 11, color: "#888" },
+  slotLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e" },
+  slotDur: { fontSize: 11, color: "#aaa", marginTop: 2 },
 
-  clearBtn: {
-    marginTop: 8,
-    padding: 14,
-    backgroundColor: "#fee2e2",
-    borderRadius: 12,
-    alignItems: "center",
+  intervaloCard: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#FFF8F0", borderRadius: 14, padding: 14,
+    borderWidth: 2, borderColor: "#FED7AA", gap: 12,
+    elevation: 3, shadowColor: "#92400e", shadowOpacity: 0.1, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }, minHeight: INT_H,
   },
-  clearBtnText: { color: "#dc2626", fontWeight: "700", fontSize: 14 },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
+  intervaloCardDragging: {
+    elevation: 8, shadowOpacity: 0.28, borderColor: "#F59E0B",
+    backgroundColor: "#FFFBEB",
   },
-  modalCard: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 22,
-    borderTopRightRadius: 22,
-    padding: 20,
-    paddingBottom: 36,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  modalTitle: { fontSize: 17, fontWeight: "800", color: "#1a1a2e" },
-  limiteHint: {
-    fontSize: 12,
-    color: "#3a7d44",
-    fontWeight: "600",
-    marginBottom: 14,
-  },
-  erroText: { fontSize: 13, color: "#DC2626", marginBottom: 12 },
-  addConfirmBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#3a7d44",
-    borderRadius: 12,
-    paddingVertical: 14,
-    marginTop: 4,
-  },
-  addConfirmBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-
-  // — Modal confirmação limpar tudo —
-  confirmOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  confirmCard: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 24,
-    width: "100%",
-    alignItems: "center",
-    gap: 0,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  confirmIconBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#FEE2E2",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 14,
-  },
-  confirmTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1a1a2e",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  confirmSubtitle: {
-    fontSize: 13,
-    color: "#555",
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 18,
-  },
-  confirmPhraseBox: {
-    backgroundColor: "#FEF2F2",
-    borderRadius: 10,
-    padding: 12,
-    width: "100%",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#FECACA",
-    marginBottom: 14,
-  },
-  confirmPhraseLabel: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  confirmPhrase: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#DC2626",
-    letterSpacing: 0.3,
-  },
-  confirmInput: {
-    width: "100%",
-    backgroundColor: "#F9FAFB",
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: "#1a1a2e",
-    fontWeight: "500",
-    textAlign: "center",
-    marginBottom: 6,
-  },
-  confirmInputOk: {
-    borderColor: "#3a7d44",
-    backgroundColor: "#F0FDF4",
-  },
-  confirmProgresso: {
-    fontSize: 11,
-    color: "#aaa",
-    marginBottom: 18,
-    alignSelf: "flex-end",
-  },
-  confirmOkText: {
-    fontSize: 12,
-    color: "#3a7d44",
-    fontWeight: "700",
-    marginBottom: 18,
-    alignSelf: "flex-start",
-  },
-  confirmBtns: {
-    flexDirection: "row",
-    gap: 10,
-    width: "100%",
-    marginTop: 4,
-  },
-  confirmBtnCancelar: {
-    flex: 1,
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "#E5E7EB",
-    alignItems: "center",
-  },
-  confirmBtnCancelarText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#555",
-  },
-  confirmBtnLimpar: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 6,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: "#DC2626",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  confirmBtnDisabled: {
-    backgroundColor: "#FCA5A5",
-  },
-  confirmBtnLimparText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#fff",
-  },
+  intervaloTimeBox: { alignItems: "center", width: 52, gap: 2 },
+  intervaloTime: { fontSize: 14, fontWeight: "800", color: "#92400e" },
+  intervaloTimeEnd: { fontSize: 11, color: "#b45309" },
+  intervaloLabel: { fontSize: 13, fontWeight: "800", color: "#92400e" },
+  intervaloDur: { fontSize: 11, color: "#d97706", marginTop: 2 },
 });
