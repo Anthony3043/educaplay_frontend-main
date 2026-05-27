@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { styles as s } from "@/styles/Cronogramasstyles";
 import {
   computeSchedule,
@@ -21,8 +21,6 @@ import {
   Animated,
   LayoutAnimation,
   PanResponder,
-  Platform,
-  UIManager,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -34,10 +32,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
 import { useAuth } from "../context/AuthContext";
-
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const SNAP = Math.round((SLOT_H + 8) / 2);
 
