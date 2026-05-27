@@ -89,6 +89,14 @@ export default function ProfessoresScreen() {
   const adicionarMateria = () => {
     const trimmed = materiaInput.trim();
     if (!trimmed) return;
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(trimmed)) {
+      Alert.alert("Matéria inválida", "O nome da matéria deve conter apenas letras.");
+      return;
+    }
+    if (trimmed.length < 2) {
+      Alert.alert("Matéria inválida", "O nome da matéria deve ter pelo menos 2 letras.");
+      return;
+    }
     if (novasMaterias.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
       setMateriaInput("");
       return;
