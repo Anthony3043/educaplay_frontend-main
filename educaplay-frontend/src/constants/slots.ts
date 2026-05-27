@@ -72,6 +72,10 @@ export function intervalStorageKey(turno: string): string {
   return `@educaplay_interval_config_${turno}`;
 }
 
+export function intervalStorageKeyPerDay(turno: string, dia: string): string {
+  return `@educaplay_interval_config_${turno}_${dia}`;
+}
+
 // Returns the 7 aula slots with default interval positions.
 export function getSlotsForTurno(turno: string): Slot[] {
   return computeAulaSlots(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);

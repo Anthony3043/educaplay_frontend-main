@@ -3,9 +3,11 @@ import { styles as s } from "@/styles/Cronogramasstyles";
 import {
   computeSchedule,
   intervalStorageKey,
+  intervalStorageKeyPerDay,
   DEFAULT_INT1_GAP,
   DEFAULT_INT2_GAP,
   SLOT_H,
+  INT_H,
 } from "@/src/constants/slots";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -96,79 +98,96 @@ function CalendarioSemanal({
 }) {
   const cor = TURNO_COLORS[turno] || "#3a7d44";
 
-  const [int1Gap, setInt1Gap] = useState(DEFAULT_INT1_GAP);
-  const [int2Gap, setInt2Gap] = useState(DEFAULT_INT2_GAP);
+  const [dayGaps, setDayGaps] = useState<Record<string, { g1: number; g2: number }>>(
+    () => Object.fromEntries(DIAS_SEMANA.map(d => [d, { g1: DEFAULT_INT1_GAP, g2: DEFAULT_INT2_GAP }]))
+  );
 
-  const i1Ref  = useRef(DEFAULT_INT1_GAP);
-  const i2Ref  = useRef(DEFAULT_INT2_GAP);
-  const base1  = useRef(0);
-  const base2  = useRef(0);
-  const anim1  = useRef(new Animated.Value(0)).current;
-  const anim2  = useRef(new Animated.Value(0)).current;
-
-  const storageKey = intervalStorageKey(turno);
+  const gapRefs = useRef<Record<string, { g1: number; g2: number }>>(
+    Object.fromEntries(DIAS_SEMANA.map(d => [d, { g1: DEFAULT_INT1_GAP, g2: DEFAULT_INT2_GAP }]))
+  );
+  const baseRefs = useRef<Record<string, number>>(
+    Object.fromEntries(DIAS_SEMANA.flatMap(d => [`${d}_i1`, `${d}_i2`].map(k => [k, 0])))
+  );
+  const animRefs = useRef<Record<string, Animated.Value>>(
+    Object.fromEntries(DIAS_SEMANA.flatMap(d => [`${d}_i1`, `${d}_i2`].map(k => [k, new Animated.Value(0)])))
+  );
 
   useEffect(() => {
-    AsyncStorage.getItem(storageKey).then(raw => {
-      if (!raw) return;
+    DIAS_SEMANA.forEach(async (dia) => {
       try {
+        let raw = await AsyncStorage.getItem(intervalStorageKeyPerDay(turno, dia));
+        if (!raw) raw = await AsyncStorage.getItem(intervalStorageKey(turno));
+        if (!raw) return;
         const { g1, g2 } = JSON.parse(raw) as { g1: number; g2: number };
         if (Number.isInteger(g1) && Number.isInteger(g2) && g1 >= 0 && g2 <= 7 && g1 < g2) {
-          i1Ref.current = g1; i2Ref.current = g2;
-          setInt1Gap(g1); setInt2Gap(g2);
+          gapRefs.current[dia] = { g1, g2 };
+          setDayGaps(prev => ({ ...prev, [dia]: { g1, g2 } }));
         }
       } catch {}
     });
-  }, [storageKey]);
+  }, [turno]);
 
-  const save = () =>
-    AsyncStorage.setItem(storageKey, JSON.stringify({ g1: i1Ref.current, g2: i2Ref.current }));
+  // 12 PanResponders (6 days × 2 intervals), created once via IIFE in useRef
+  const pansRef = useRef((() => {
+    const pans: Record<string, ReturnType<typeof PanResponder.create>> = {};
+    DIAS_SEMANA.forEach(dia => {
+      (["i1", "i2"] as const).forEach(iKey => {
+        const panKey = `${dia}_${iKey}`;
+        pans[panKey] = PanResponder.create({
+          onStartShouldSetPanResponder: () => true,
+          onMoveShouldSetPanResponder: () => true,
+          onPanResponderGrant: (_, gs) => {
+            baseRefs.current[panKey] = gs.dy;
+            onDragging?.(true);
+          },
+          onPanResponderMove: (_, gs) => {
+            const rel = gs.dy - baseRefs.current[panKey];
+            animRefs.current[panKey].setValue(rel);
+            const dg = gapRefs.current[dia];
+            if (iKey === "i1") {
+              if (rel > SNAP && dg.g1 + 1 < dg.g2) {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                baseRefs.current[panKey] = gs.dy; animRefs.current[panKey].setValue(0);
+                dg.g1++;
+                setDayGaps(prev => ({ ...prev, [dia]: { g1: dg.g1, g2: dg.g2 } }));
+                AsyncStorage.setItem(intervalStorageKeyPerDay(turno, dia), JSON.stringify({ g1: dg.g1, g2: dg.g2 }));
+              } else if (rel < -SNAP && dg.g1 > 0) {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                baseRefs.current[panKey] = gs.dy; animRefs.current[panKey].setValue(0);
+                dg.g1--;
+                setDayGaps(prev => ({ ...prev, [dia]: { g1: dg.g1, g2: dg.g2 } }));
+                AsyncStorage.setItem(intervalStorageKeyPerDay(turno, dia), JSON.stringify({ g1: dg.g1, g2: dg.g2 }));
+              }
+            } else {
+              if (rel > SNAP && dg.g2 < 7) {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                baseRefs.current[panKey] = gs.dy; animRefs.current[panKey].setValue(0);
+                dg.g2++;
+                setDayGaps(prev => ({ ...prev, [dia]: { g1: dg.g1, g2: dg.g2 } }));
+                AsyncStorage.setItem(intervalStorageKeyPerDay(turno, dia), JSON.stringify({ g1: dg.g1, g2: dg.g2 }));
+              } else if (rel < -SNAP && dg.g2 - 1 > dg.g1) {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                baseRefs.current[panKey] = gs.dy; animRefs.current[panKey].setValue(0);
+                dg.g2--;
+                setDayGaps(prev => ({ ...prev, [dia]: { g1: dg.g1, g2: dg.g2 } }));
+                AsyncStorage.setItem(intervalStorageKeyPerDay(turno, dia), JSON.stringify({ g1: dg.g1, g2: dg.g2 }));
+              }
+            }
+          },
+          onPanResponderRelease: () => {
+            animRefs.current[panKey].setValue(0);
+            onDragging?.(false);
+          },
+          onPanResponderTerminate: () => {
+            animRefs.current[panKey].setValue(0);
+            onDragging?.(false);
+          },
+        });
+      });
+    });
+    return pans;
+  })());
 
-  const pr1 = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder:  () => true,
-    onPanResponderGrant: (_, gs) => { base1.current = gs.dy; onDragging?.(true); },
-    onPanResponderMove: (_, gs) => {
-      const rel = gs.dy - base1.current;
-      anim1.setValue(rel);
-      if (rel > SNAP && i1Ref.current + 1 < i2Ref.current) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        base1.current = gs.dy; anim1.setValue(0);
-        i1Ref.current++; setInt1Gap(i1Ref.current);
-      } else if (rel < -SNAP && i1Ref.current > 0) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        base1.current = gs.dy; anim1.setValue(0);
-        i1Ref.current--; setInt1Gap(i1Ref.current);
-      }
-    },
-    onPanResponderRelease:   () => { anim1.setValue(0); onDragging?.(false); save(); },
-    onPanResponderTerminate: () => { anim1.setValue(0); onDragging?.(false); },
-  })).current;
-
-  const pr2 = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder:  () => true,
-    onPanResponderGrant: (_, gs) => { base2.current = gs.dy; onDragging?.(true); },
-    onPanResponderMove: (_, gs) => {
-      const rel = gs.dy - base2.current;
-      anim2.setValue(rel);
-      if (rel > SNAP && i2Ref.current < 7) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        base2.current = gs.dy; anim2.setValue(0);
-        i2Ref.current++; setInt2Gap(i2Ref.current);
-      } else if (rel < -SNAP && i2Ref.current - 1 > i1Ref.current) {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        base2.current = gs.dy; anim2.setValue(0);
-        i2Ref.current--; setInt2Gap(i2Ref.current);
-      }
-    },
-    onPanResponderRelease:   () => { anim2.setValue(0); onDragging?.(false); save(); },
-    onPanResponderTerminate: () => { anim2.setValue(0); onDragging?.(false); },
-  })).current;
-
-  const schedule = computeSchedule(turno, int1Gap, int2Gap);
-
-  // Fast lookup: dia_timeStart → Aula
   const lookup: Record<string, Aula> = {};
   aulas
     .filter(a => !a.isInterval && !!a.diaSemana)
@@ -177,6 +196,9 @@ function CalendarioSemanal({
   const semDia = aulas
     .filter(a => !a.isInterval && !a.diaSemana)
     .sort((a, b) => a.timeStart.localeCompare(b.timeStart));
+
+  // Reference schedule drives the time column only
+  const refSchedule = computeSchedule(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
 
   return (
     <View>
@@ -199,84 +221,94 @@ function CalendarioSemanal({
             ))}
           </View>
 
-          {/* Linhas da grade */}
-          {schedule.map(item => {
-            if (item.type === "intervalo") {
-              const isI1 = item.intervalId === "i1";
-              const anim = isI1 ? anim1 : anim2;
-              const panHandlers = isI1 ? pr1.panHandlers : pr2.panHandlers;
-
-              return (
-                <Animated.View
+          {/* Grade: coluna de horas + colunas por dia */}
+          <View style={{ flexDirection: "row" }}>
+            {/* Coluna de horas (referência) */}
+            <View style={{ width: TIME_W }}>
+              {refSchedule.map(item => (
+                <View
                   key={item.key}
-                  style={[
-                    { flexDirection: "row", marginBottom: 6, alignItems: "center", zIndex: 5 },
-                    { transform: [{ translateY: anim }] },
-                  ]}
+                  style={{
+                    height: item.type === "intervalo" ? INT_H + 6 : SLOT_H + 6,
+                    justifyContent: "flex-start",
+                    paddingTop: 10,
+                    alignItems: "center",
+                    gap: 1,
+                  }}
                 >
-                  <View style={[cal.timeCol, { width: TIME_W }]}>
-                    <Text style={cal.timeText}>{item.start}</Text>
-                    <Text style={cal.timeTextEnd}>{item.end}</Text>
-                  </View>
-                  <View
-                    style={[cal.intervaloFaixa, { width: COL_W * DIAS_SEMANA.length }]}
-                    {...panHandlers}
-                  >
-                    <Ionicons name="cafe-outline" size={14} color="#92400e" />
-                    <Text style={cal.intervaloFaixaText} numberOfLines={1}>
-                      {item.label} · {item.start} – {item.end}
-                    </Text>
-                    <Ionicons name="reorder-three-outline" size={20} color="#b45309" />
-                  </View>
-                </Animated.View>
-              );
-            }
-
-            // Linha de aula: células por dia
-            return (
-              <View key={item.key} style={{ flexDirection: "row", marginBottom: 6, alignItems: "stretch" }}>
-                <View style={[cal.timeCol, { width: TIME_W }]}>
-                  <Text style={cal.timeText}>{item.start}</Text>
-                  <Text style={cal.timeTextEnd}>{item.end}</Text>
+                  {item.type === "aula" && (
+                    <>
+                      <Text style={cal.timeText}>{item.start}</Text>
+                      <Text style={cal.timeTextEnd}>{item.end}</Text>
+                    </>
+                  )}
                 </View>
-                {DIAS_SEMANA.map(dia => {
-                  const aula = lookup[`${dia}_${item.start}`];
-                  return (
-                    <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
-                      {aula ? (
-                        <TouchableOpacity
-                          style={[cal.aulaCard, { borderLeftColor: cor }]}
-                          onPress={() => onPress(aula)}
-                          activeOpacity={0.82}
+              ))}
+            </View>
+
+            {/* Colunas por dia */}
+            {DIAS_SEMANA.map(dia => {
+              const dg = dayGaps[dia];
+              const daySchedule = computeSchedule(turno, dg.g1, dg.g2);
+              return (
+                <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
+                  {daySchedule.map(item => {
+                    if (item.type === "intervalo") {
+                      const iKey = item.intervalId!;
+                      const panKey = `${dia}_${iKey}`;
+                      return (
+                        <Animated.View
+                          key={item.key}
+                          style={[
+                            cal.intervaloCelula,
+                            { marginBottom: 6, transform: [{ translateY: animRefs.current[panKey] }] },
+                          ]}
+                          {...pansRef.current[panKey].panHandlers}
                         >
-                          <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
-                            <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeStart}</Text>
-                            <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
-                            <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeEnd}</Text>
-                          </View>
-                          <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
-                          {aula.teacher ? (
-                            <View style={cal.detail}>
-                              <Ionicons name="person-outline" size={10} color="#888" />
-                              <Text style={cal.detailText} numberOfLines={1}>{aula.teacher}</Text>
+                          <Ionicons name="cafe-outline" size={11} color="#92400e" />
+                          <Text style={cal.intervaloCelulaText} numberOfLines={1}>{item.label}</Text>
+                          <Ionicons name="reorder-three-outline" size={16} color="#b45309" />
+                        </Animated.View>
+                      );
+                    }
+                    const aula = lookup[`${dia}_${item.start}`];
+                    return (
+                      <View key={item.key} style={{ marginBottom: 6 }}>
+                        {aula ? (
+                          <TouchableOpacity
+                            style={[cal.aulaCard, { borderLeftColor: cor }]}
+                            onPress={() => onPress(aula)}
+                            activeOpacity={0.82}
+                          >
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeStart}</Text>
+                              <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeEnd}</Text>
                             </View>
-                          ) : null}
-                        </TouchableOpacity>
-                      ) : (
-                        <TouchableOpacity
-                          style={cal.emptyCell}
-                          onPress={() => onPressEmpty(dia, item.start, item.end)}
-                          activeOpacity={0.6}
-                        >
-                          <Ionicons name="add-circle-outline" size={20} color="#ddd" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            );
-          })}
+                            <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
+                            {aula.teacher ? (
+                              <View style={cal.detail}>
+                                <Ionicons name="person-outline" size={10} color="#888" />
+                                <Text style={cal.detailText} numberOfLines={1}>{aula.teacher}</Text>
+                              </View>
+                            ) : null}
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity
+                            style={cal.emptyCell}
+                            onPress={() => onPressEmpty(dia, item.start, item.end)}
+                            activeOpacity={0.6}
+                          >
+                            <Ionicons name="add-circle-outline" size={20} color="#ddd" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
+          </View>
         </View>
       </ScrollView>
 
@@ -484,6 +516,7 @@ export default function CronogramaSalaScreen() {
               </Text>
             </View>
             <CalendarioSemanal
+              key={selectedTurno}
               aulas={cronogramas[selectedTurno]}
               turno={selectedTurno}
               onPress={handleAulaPress}
@@ -520,12 +553,13 @@ const cal = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
 
-  intervaloFaixa: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    backgroundColor: "#FFF8F0", borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14,
+  intervaloCelula: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    height: INT_H, gap: 4,
+    backgroundColor: "#FFF8F0", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 10,
     borderWidth: 1.5, borderColor: "#FED7AA",
   },
-  intervaloFaixaText: { fontSize: 12, color: "#92400e", fontWeight: "600", flex: 1 },
+  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "600", flex: 1 },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
   sectionHeaderText: { fontSize: 11, fontWeight: "700", color: "#999", textTransform: "uppercase", letterSpacing: 0.6 },
