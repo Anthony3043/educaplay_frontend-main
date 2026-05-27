@@ -590,7 +590,7 @@ const cad = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: "90%",
+    height: "85%",
     paddingTop: 12,
   },
   sheetHeader: {
