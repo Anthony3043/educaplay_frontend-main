@@ -73,6 +73,58 @@ export default function ProfessoresScreen() {
   const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
   const [nomeProfCadastrado, setNomeProfCadastrado] = useState("");
 
+  // Modal de edição de matérias
+  const [modalEditarMaterias, setModalEditarMaterias] = useState(false);
+  const [materiasEditadas, setMateriasEditadas] = useState<string[]>([]);
+  const [materiaEditInput, setMateriaEditInput] = useState("");
+  const [salvando, setSalvando] = useState(false);
+
+  const abrirEditarMaterias = useCallback(() => {
+    setMateriasEditadas(profSelecionado?.materias ?? []);
+    setMateriaEditInput("");
+    setModalEditarMaterias(true);
+  }, [profSelecionado]);
+
+  const adicionarMateriaEdit = () => {
+    const trimmed = materiaEditInput.trim();
+    if (!trimmed) return;
+    if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(trimmed)) {
+      Alert.alert("Matéria inválida", "O nome da matéria deve conter apenas letras.");
+      return;
+    }
+    if (trimmed.length < 2) {
+      Alert.alert("Matéria inválida", "O nome da matéria deve ter pelo menos 2 letras.");
+      return;
+    }
+    if (materiasEditadas.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
+      setMateriaEditInput("");
+      return;
+    }
+    setMateriasEditadas((prev) => [...prev, trimmed]);
+    setMateriaEditInput("");
+  };
+
+  const removerMateriaEdit = (idx: number) => {
+    setMateriasEditadas((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleSalvarMaterias = useCallback(async () => {
+    if (!profSelecionado) return;
+    setSalvando(true);
+    try {
+      const res = await api.put(`/professores/${profSelecionado.id}/materias`, { materias: materiasEditadas });
+      setProfessores((prev) =>
+        prev.map((p) => p.id === profSelecionado.id ? { ...p, materias: res.data.materias } : p)
+      );
+      setProfSelecionado((prev) => prev ? { ...prev, materias: res.data.materias } : prev);
+      setModalEditarMaterias(false);
+    } catch {
+      Alert.alert("Erro", "Não foi possível salvar as matérias. Tente novamente.");
+    } finally {
+      setSalvando(false);
+    }
+  }, [profSelecionado, materiasEditadas]);
+
   const abrirModalCadastro = useCallback(() => {
     setNovoNome("");
     setNovoEmail("");
@@ -350,6 +402,12 @@ export default function ProfessoresScreen() {
               )}
             </ScrollView>
 
+            {/* Botão editar matérias */}
+            <TouchableOpacity style={m.editarBtn} onPress={abrirEditarMaterias} activeOpacity={0.8}>
+              <Ionicons name="create-outline" size={18} color="#3a7d44" />
+              <Text style={m.editarBtnText}>Editar Matérias</Text>
+            </TouchableOpacity>
+
             {/* Botão excluir professor */}
             <TouchableOpacity style={m.excluirBtn} onPress={abrirModalExcluir} activeOpacity={0.8}>
               <Ionicons name="trash-outline" size={18} color="#ef4444" />
@@ -478,6 +536,73 @@ export default function ProfessoresScreen() {
                   ) : (
                     <Text style={cad.confirmarBtnText}>Cadastrar Professor</Text>
                   )}
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Modal de edição de matérias */}
+      <Modal visible={modalEditarMaterias} animationType="slide" transparent onRequestClose={() => setModalEditarMaterias(false)}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "padding"}>
+          <View style={cad.overlay}>
+            <View style={[cad.sheet, { height: "75%" }]}>
+              <View style={m.handle} />
+              <View style={cad.sheetHeader}>
+                <View>
+                  <Text style={cad.sheetTitle}>Editar Matérias</Text>
+                  <Text style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{profSelecionado?.nome}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setModalEditarMaterias(false)} style={m.closeBtn} activeOpacity={0.7}>
+                  <Ionicons name="close" size={22} color="#1a1a2e" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={cad.sheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {materiasEditadas.length > 0 ? (
+                  <View style={cad.chipsRow}>
+                    {materiasEditadas.map((mat, idx) => (
+                      <View key={idx} style={pc.chip}>
+                        <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                        <Text style={pc.chipText}>{mat}</Text>
+                        <TouchableOpacity onPress={() => removerMateriaEdit(idx)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                          <Ionicons name="close" size={13} color="#2d6a4f" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={{ fontSize: 13, color: "#aaa", marginBottom: 12 }}>Nenhuma matéria adicionada.</Text>
+                )}
+
+                <View style={cad.addRow}>
+                  <View style={[cad.inputRow, { flex: 1, marginBottom: 0 }]}>
+                    <Ionicons name="book-outline" size={18} color="#888" style={cad.inputIcon} />
+                    <TextInput
+                      style={[cad.textInput, { flex: 1 }]}
+                      placeholder="Ex: Matemática, Português..."
+                      placeholderTextColor="#bbb"
+                      value={materiaEditInput}
+                      onChangeText={setMateriaEditInput}
+                      autoCapitalize="words"
+                      onSubmitEditing={adicionarMateriaEdit}
+                      returnKeyType="done"
+                    />
+                  </View>
+                  <TouchableOpacity style={cad.addBtn} onPress={adicionarMateriaEdit} activeOpacity={0.8}>
+                    <Ionicons name="add" size={20} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+                <Text style={cad.materiaHint}>Toque no X para remover. Toque + para adicionar.</Text>
+
+                <TouchableOpacity
+                  style={[cad.confirmarBtn, salvando && { opacity: 0.7 }]}
+                  onPress={handleSalvarMaterias}
+                  activeOpacity={0.85}
+                  disabled={salvando}
+                >
+                  {salvando ? <ActivityIndicator color="#fff" /> : <Text style={cad.confirmarBtnText}>Salvar Matérias</Text>}
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -979,6 +1104,25 @@ const m = StyleSheet.create({
   },
   bloqueioHorario: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
   bloqueioDesc: { fontSize: 12, color: "#666", marginTop: 2 },
+  editarBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 8,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#b7dfbe",
+    backgroundColor: "#f0faf2",
+  },
+  editarBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#3a7d44",
+  },
   excluirBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -986,7 +1130,7 @@ const m = StyleSheet.create({
     gap: 8,
     marginHorizontal: 20,
     marginBottom: 20,
-    marginTop: 8,
+    marginTop: 0,
     paddingVertical: 13,
     borderRadius: 14,
     borderWidth: 1.5,
