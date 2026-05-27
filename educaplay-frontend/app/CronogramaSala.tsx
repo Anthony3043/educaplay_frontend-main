@@ -249,11 +249,10 @@ function CalendarioSemanal({
                           ]}
                           {...pansRef.current[panKey].panHandlers}
                         >
-                          <Ionicons name="cafe-outline" size={11} color="#92400e" />
                           <Text style={cal.intervaloCelulaText} numberOfLines={1}>
                             {item.start}–{item.end}
                           </Text>
-                          <Ionicons name="reorder-three-outline" size={16} color="#b45309" />
+                          <Ionicons name="reorder-three-outline" size={18} color="#b45309" />
                         </Animated.View>
                       );
                     }
@@ -538,11 +537,11 @@ const cal = StyleSheet.create({
 
   intervaloCelula: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    height: INT_H, gap: 4,
-    backgroundColor: "#FFF8F0", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 10,
+    height: INT_H,
+    backgroundColor: "#FFF8F0", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 8,
     borderWidth: 1.5, borderColor: "#FED7AA",
   },
-  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "600", flex: 1 },
+  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700", flex: 1, marginRight: 2 },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
   sectionHeaderText: { fontSize: 11, fontWeight: "700", color: "#999", textTransform: "uppercase", letterSpacing: 0.6 },
