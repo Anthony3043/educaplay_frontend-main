@@ -81,7 +81,6 @@ const TURNO_COLORS: Record<TurnoId, string> = {
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const COL_W = 115;
-const TIME_W = 46;
 
 // ─── CalendarioSemanal ────────────────────────────────────────────────────────
 function CalendarioSemanal({
@@ -205,9 +204,6 @@ function CalendarioSemanal({
     .filter(a => !a.isInterval && !a.diaSemana)
     .sort((a, b) => a.timeStart.localeCompare(b.timeStart));
 
-  // Reference schedule drives the time column only
-  const refSchedule = computeSchedule(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
-
   return (
     <View>
       <ScrollView
@@ -219,7 +215,6 @@ function CalendarioSemanal({
         <View>
           {/* Cabeçalho dos dias */}
           <View style={{ flexDirection: "row", marginBottom: 6 }}>
-            <View style={{ width: TIME_W }} />
             {DIAS_SEMANA.map(dia => (
               <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
                 <View style={cal.dayHeader}>
@@ -229,32 +224,8 @@ function CalendarioSemanal({
             ))}
           </View>
 
-          {/* Grade: coluna de horas + colunas por dia */}
+          {/* Colunas por dia — cada uma com seu próprio schedule */}
           <View style={{ flexDirection: "row" }}>
-            {/* Coluna de horas (referência) */}
-            <View style={{ width: TIME_W }}>
-              {refSchedule.map(item => (
-                <View
-                  key={item.key}
-                  style={{
-                    height: item.type === "intervalo" ? INT_H + 6 : SLOT_H + 6,
-                    justifyContent: "flex-start",
-                    paddingTop: 10,
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  {item.type === "aula" && (
-                    <>
-                      <Text style={cal.timeText}>{item.start}</Text>
-                      <Text style={cal.timeTextEnd}>{item.end}</Text>
-                    </>
-                  )}
-                </View>
-              ))}
-            </View>
-
-            {/* Colunas por dia */}
             {DIAS_SEMANA.map(dia => {
               const dg = dayGaps[dia];
               const daySchedule = computeSchedule(turno, dg.g1, dg.g2);
@@ -279,7 +250,9 @@ function CalendarioSemanal({
                           {...pansRef.current[panKey].panHandlers}
                         >
                           <Ionicons name="cafe-outline" size={11} color="#92400e" />
-                          <Text style={cal.intervaloCelulaText} numberOfLines={1}>{item.label}</Text>
+                          <Text style={cal.intervaloCelulaText} numberOfLines={1}>
+                            {item.start}–{item.end}
+                          </Text>
                           <Ionicons name="reorder-three-outline" size={16} color="#b45309" />
                         </Animated.View>
                       );
@@ -547,10 +520,6 @@ export default function CronogramaSalaScreen() {
 const cal = StyleSheet.create({
   dayHeader: { backgroundColor: "#1a1a2e", borderRadius: 8, paddingVertical: 8, alignItems: "center" },
   dayHeaderText: { fontSize: 11, fontWeight: "800", color: "#fff", letterSpacing: 0.8 },
-
-  timeCol: { justifyContent: "flex-start", paddingTop: 10, alignItems: "center", gap: 1 },
-  timeText: { fontSize: 10, fontWeight: "800", color: "#555" },
-  timeTextEnd: { fontSize: 9, fontWeight: "800", color: "#555" },
 
   aulaCard: {
     backgroundColor: "#FAFFFE", borderRadius: 10, borderLeftWidth: 3, padding: 9, flex: 1,
