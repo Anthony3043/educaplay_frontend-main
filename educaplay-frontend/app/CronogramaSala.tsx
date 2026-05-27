@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
 import { styles as s } from "@/styles/Cronogramasstyles";
 import {
   computeSchedule,
@@ -544,7 +545,16 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 </body></html>`;
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
-      await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Exportar Cronograma" });
+
+      // Monta nome do arquivo: "horário da Sala_Turma_Turno_DD-MM-AAAA.pdf"
+      const dataNome = dataStr.replace(/\//g, "-");
+      const turmaPart = salaTurma ? `_${salaTurma}` : "";
+      const nomeArquivo = `horário da ${salaNome}${turmaPart}_${turnoLabel}_${dataNome}.pdf`
+        .replace(/[\\/:*?"<>|]/g, "_"); // sanitiza caracteres inválidos
+      const novoUri = `${FileSystem.cacheDirectory}${nomeArquivo}`;
+      await FileSystem.copyAsync({ from: uri, to: novoUri });
+
+      await Sharing.shareAsync(novoUri, { mimeType: "application/pdf", dialogTitle: "Exportar Cronograma" });
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o PDF.");
     } finally {
