@@ -81,7 +81,7 @@ export default function CronogramasProfessorScreen() {
 
   const carregar = useCallback(async () => {
     try {
-      const res = await api.get("/supervisao/cronogramas");
+      const res = await api.get("/cronogramas");
       const dados: AulaProfessor[] = [];
       (res.data as CronogramaAPI[]).forEach((c) => {
         const turno = c.turno as TurnoId;

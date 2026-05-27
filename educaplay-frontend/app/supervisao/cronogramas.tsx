@@ -36,7 +36,7 @@ export default function CronogramasScreen() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     try {
-      const res = await api.get("/supervisao/salas");
+      const res = await api.get("/salas");
       setSalas(res.data);
     } catch {
       // silently fail

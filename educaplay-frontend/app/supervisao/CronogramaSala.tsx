@@ -357,7 +357,7 @@ export default function CronogramaSalaScreen() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     try {
-      const res = await api.get("/supervisao/cronogramas");
+      const res = await api.get("/cronogramas");
       const ids: Record<TurnoId, string | null> = { matutino: null, vespertino: null };
       const dados: Record<TurnoId, Aula[]> = { matutino: [], vespertino: [] };
 
@@ -398,7 +398,7 @@ export default function CronogramaSalaScreen() {
     let cronogramaId = cronogramaIds[selectedTurno];
     if (!cronogramaId) {
       try {
-        const res = await api.post("/supervisao/cronogramas", { turno: selectedTurno });
+        const res = await api.post("/cronogramas", { turno: selectedTurno });
         cronogramaId = res.data.id;
         setCronogramaIds(prev => ({ ...prev, [selectedTurno]: cronogramaId! }));
       } catch {

@@ -209,7 +209,7 @@ export default function ProfessoresScreen() {
     }
     setCadastrando(true);
     try {
-      const res = await api.post("/supervisao/professores", {
+      const res = await api.post("/professores", {
         nome: novoNome.trim(),
         email: novoEmail.trim().toLowerCase(),
         senha: novaSenha,
@@ -234,7 +234,7 @@ export default function ProfessoresScreen() {
   const FRASE_CONFIRMACAO = "excluir professor";
 
   useEffect(() => {
-    api.get("/supervisao/professores")
+    api.get("/professores")
       .then((res) => setProfessores(res.data))
       .catch(() => Alert.alert("Erro", "Não foi possível carregar os professores."))
       .finally(() => setCarregando(false));

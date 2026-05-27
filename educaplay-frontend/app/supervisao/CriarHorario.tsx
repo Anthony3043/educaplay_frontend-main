@@ -68,8 +68,8 @@ export default function CriarHorarioScreen() {
   const carregarDados = useCallback(async () => {
     try {
       const [resProfessores, resCronogramas] = await Promise.all([
-        api.get("/supervisao/professores"),
-        api.get("/supervisao/cronogramas"),
+        api.get("/professores"),
+        api.get("/cronogramas"),
       ]);
 
       const todosProfessores: Professor[] = resProfessores.data;

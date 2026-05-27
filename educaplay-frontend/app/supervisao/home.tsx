@@ -68,7 +68,7 @@ export default function HomeScreen() {
 
   const carregarNotifs = useCallback(async () => {
     try {
-      const res = await api.get("/shared/notificacoes");
+      const res = await api.get("/notificacoes");
       setNaoLidas(res.data.filter((n: any) => !n.lida).length);
     } catch {}
   }, []);

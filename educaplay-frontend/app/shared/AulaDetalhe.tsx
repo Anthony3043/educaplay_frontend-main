@@ -82,7 +82,7 @@ export default function AulaDetalheScreen() {
   const carregarOpcoes = useCallback(async () => {
     setCarregando(true);
     try {
-      const rp = await api.get("/supervisao/professores");
+      const rp = await api.get("/professores");
       setProfessores(rp.data);
       if (params.professorId) {
         const p = rp.data.find((x: Professor) => x.id === params.professorId);
