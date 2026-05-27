@@ -503,8 +503,9 @@ export default function CronogramaSalaScreen() {
         dayIntTimes[dia] = { i1, i2 };
       }
 
-      // Linhas em ordem cronológica: aulas e intervalos intercalados (referência DEFAULT)
-      const refSched = computeSchedule(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
+      // Linhas em ordem cronológica usando gaps reais de Segunda como referência
+      const refDay = DIAS_SEMANA[0];
+      const refSched = computeSchedule(turno, dayGapValues[refDay].g1, dayGapValues[refDay].g2);
       const allRows = refSched.map(item => {
         if (item.type === "intervalo") {
           const iKey = item.intervalId!;
