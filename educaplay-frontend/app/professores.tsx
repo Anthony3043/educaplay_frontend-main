@@ -80,6 +80,7 @@ export default function ProfessoresScreen() {
   const [salvando, setSalvando] = useState(false);
   const [modalConfirmarVisivel, setModalConfirmarVisivel] = useState(false);
   const [mensagemConfirmacao, setMensagemConfirmacao] = useState("");
+  const [tituloConfirmacao, setTituloConfirmacao] = useState("");
   const confirmarAcao = React.useRef<() => void>(() => {});
 
   const abrirEditarMaterias = useCallback(() => {
@@ -95,14 +96,13 @@ export default function ProfessoresScreen() {
       materiasEditadas.some((m) => !original.includes(m));
 
     if (mudou) {
-      Alert.alert(
-        "Descartar alterações?",
-        "Você tem alterações não salvas. Deseja descartá-las?",
-        [
-          { text: "Continuar editando", style: "cancel" },
-          { text: "Descartar", style: "destructive", onPress: () => setModalEditarMaterias(false) },
-        ]
-      );
+      setTituloConfirmacao("Descartar alterações?");
+      setMensagemConfirmacao("Você tem alterações não salvas. Deseja descartá-las?");
+      confirmarAcao.current = () => {
+        setModalConfirmarVisivel(false);
+        setModalEditarMaterias(false);
+      };
+      setModalConfirmarVisivel(true);
     } else {
       setModalEditarMaterias(false);
     }
@@ -141,6 +141,7 @@ export default function ProfessoresScreen() {
     if (adicionadas.length > 0 && removidas.length === 0) verbo = "adicionar matérias a";
     else if (removidas.length > 0 && adicionadas.length === 0) verbo = "excluir matérias de";
 
+    setTituloConfirmacao("Confirmar alteração");
     setMensagemConfirmacao(`Deseja realmente ${verbo} ${profSelecionado.nome}?`);
     confirmarAcao.current = async () => {
       setModalConfirmarVisivel(false);
@@ -653,7 +654,7 @@ export default function ProfessoresScreen() {
             <View style={conf.iconCircle}>
               <Ionicons name="create-outline" size={34} color="#fff" />
             </View>
-            <Text style={conf.titulo}>Confirmar alteração</Text>
+            <Text style={conf.titulo}>{tituloConfirmacao}</Text>
             <Text style={conf.mensagem}>{mensagemConfirmacao}</Text>
             <View style={conf.botoesRow}>
               <TouchableOpacity style={conf.cancelarBtn} onPress={() => setModalConfirmarVisivel(false)} activeOpacity={0.8}>
