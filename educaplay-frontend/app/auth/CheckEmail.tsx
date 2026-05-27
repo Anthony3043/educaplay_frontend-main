@@ -83,7 +83,7 @@ export default function CheckEmailScreen() {
         <View style={s.header}>
           <TouchableOpacity
             style={s.backBtn}
-            onPress={() => router.push("/ForgotPassword")}
+            onPress={() => router.push("/auth/ForgotPassword")}
             activeOpacity={0.7}
           >
             <Text style={s.backArrow}>←</Text>
@@ -160,7 +160,7 @@ export default function CheckEmailScreen() {
 
           <TouchableOpacity
             style={s.btnLogin}
-            onPress={() => router.push("/Login")}
+            onPress={() => router.push("/auth/Login")}
             activeOpacity={0.85}
           >
             <Text style={s.btnLoginText}>Voltar para o login</Text>
@@ -179,7 +179,7 @@ export default function CheckEmailScreen() {
         {/* Link errado? */}
         <TouchableOpacity
           style={s.trocarEmailRow}
-          onPress={() => router.push("/ForgotPassword")}
+          onPress={() => router.push("/auth/ForgotPassword")}
           activeOpacity={0.7}
         >
           <Text style={s.trocarEmailText}>

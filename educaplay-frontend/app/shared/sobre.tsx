@@ -30,7 +30,7 @@ const LINKS: LinkItem[] = [
     title: "Termos de uso",
     subtitle: "Leia nossos termos e condições",
     type: "nav",
-    route: "/termos",
+    route: "/shared/termos",
   },
   {
     id: "politica",
@@ -38,7 +38,7 @@ const LINKS: LinkItem[] = [
     title: "Política de privacidade",
     subtitle: "Como tratamos seus dados",
     type: "nav",
-    route: "/politica",
+    route: "/shared/politica",
   },
   {
     id: "suporte",

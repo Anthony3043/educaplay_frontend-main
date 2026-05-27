@@ -46,7 +46,7 @@ export default function EditarHorarioScreen() {
   const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
-    api.get("/professores")
+    api.get("/supervisao/professores")
       .then((rp) => setProfessores(rp.data))
       .catch(() => Alert.alert("Erro", "Não foi possível carregar os professores."))
       .finally(() => setCarregando(false));

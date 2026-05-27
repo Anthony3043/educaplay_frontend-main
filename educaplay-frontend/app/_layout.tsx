@@ -70,16 +70,12 @@ function RootNavigator() {
   useEffect(() => {
     if (carregando || !biometriaOk) return;
 
-    const rotasPublicas = ['index', 'Login', 'Register', 'CodigoSupervisao', 'ForgotPassword', 'CheckEmail', 'Resetpassword'];
-    const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'CronogramaSala', 'EditarHorario'];
-    const rotasProfessor = ['home-professor', 'cronogramas-professor', 'indisponibilidade'];
-
-    // segments[0] é undefined na rota raiz (/) no Expo Router
-    const rotaAtual = (segments[0] as string) ?? 'index';
-    const estaEmRotaPublica = rotasPublicas.includes(rotaAtual);
+    // segments[0] agora é o nome da pasta: 'auth', 'supervisao', 'professor', 'shared' ou 'index'
+    const grupo = (segments[0] as string) ?? 'index';
+    const estaEmRotaPublica = grupo === 'auth' || grupo === 'index';
 
     if (!usuario && !estaEmRotaPublica) {
-      router.replace('/Login');
+      router.replace('/auth/Login');
       return;
     }
 
@@ -87,12 +83,12 @@ function RootNavigator() {
       const isProfessor = usuario.papel === 'Professor';
       const isSupervisao = usuario.papel === 'Supervisao';
 
-      if (isProfessor && rotasSupervisao.includes(rotaAtual)) {
-        router.replace('/home-professor');
+      if (isProfessor && grupo === 'supervisao') {
+        router.replace('/professor/home-professor');
         return;
       }
-      if (isSupervisao && rotasProfessor.includes(rotaAtual)) {
-        router.replace('/home');
+      if (isSupervisao && grupo === 'professor') {
+        router.replace('/supervisao/home');
         return;
       }
     }

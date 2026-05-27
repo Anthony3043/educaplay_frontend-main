@@ -112,7 +112,7 @@ export default function ResetPasswordScreen() {
 
             <TouchableOpacity
               style={s.btnLogin}
-              onPress={() => router.push("/Login")}
+              onPress={() => router.push("/auth/Login")}
               activeOpacity={0.85}
             >
               <Text style={s.btnLoginText}>Ir para o login</Text>
@@ -142,7 +142,7 @@ export default function ResetPasswordScreen() {
           <View style={s.header}>
             <TouchableOpacity
               style={s.backBtn}
-              onPress={() => router.push("/Login")}
+              onPress={() => router.push("/auth/Login")}
               activeOpacity={0.7}
             >
               <Text style={s.backArrow}>←</Text>

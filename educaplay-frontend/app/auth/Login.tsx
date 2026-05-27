@@ -36,9 +36,9 @@ export default function LoginScreen() {
     try {
       const usuario = await login(email.trim(), senha, lembrarMe);
       if (usuario.papel === "Professor") {
-        router.replace("/home-professor");
+        router.replace("/professor/home-professor");
       } else {
-        router.replace("/home");
+        router.replace("/supervisao/home");
       }
     } catch (err) {
       Alert.alert("Erro", (err as any)?.response?.data?.error || "Credenciais inválidas.");
@@ -97,7 +97,7 @@ export default function LoginScreen() {
                 </View>
                 <Text style={s.checkboxLabel}>Lembrar-me</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push("/ForgotPassword")}>
+              <TouchableOpacity onPress={() => router.push("/auth/ForgotPassword")}>
                 <Text style={s.forgotLink}>Esqueceu a senha?</Text>
               </TouchableOpacity>
             </View>
@@ -111,7 +111,7 @@ export default function LoginScreen() {
 
             <View style={s.createAccountRow}>
               <Text style={s.createAccountText}>É da supervisão? </Text>
-              <TouchableOpacity onPress={() => router.push("/CodigoSupervisao")}>
+              <TouchableOpacity onPress={() => router.push("/auth/CodigoSupervisao")}>
                 <Text style={s.createAccountLink}>Cadastrar →</Text>
               </TouchableOpacity>
             </View>

@@ -70,7 +70,7 @@ export default function RegisterScreen() {
         instituicao,
         codigoSupervisao: codigoSupervisao ?? "",
       } as any);
-      router.replace("/home");
+      router.replace("/supervisao/home");
     } catch (err: any) {
       const status = err?.response?.status;
       const backendMsg = err?.response?.data?.error || err?.response?.data?.message;

@@ -33,7 +33,7 @@ export default function SalasScreen() {
 
   const carregar = async () => {
     try {
-      const res = await api.get("/salas");
+      const res = await api.get("/supervisao/salas");
       setSalas(res.data);
     } catch {
       Alert.alert("Erro", "Não foi possível carregar as salas.");
@@ -54,7 +54,7 @@ export default function SalasScreen() {
         const res = await api.put(`/salas/${editando.id}`, { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
         setSalas((prev) => prev.map((s) => s.id === editando.id ? res.data : s));
       } else {
-        const res = await api.post("/salas", { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
+        const res = await api.post("/supervisao/salas", { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
         setSalas((prev) => [...prev, res.data]);
       }
       fecharModal();
@@ -72,7 +72,7 @@ export default function SalasScreen() {
     setExcluindo(true);
     try {
       // 1. Busca todos os cronogramas para encontrar aulas vinculadas a esta sala
-      const resCronogramas = await api.get("/cronogramas");
+      const resCronogramas = await api.get("/supervisao/cronogramas");
       const aulasIds: string[] = [];
       for (const cron of resCronogramas.data) {
         for (const aula of cron.aulas) {

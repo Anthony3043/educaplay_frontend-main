@@ -31,7 +31,7 @@ export default function CodigoSupervisaoScreen() {
     setCarregando(true);
     try {
       await api.post("/auth/validar-codigo-supervisao", { codigo: codigo.trim() });
-      router.push({ pathname: "/Register", params: { codigoSupervisao: codigo.trim() } });
+      router.push({ pathname: "/auth/Register", params: { codigoSupervisao: codigo.trim() } });
     } catch (err: any) {
       if (err?.response?.status === 403) {
         setErro("Código incorreto. Verifique com a sua instituição.");

@@ -53,7 +53,7 @@ export default function CriarHorarioScreen() {
     }>();
 
   const voltar = () => {
-    try { router.back(); } catch { router.replace("/cronogramas" as any); }
+    try { router.back(); } catch { router.replace("/supervisao/cronogramas" as any); }
   };
 
   const [sucesso, setSucesso]                                     = useState(false);
@@ -68,8 +68,8 @@ export default function CriarHorarioScreen() {
   const carregarDados = useCallback(async () => {
     try {
       const [resProfessores, resCronogramas] = await Promise.all([
-        api.get("/professores"),
-        api.get("/cronogramas"),
+        api.get("/supervisao/professores"),
+        api.get("/supervisao/cronogramas"),
       ]);
 
       const todosProfessores: Professor[] = resProfessores.data;

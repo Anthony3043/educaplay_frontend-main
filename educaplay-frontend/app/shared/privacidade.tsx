@@ -74,7 +74,7 @@ export default function PrivacidadeScreen() {
       await api.delete("/auth/conta");
       setModalVisivel(false);
       await logout();
-      router.replace("/Login");
+      router.replace("/auth/Login");
     } catch {
       setExcluindo(false);
       setErroConfirmacao(true);

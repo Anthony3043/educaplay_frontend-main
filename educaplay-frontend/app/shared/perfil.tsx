@@ -43,9 +43,9 @@ export default function PerfilScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "home") router.push(isProfessor ? "/home-professor" : "/home");
-    else if (tabId === "cronograma") router.push(isProfessor ? "/cronogramas-professor" : "/cronogramas");
-    else if (tabId === "configuracoes") router.push("/configuracoes");
+    if (tabId === "home") router.push(isProfessor ? "/professor/home-professor" : "/supervisao/home");
+    else if (tabId === "cronograma") router.push(isProfessor ? "/professor/cronogramas-professor" : "/supervisao/cronogramas");
+    else if (tabId === "configuracoes") router.push("/shared/configuracoes");
   };
 
   const pickImage = async () => {

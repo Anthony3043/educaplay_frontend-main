@@ -81,7 +81,7 @@ export default function CronogramasProfessorScreen() {
 
   const carregar = useCallback(async () => {
     try {
-      const res = await api.get("/cronogramas");
+      const res = await api.get("/supervisao/cronogramas");
       const dados: AulaProfessor[] = [];
       (res.data as CronogramaAPI[]).forEach((c) => {
         const turno = c.turno as TurnoId;
@@ -129,13 +129,13 @@ export default function CronogramasProfessorScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "home") router.push("/home-professor");
-    else if (tabId === "configuracoes") router.push("/configuracoes");
+    if (tabId === "home") router.push("/professor/home-professor");
+    else if (tabId === "configuracoes") router.push("/shared/configuracoes");
   };
 
   const handleAulaPress = (aula: AulaProfessor) => {
     router.push({
-      pathname: "/AulaDetalhe",
+      pathname: "/shared/AulaDetalhe",
       params: {
         id: aula.id,
         timeStart: aula.timeStart,

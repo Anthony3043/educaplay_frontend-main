@@ -58,9 +58,9 @@ export default function SplashScreen() {
     const timer = setTimeout(() => {
       const u = usuarioRef.current;
       if (u) {
-        router.replace(u.papel === "Professor" ? "/home-professor" : "/home");
+        router.replace(u.papel === "Professor" ? "/professor/home-professor" : "/supervisao/home");
       } else {
-        router.replace("/Login");
+        router.replace("/auth/Login");
       }
     }, SPLASH_DURATION);
     return () => clearTimeout(timer);

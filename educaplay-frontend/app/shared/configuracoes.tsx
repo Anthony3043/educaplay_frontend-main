@@ -31,28 +31,28 @@ const CONFIG_ITEMS: {
     title: "Meu Perfil",
     subtitle: "Editar informações pessoais",
     ionicon: "person-outline",
-    route: "/perfil",
+    route: "/shared/perfil",
   },
   {
     id: "notificacoes",
     title: "Notificações",
     subtitle: "Gerenciar preferências",
     ionicon: "notifications-outline",
-    route: "/notificacoes",
+    route: "/shared/notificacoes",
   },
   {
     id: "privacidade",
     title: "Privacidade",
     subtitle: "Controlar acesso",
     ionicon: "lock-closed-outline",
-    route: "/privacidade",
+    route: "/shared/privacidade",
   },
   {
     id: "sobre",
     title: "Sobre",
     subtitle: "Versão e informações",
     ionicon: "information-circle-outline",
-    route: "/sobre",
+    route: "/shared/sobre",
   },
 ];
 
@@ -65,9 +65,9 @@ export default function ConfiguracoesScreen() {
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
     if (tabId === "home") {
-      router.push(isProfessor ? "/home-professor" : "/home");
+      router.push(isProfessor ? "/professor/home-professor" : "/supervisao/home");
     } else if (tabId === "cronograma") {
-      router.push(isProfessor ? "/cronogramas-professor" : "/cronogramas");
+      router.push(isProfessor ? "/professor/cronogramas-professor" : "/supervisao/cronogramas");
     }
   };
 
@@ -110,7 +110,7 @@ export default function ConfiguracoesScreen() {
         </View>
 
         {/* Botão Sair */}
-        <TouchableOpacity style={s.btnLogout} activeOpacity={0.85} onPress={async () => { await logout(); router.replace("/Login"); }}>
+        <TouchableOpacity style={s.btnLogout} activeOpacity={0.85} onPress={async () => { await logout(); router.replace("/auth/Login"); }}>
           <Text style={s.btnLogoutText}>Sair</Text>
         </TouchableOpacity>
       </ScrollView>

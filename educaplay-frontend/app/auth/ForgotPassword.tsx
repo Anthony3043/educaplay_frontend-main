@@ -40,7 +40,7 @@ export default function ForgotPasswordScreen() {
     setCarregando(true);
     try {
       await api.post("/auth/check-email", { email: email.trim() });
-      router.push({ pathname: "/CheckEmail", params: { email } });
+      router.push({ pathname: "/auth/CheckEmail", params: { email } });
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 404) {

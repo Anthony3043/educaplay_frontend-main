@@ -66,7 +66,7 @@ export default function NotificacoesScreen() {
     if (id === 'lembretes' && usuario?.papel === 'Professor') {
       if (valor) {
         try {
-          const res = await api.get('/cronogramas');
+          const res = await api.get('/supervisao/cronogramas');
           const minhasAulas = res.data.flatMap((c: any) =>
             c.aulas.filter((a: any) => a.professorId === usuario.id && !a.isInterval)
           );
@@ -80,7 +80,7 @@ export default function NotificacoesScreen() {
 
   const carregar = async () => {
     try {
-      const res = await api.get("/notificacoes");
+      const res = await api.get("/shared/notificacoes");
       setNotifs(res.data);
     } catch {
       Alert.alert("Erro", "Não foi possível carregar as notificações.");
@@ -117,7 +117,7 @@ export default function NotificacoesScreen() {
       { text: "Cancelar", style: "cancel" },
       { text: "Limpar", style: "destructive", onPress: async () => {
         try {
-          await api.delete("/notificacoes");
+          await api.delete("/shared/notificacoes");
           setNotifs([]);
         } catch {}
       }},

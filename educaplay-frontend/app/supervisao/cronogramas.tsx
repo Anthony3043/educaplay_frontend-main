@@ -36,7 +36,7 @@ export default function CronogramasScreen() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     try {
-      const res = await api.get("/salas");
+      const res = await api.get("/supervisao/salas");
       setSalas(res.data);
     } catch {
       // silently fail
@@ -49,8 +49,8 @@ export default function CronogramasScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "home") router.push("/home");
-    else if (tabId === "configuracoes") router.push("/configuracoes");
+    if (tabId === "home") router.push("/supervisao/home");
+    else if (tabId === "configuracoes") router.push("/shared/configuracoes");
   };
 
   return (
@@ -88,7 +88,7 @@ export default function CronogramasScreen() {
                     style={cs.card}
                     onPress={() =>
                       router.push({
-                        pathname: "/CronogramaSala",
+                        pathname: "/supervisao/CronogramaSala",
                         params: {
                           salaId: sala.id,
                           salaNome: sala.nome,
