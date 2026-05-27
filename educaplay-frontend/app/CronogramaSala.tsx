@@ -488,19 +488,19 @@ export default function CronogramaSalaScreen() {
         const sched = computeSchedule(turno, dayGapValues[dia].g1, dayGapValues[dia].g2);
         const items = sched.map(item => {
           if (item.type === "intervalo") {
-            return `<div class="int-cell">
-              <div class="int-time">☕ ${item.start}–${item.end}</div>
+            return `<div class="cell intervalo">
+              <div class="t-int">☕ ${item.start}–${item.end}</div>
               <div class="int-lbl">Intervalo</div>
             </div>`;
           }
           const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
           return aula
-            ? `<div class="aula filled">
-                <div class="t">${item.start}–${item.end}</div>
+            ? `<div class="cell filled">
+                <div class="t-aula">${item.start}–${item.end}</div>
                 <div class="subj">${aula.subject}</div>
               </div>`
-            : `<div class="aula empty">
-                <div class="t">${item.start}–${item.end}</div>
+            : `<div class="cell empty">
+                <div class="t-empty">${item.start}–${item.end}</div>
                 <span class="dash">—</span>
               </div>`;
         }).join("");
@@ -513,28 +513,31 @@ export default function CronogramaSalaScreen() {
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;padding:20px;color:#1a1a2e}
-.inst{font-size:12px;color:#555;margin-bottom:2px}
-h1{font-size:18px;font-weight:bold}
-.sub{font-size:11px;color:#777;margin-top:3px;margin-bottom:14px}
-.grid{display:flex;gap:5px}
+body{font-family:Arial,sans-serif;padding:22px;background:#f0f2f5;color:#1a1a2e}
+.header{background:#1a1a2e;color:#fff;padding:18px 20px;border-radius:10px;margin-bottom:18px}
+.inst{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+h1{font-size:20px;font-weight:800;margin-bottom:4px}
+.sub{font-size:11px;color:#94a3b8}
+.grid{display:flex;gap:6px}
 .col{flex:1}
-.day-hdr{background:#1a1a2e;color:#fff;text-align:center;padding:7px 2px;font-size:10px;font-weight:800;border-radius:5px 5px 0 0;letter-spacing:.6px;margin-bottom:4px}
-.aula{border:1px solid #e0e0e0;border-radius:6px;padding:6px 4px;margin-bottom:4px;min-height:60px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
-.aula.filled{border-left:3px solid #F59E0B;background:#FAFFFE;align-items:flex-start}
-.aula.empty{border-style:dashed;background:#fafafa}
-.t{font-size:9px;color:#F59E0B;font-weight:700;margin-bottom:3px}
-.aula.empty .t{color:#aaa}
+.day-hdr{background:#334155;color:#fff;text-align:center;padding:8px 2px;font-size:10px;font-weight:800;border-radius:7px;margin-bottom:5px;letter-spacing:.7px}
+.cell{border-radius:7px;padding:6px 5px;margin-bottom:5px;height:68px;display:flex;flex-direction:column;justify-content:center}
+.filled{background:#fff;border:1px solid #e2e8f0;border-left:3px solid #F59E0B}
+.empty{background:#f8fafc;border:1px dashed #cbd5e1;align-items:center}
+.intervalo{background:#FFF7ED;border:1.5px solid #FED7AA;align-items:center}
+.t-aula{font-size:8.5px;font-weight:700;color:#F59E0B;margin-bottom:3px}
+.t-empty{font-size:8.5px;font-weight:600;color:#94a3b8;margin-bottom:3px}
+.t-int{font-size:9px;font-weight:700;color:#ea580c;margin-bottom:2px}
 .subj{font-size:10px;font-weight:700;color:#1a1a2e;line-height:1.3}
-.dash{color:#ccc;font-size:13px}
-.int-cell{border:1.5px solid #FED7AA;border-radius:6px;padding:5px 4px;margin-bottom:4px;min-height:48px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#FFF8F0}
-.int-time{font-size:10px;font-weight:700;color:#92400e}
-.int-lbl{font-size:8px;color:#b45309;margin-top:2px}
+.dash{color:#cbd5e1;font-size:14px}
+.int-lbl{font-size:8px;color:#c2410c;font-weight:600;letter-spacing:.3px}
 </style></head>
 <body>
-${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
-<h1>${tituloSala}</h1>
-<div class="sub">Turno ${turnoLabel} · Exportado em ${dataStr}</div>
+<div class="header">
+  ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
+  <h1>${tituloSala}</h1>
+  <div class="sub">Turno ${turnoLabel} &nbsp;·&nbsp; ${dataStr}</div>
+</div>
 <div class="grid">${dayCols}</div>
 </body></html>`;
 
