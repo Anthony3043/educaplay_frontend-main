@@ -1,4 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { styles as s } from "@/styles/Cronogramasstyles";
 import {
   computeSchedule,
@@ -352,6 +354,7 @@ export default function CronogramaSalaScreen() {
   });
   const [carregando, setCarregando] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
+  const [exportando, setExportando] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -440,6 +443,81 @@ export default function CronogramaSalaScreen() {
 
   const tituloSala = salaTurma ? `${salaNome} — ${salaTurma}` : salaNome;
 
+  const gerarPDF = async () => {
+    setExportando(true);
+    try {
+      const turno = selectedTurno;
+      const aulasTurno = cronogramas[turno];
+      const turnoLabel = turno === "matutino" ? "Matutino" : "Vespertino";
+
+      const lookup: Record<string, Aula> = {};
+      aulasTurno
+        .filter(a => !a.isInterval && !!a.diaSemana)
+        .forEach(a => {
+          const si = timeToSlotIndex(turno, a.timeStart);
+          if (si !== null) {
+            const k = `${a.diaSemana}_${si}`;
+            if (!lookup[k]) lookup[k] = a;
+          }
+        });
+
+      const schedule = computeSchedule(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
+      const dataStr = new Date().toLocaleDateString("pt-BR");
+
+      const rows = schedule.map(item => {
+        if (item.type === "intervalo") {
+          return `<tr>
+            <td class="int-time">☕ ${item.start}<br>${item.end}</td>
+            <td class="int-cell" colspan="6">Intervalo</td>
+          </tr>`;
+        }
+        const cells = DIAS_SEMANA.map(dia => {
+          const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
+          return aula
+            ? `<td><div class="subj">${aula.subject}</div>${aula.teacher ? `<div class="teach">👤 ${aula.teacher}</div>` : ""}</td>`
+            : `<td><span class="empty">—</span></td>`;
+        }).join("");
+        return `<tr><td class="time">${item.start}<br><span class="end">${item.end}</span></td>${cells}</tr>`;
+      }).join("");
+
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;padding:24px;color:#1a1a2e}
+h1{font-size:20px;font-weight:bold}
+.sub{font-size:12px;color:#777;margin-top:4px}
+table{width:100%;border-collapse:collapse;margin-top:16px}
+th{background:#1a1a2e;color:#fff;padding:10px 4px;font-size:11px;text-align:center;font-weight:bold}
+th:first-child{width:72px}
+td{border:1px solid #e0e0e0;padding:8px 4px;font-size:10px;text-align:center;vertical-align:middle;height:52px}
+.time{background:#f5f5f5;font-weight:bold;font-size:10px;white-space:nowrap}
+.end{color:#999;font-size:9px}
+.subj{font-weight:700;font-size:11px;color:#1a1a2e}
+.teach{color:#666;font-size:9px;margin-top:3px}
+.empty{color:#bbb}
+.int-time{background:#FEF3C7;font-weight:bold;font-size:10px}
+.int-cell{background:#FFF8F0;color:#92400e;font-weight:bold;font-size:11px}
+tr:nth-child(even) td:not(:first-child){background:#fafafa}
+</style></head>
+<body>
+<h1>${tituloSala}</h1>
+<div class="sub">Turno ${turnoLabel} · Exportado em ${dataStr}</div>
+<table>
+<thead><tr>
+  <th>Horário</th><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th><th>Sábado</th>
+</tr></thead>
+<tbody>${rows}</tbody>
+</table></body></html>`;
+
+      const { uri } = await Print.printToFileAsync({ html, base64: false });
+      await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Exportar Cronograma" });
+    } catch {
+      Alert.alert("Erro", "Não foi possível gerar o PDF.");
+    } finally {
+      setExportando(false);
+    }
+  };
+
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="dark-content" />
@@ -449,7 +527,16 @@ export default function CronogramaSalaScreen() {
           <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle} numberOfLines={1}>{tituloSala}</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity
+          style={pdfSt.btn}
+          onPress={gerarPDF}
+          disabled={exportando}
+          activeOpacity={0.7}
+        >
+          {exportando
+            ? <ActivityIndicator size={16} color="#3a7d44" />
+            : <Ionicons name="document-text-outline" size={22} color="#3a7d44" />}
+        </TouchableOpacity>
       </View>
 
       {carregando ? (
@@ -566,4 +653,8 @@ const act = StyleSheet.create({
     borderWidth: 1, borderColor: "#BFDBFE",
   },
   dicaText: { fontSize: 12, color: "#1d4ed8", flex: 1, lineHeight: 17 },
+});
+
+const pdfSt = StyleSheet.create({
+  btn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
 });
