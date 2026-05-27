@@ -70,7 +70,7 @@ function RootNavigator() {
   useEffect(() => {
     if (carregando || !biometriaOk) return;
 
-    const rotasPublicas = ['index', 'Login', 'Register', 'ForgotPassword', 'CheckEmail', 'Resetpassword'];
+    const rotasPublicas = ['index', 'Login', 'Register', 'CodigoSupervisao', 'ForgotPassword', 'CheckEmail', 'Resetpassword'];
     const rotasSupervisao = ['home', 'cronogramas', 'professores', 'salas', 'CriarHorario', 'CronogramaSala', 'EditarHorario'];
     const rotasProfessor = ['home-professor', 'cronogramas-professor', 'indisponibilidade'];
 
