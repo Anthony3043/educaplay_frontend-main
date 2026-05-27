@@ -70,6 +70,8 @@ export default function ProfessoresScreen() {
   const [novasMaterias, setNovasMaterias] = useState<string[]>([]);
   const [materiaInput, setMateriaInput] = useState("");
   const [cadastrando, setCadastrando] = useState(false);
+  const [modalSucessoVisivel, setModalSucessoVisivel] = useState(false);
+  const [nomeProfCadastrado, setNomeProfCadastrado] = useState("");
 
   const abrirModalCadastro = useCallback(() => {
     setNovoNome("");
@@ -118,7 +120,8 @@ export default function ProfessoresScreen() {
       });
       setProfessores((prev) => [...prev, res.data].sort((a, b) => a.nome.localeCompare(b.nome)));
       fecharModalCadastro();
-      Alert.alert("Sucesso", `Professor ${res.data.nome} cadastrado com sucesso.`);
+      setNomeProfCadastrado(res.data.nome);
+      setModalSucessoVisivel(true);
     } catch (err: any) {
       const msg = err?.response?.data?.error;
       if (err?.response?.status === 409) {
@@ -474,6 +477,25 @@ export default function ProfessoresScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Modal de sucesso ao cadastrar professor */}
+      <Modal visible={modalSucessoVisivel} transparent animationType="fade" onRequestClose={() => setModalSucessoVisivel(false)}>
+        <View style={suc.overlay}>
+          <View style={suc.box}>
+            <View style={suc.iconCircle}>
+              <Ionicons name="checkmark" size={38} color="#fff" />
+            </View>
+            <Text style={suc.titulo}>Professor cadastrado!</Text>
+            <Text style={suc.descricao}>
+              <Text style={suc.nome}>{nomeProfCadastrado}</Text>
+              {"\n"}foi adicionado com sucesso.
+            </Text>
+            <TouchableOpacity style={suc.btn} onPress={() => setModalSucessoVisivel(false)} activeOpacity={0.85}>
+              <Text style={suc.btnText}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de confirmação de exclusão */}
       <Modal
         visible={modalExcluirVisivel}
@@ -565,6 +587,76 @@ function BloqueioRow({ b }: { b: Bloqueio }) {
     </View>
   );
 }
+
+const suc = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  box: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 28,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconCircle: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: "#3a7d44",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+    shadowColor: "#3a7d44",
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  titulo: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#1a1a2e",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  descricao: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  nome: {
+    fontWeight: "700",
+    color: "#1a1a2e",
+  },
+  btn: {
+    width: "100%",
+    backgroundColor: "#3a7d44",
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    shadowColor: "#3a7d44",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+  btnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
+  },
+});
 
 const cad = StyleSheet.create({
   headerBtn: {
