@@ -3,6 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import * as FileSystem from "expo-file-system/legacy";
 import { styles as s } from "@/styles/Cronogramasstyles";
+import { Colors } from "@/src/constants/colors";
 import {
   computeSchedule,
   intervalStorageKey,
@@ -250,7 +251,7 @@ function CalendarioSemanal({
                           <Text style={cal.intervaloCelulaText} numberOfLines={1}>
                             {item.start}–{item.end}
                           </Text>
-                          <Ionicons name="reorder-three-outline" size={18} color="#b45309" />
+                          <Ionicons name="reorder-three-outline" size={18} color={Colors.warningText} />
                         </Animated.View>
                       );
                     }
@@ -540,11 +541,17 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
 
-      // Monta nome do arquivo: "horário da Sala_Turma_Turno_DD-MM-AAAA.pdf"
+      // Monta nome do arquivo: "horario_da_Sala_Turma_Turno_DD-MM-AAAA.pdf"
       const dataNome = dataStr.replace(/\//g, "-");
       const turmaPart = salaTurma ? `_${salaTurma}` : "";
-      const nomeArquivo = `horário da ${salaNome}${turmaPart}_${turnoLabel}_${dataNome}.pdf`
-        .replace(/[\\/:*?"<>|]/g, "_"); // sanitiza caracteres inválidos
+      const nomeBruto = `horario_da_${salaNome}${turmaPart}_${turnoLabel}_${dataNome}`;
+      const nomeArquivo = nomeBruto
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")   // remove acentos
+        .replace(/[^a-zA-Z0-9_\-]/g, "_")  // substitui caracteres inválidos
+        .replace(/_+/g, "_")               // colapsa underscores duplos
+        .replace(/^_|_$/g, "")             // remove underscores nas bordas
+        + ".pdf";
       const novoUri = `${FileSystem.cacheDirectory}${nomeArquivo}`;
       await FileSystem.copyAsync({ from: uri, to: novoUri });
 
@@ -572,13 +579,13 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
           activeOpacity={0.7}
         >
           {exportando
-            ? <ActivityIndicator size={16} color="#3a7d44" />
-            : <Ionicons name="document-text-outline" size={22} color="#3a7d44" />}
+            ? <ActivityIndicator size={16} color={Colors.primary} />
+            : <Ionicons name="document-text-outline" size={22} color={Colors.primary} />}
         </TouchableOpacity>
       </View>
 
       {carregando ? (
-        <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
+        <ActivityIndicator style={{ flex: 1 }} size="large" color={Colors.primary} />
       ) : (
         <ScrollView
           scrollEnabled={!isDragging}
@@ -597,7 +604,7 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
                   <Ionicons
                     name={turno.ionicon}
                     size={24}
-                    color={selectedTurno === turno.id ? TURNO_COLORS[turno.id] : "#1a1a2e"}
+                    color={selectedTurno === turno.id ? TURNO_COLORS[turno.id] : Colors.textPrimary}
                   />
                   <Text style={s.turnoLabel} numberOfLines={1}>{turno.label}</Text>
                   <Text style={s.turnoTime} numberOfLines={1}>{turno.time}</Text>
@@ -608,7 +615,7 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 
           {/* Dica de uso */}
           <View style={act.dicaBanner}>
-            <Ionicons name="hand-left-outline" size={15} color="#1d4ed8" />
+            <Ionicons name="hand-left-outline" size={15} color={Colors.primary} />
             <Text style={act.dicaText}>
               Toque numa célula vazia para criar um horário. Arraste os intervalos para reposicioná-los.
             </Text>
@@ -642,44 +649,46 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 }
 
 const cal = StyleSheet.create({
-  dayHeader: { backgroundColor: "#1a1a2e", borderRadius: 8, paddingVertical: 8, alignItems: "center" },
-  dayHeaderText: { fontSize: 11, fontWeight: "800", color: "#fff", letterSpacing: 0.8 },
+  dayHeader: {
+    backgroundColor: Colors.primary, borderRadius: 8, paddingVertical: 8, alignItems: "center",
+  },
+  dayHeaderText: { fontSize: 11, fontWeight: "800", color: Colors.textOnPrimary, letterSpacing: 0.8 },
 
   aulaCard: {
-    backgroundColor: "#FAFFFE", borderRadius: 10, borderLeftWidth: 3, padding: 9, flex: 1,
-    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
+    backgroundColor: Colors.surface, borderRadius: 10, borderLeftWidth: 3, padding: 9, flex: 1,
+    shadowColor: Colors.shadow, shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
   aulaTime: { fontSize: 10, fontWeight: "800" },
-  aulaSubject: { fontSize: 12, fontWeight: "700", color: "#1a1a2e", marginBottom: 5, lineHeight: 16 },
+  aulaSubject: { fontSize: 12, fontWeight: "700", color: Colors.textPrimary, marginBottom: 5, lineHeight: 16 },
   detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 3 },
-  detailText: { fontSize: 10, color: "#666", flex: 1 },
+  detailText: { fontSize: 10, color: Colors.textSecondary, flex: 1 },
 
   emptyCell: {
-    flex: 1, borderWidth: 1, borderColor: "#EBEBEB",
-    borderRadius: 10, borderStyle: "dashed", backgroundColor: "#FAFAFA",
+    flex: 1, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 10, borderStyle: "dashed", backgroundColor: Colors.surfaceAlt,
     alignItems: "center", justifyContent: "center",
   },
 
   intervaloCelula: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     height: INT_H,
-    backgroundColor: "#FFF8F0", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 8,
-    borderWidth: 1.5, borderColor: "#FED7AA",
+    backgroundColor: Colors.warningBg, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 8,
+    borderWidth: 1.5, borderColor: Colors.warningBorder,
   },
-  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700", flex: 1, marginRight: 2 },
+  intervaloCelulaText: { fontSize: 10, color: Colors.warningText, fontWeight: "700", flex: 1, marginRight: 2 },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
-  sectionHeaderText: { fontSize: 11, fontWeight: "700", color: "#999", textTransform: "uppercase", letterSpacing: 0.6 },
+  sectionHeaderText: { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.6 },
 
   rowCard: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 12,
-    padding: 12, marginBottom: 8, borderWidth: 1, borderColor: "#F0F0F0", gap: 12,
-    shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
+    flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface, borderRadius: 12,
+    padding: 12, marginBottom: 8, borderWidth: 1, borderColor: Colors.border, gap: 12,
+    shadowColor: Colors.shadow, shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
   rowTimeBox: { alignItems: "center", width: 44, gap: 2 },
-  rowTimeStart: { fontSize: 12, fontWeight: "800", color: "#1a1a2e" },
-  rowTimeEnd: { fontSize: 11, color: "#aaa" },
-  rowSubject: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 3 },
+  rowTimeStart: { fontSize: 12, fontWeight: "800", color: Colors.textPrimary },
+  rowTimeEnd: { fontSize: 11, color: Colors.textMuted },
+  rowSubject: { fontSize: 13, fontWeight: "700", color: Colors.textPrimary, marginBottom: 3 },
 });
 
 const act = StyleSheet.create({
@@ -687,10 +696,10 @@ const act = StyleSheet.create({
   dicaBanner: {
     flexDirection: "row", alignItems: "flex-start", gap: 8,
     marginHorizontal: 20, marginBottom: 8,
-    backgroundColor: "#EFF6FF", borderRadius: 10, padding: 10,
-    borderWidth: 1, borderColor: "#BFDBFE",
+    backgroundColor: Colors.primaryPale, borderRadius: 10, padding: 10,
+    borderWidth: 1, borderColor: Colors.primaryLight,
   },
-  dicaText: { fontSize: 12, color: "#1d4ed8", flex: 1, lineHeight: 17 },
+  dicaText: { fontSize: 12, color: Colors.primary, flex: 1, lineHeight: 17 },
 });
 
 const pdfSt = StyleSheet.create({
