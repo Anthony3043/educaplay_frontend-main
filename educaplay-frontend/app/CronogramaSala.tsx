@@ -483,83 +483,60 @@ export default function CronogramaSalaScreen() {
         dayGapValues[dia] = { g1: DEFAULT_INT1_GAP, g2: DEFAULT_INT2_GAP };
       }
 
-      // Computa horários reais por slot e por intervalo para cada dia
-      type TimeRange = { start: string; end: string };
-      const daySlotTimes: Record<string, Record<number, TimeRange>> = {};
-      const dayIntTimes: Record<string, { i1: TimeRange; i2: TimeRange }> = {};
-      for (const dia of DIAS_SEMANA) {
+      // Gera colunas independentes por dia (mesma ordem do app)
+      const dayCols = DIAS_SEMANA.map(dia => {
         const sched = computeSchedule(turno, dayGapValues[dia].g1, dayGapValues[dia].g2);
-        daySlotTimes[dia] = {};
-        let i1: TimeRange = { start: "—", end: "" };
-        let i2: TimeRange = { start: "—", end: "" };
-        for (const item of sched) {
-          if (item.type === "aula" && item.slotIndex !== undefined) {
-            daySlotTimes[dia][item.slotIndex] = { start: item.start, end: item.end };
-          } else if (item.type === "intervalo") {
-            if (item.intervalId === "i1") i1 = { start: item.start, end: item.end };
-            if (item.intervalId === "i2") i2 = { start: item.start, end: item.end };
+        const items = sched.map(item => {
+          if (item.type === "intervalo") {
+            return `<div class="int-cell">
+              <div class="int-time">☕ ${item.start}–${item.end}</div>
+              <div class="int-lbl">Intervalo</div>
+            </div>`;
           }
-        }
-        dayIntTimes[dia] = { i1, i2 };
-      }
-
-      // Linhas em ordem cronológica usando gaps reais de Segunda como referência
-      const refDay = DIAS_SEMANA[0];
-      const refSched = computeSchedule(turno, dayGapValues[refDay].g1, dayGapValues[refDay].g2);
-      const allRows = refSched.map(item => {
-        if (item.type === "intervalo") {
-          const iKey = item.intervalId!;
-          const intNum = iKey === "i1" ? 1 : 2;
-          const cells = DIAS_SEMANA.map(dia => {
-            const t = dayIntTimes[dia][iKey];
-            return t.start === "—"
-              ? `<td class="int-cell">—</td>`
-              : `<td class="int-cell">☕ ${t.start}<br>${t.end}</td>`;
-          }).join("");
-          return `<tr><td class="slot-col int-label">Intervalo ${intNum}</td>${cells}</tr>`;
-        }
-        const slot = item.slotIndex!;
-        const cells = DIAS_SEMANA.map(dia => {
-          const aula = lookup[`${dia}_${slot}`];
-          const t = daySlotTimes[dia][slot];
-          const timeStr = t ? `<div class="time-tag">${t.start}–${t.end}</div>` : "";
+          const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
           return aula
-            ? `<td>${timeStr}<div class="subj">${aula.subject}</div></td>`
-            : `<td>${timeStr}<span class="empty">—</span></td>`;
+            ? `<div class="aula filled">
+                <div class="t">${item.start}–${item.end}</div>
+                <div class="subj">${aula.subject}</div>
+              </div>`
+            : `<div class="aula empty">
+                <div class="t">${item.start}–${item.end}</div>
+                <span class="dash">—</span>
+              </div>`;
         }).join("");
-        return `<tr><td class="slot-col">Aula ${slot}</td>${cells}</tr>`;
+        return `<div class="col">
+          <div class="day-hdr">${dia.slice(0, 3).toUpperCase()}</div>
+          ${items}
+        </div>`;
       }).join("");
 
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;padding:24px;color:#1a1a2e}
-.inst{font-size:13px;color:#555;margin-bottom:2px}
-h1{font-size:20px;font-weight:bold}
-.sub{font-size:12px;color:#777;margin-top:4px;margin-bottom:18px}
-table{width:100%;border-collapse:collapse}
-th{background:#1a1a2e;color:#fff;padding:10px 4px;font-size:11px;text-align:center;font-weight:bold}
-th:first-child{width:68px}
-td{border:1px solid #e0e0e0;padding:7px 4px;font-size:10px;text-align:center;vertical-align:middle;height:54px}
-.slot-col{background:#f5f5f5;font-weight:700;font-size:10px;white-space:nowrap}
-.int-label{background:#FEF3C7;color:#92400e}
-.time-tag{font-size:9px;color:#888;margin-bottom:3px}
-.subj{font-weight:700;font-size:11px;color:#1a1a2e}
-.teach{color:#666;font-size:9px;margin-top:2px}
-.empty{color:#bbb}
-.int-cell{background:#FFF8F0;color:#92400e;font-weight:600;font-size:10px}
-tr:nth-child(even) td:not(.slot-col){background:#fafafa}
+body{font-family:Arial,sans-serif;padding:20px;color:#1a1a2e}
+.inst{font-size:12px;color:#555;margin-bottom:2px}
+h1{font-size:18px;font-weight:bold}
+.sub{font-size:11px;color:#777;margin-top:3px;margin-bottom:14px}
+.grid{display:flex;gap:5px}
+.col{flex:1}
+.day-hdr{background:#1a1a2e;color:#fff;text-align:center;padding:7px 2px;font-size:10px;font-weight:800;border-radius:5px 5px 0 0;letter-spacing:.6px;margin-bottom:4px}
+.aula{border:1px solid #e0e0e0;border-radius:6px;padding:6px 4px;margin-bottom:4px;min-height:60px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.aula.filled{border-left:3px solid #F59E0B;background:#FAFFFE;align-items:flex-start}
+.aula.empty{border-style:dashed;background:#fafafa}
+.t{font-size:9px;color:#F59E0B;font-weight:700;margin-bottom:3px}
+.aula.empty .t{color:#aaa}
+.subj{font-size:10px;font-weight:700;color:#1a1a2e;line-height:1.3}
+.dash{color:#ccc;font-size:13px}
+.int-cell{border:1.5px solid #FED7AA;border-radius:6px;padding:5px 4px;margin-bottom:4px;min-height:48px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#FFF8F0}
+.int-time{font-size:10px;font-weight:700;color:#92400e}
+.int-lbl{font-size:8px;color:#b45309;margin-top:2px}
 </style></head>
 <body>
 ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
 <h1>${tituloSala}</h1>
 <div class="sub">Turno ${turnoLabel} · Exportado em ${dataStr}</div>
-<table>
-<thead><tr>
-  <th></th><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th><th>Sábado</th>
-</tr></thead>
-<tbody>${allRows}</tbody>
-</table></body></html>`;
+<div class="grid">${dayCols}</div>
+</body></html>`;
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
       await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Exportar Cronograma" });
