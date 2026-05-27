@@ -503,8 +503,21 @@ export default function CronogramaSalaScreen() {
         dayIntTimes[dia] = { i1, i2 };
       }
 
-      // 7 linhas de aula
-      const aulaRows = [1, 2, 3, 4, 5, 6, 7].map(slot => {
+      // Linhas em ordem cronológica: aulas e intervalos intercalados (referência DEFAULT)
+      const refSched = computeSchedule(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
+      const allRows = refSched.map(item => {
+        if (item.type === "intervalo") {
+          const iKey = item.intervalId!;
+          const intNum = iKey === "i1" ? 1 : 2;
+          const cells = DIAS_SEMANA.map(dia => {
+            const t = dayIntTimes[dia][iKey];
+            return t.start === "—"
+              ? `<td class="int-cell">—</td>`
+              : `<td class="int-cell">☕ ${t.start}<br>${t.end}</td>`;
+          }).join("");
+          return `<tr><td class="slot-col int-label">Intervalo ${intNum}</td>${cells}</tr>`;
+        }
+        const slot = item.slotIndex!;
         const cells = DIAS_SEMANA.map(dia => {
           const aula = lookup[`${dia}_${slot}`];
           const t = daySlotTimes[dia][slot];
@@ -514,17 +527,6 @@ export default function CronogramaSalaScreen() {
             : `<td>${timeStr}<span class="empty">—</span></td>`;
         }).join("");
         return `<tr><td class="slot-col">Aula ${slot}</td>${cells}</tr>`;
-      }).join("");
-
-      // 2 linhas de intervalo (horário real por dia)
-      const intRows = (["i1", "i2"] as const).map((iKey, idx) => {
-        const cells = DIAS_SEMANA.map(dia => {
-          const t = dayIntTimes[dia][iKey];
-          return t.start === "—"
-            ? `<td class="int-cell">—</td>`
-            : `<td class="int-cell">☕ ${t.start}<br>${t.end}</td>`;
-        }).join("");
-        return `<tr><td class="slot-col int-label">Intervalo ${idx + 1}</td>${cells}</tr>`;
       }).join("");
 
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -555,7 +557,7 @@ ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
 <thead><tr>
   <th></th><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th><th>Sábado</th>
 </tr></thead>
-<tbody>${aulaRows}${intRows}</tbody>
+<tbody>${allRows}</tbody>
 </table></body></html>`;
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
