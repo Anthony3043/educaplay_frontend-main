@@ -260,7 +260,7 @@ function CalendarioSemanal({
                     // Lookup by slot index so moving intervals doesn't break existing aulas
                     const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
                     return (
-                      <View key={item.key} style={{ marginBottom: 6, minHeight: SLOT_H }}>
+                      <View key={item.key} style={{ marginBottom: 6, height: SLOT_H, overflow: "hidden" }}>
                         {aula ? (
                           <TouchableOpacity
                             style={[cal.aulaCard, { borderLeftColor: cor }]}
@@ -531,7 +531,7 @@ const cal = StyleSheet.create({
   detailText: { fontSize: 10, color: "#666", flex: 1 },
 
   emptyCell: {
-    height: SLOT_H, borderWidth: 1, borderColor: "#EBEBEB",
+    flex: 1, borderWidth: 1, borderColor: "#EBEBEB",
     borderRadius: 10, borderStyle: "dashed", backgroundColor: "#FAFAFA",
     alignItems: "center", justifyContent: "center",
   },
