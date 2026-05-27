@@ -513,24 +513,25 @@ export default function CronogramaSalaScreen() {
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;padding:22px;background:#f0f2f5;color:#1a1a2e}
-.header{background:#1a1a2e;color:#fff;padding:18px 20px;border-radius:10px;margin-bottom:18px}
-.inst{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
-h1{font-size:20px;font-weight:800;margin-bottom:4px}
-.sub{font-size:11px;color:#94a3b8}
-.grid{display:flex;gap:6px}
+body{font-family:Arial,sans-serif;padding:26px;background:#fff;color:#1a1a2e}
+.header{padding-bottom:12px;margin-bottom:16px;border-bottom:2px solid #e2e8f0}
+.inst{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+h1{font-size:20px;font-weight:800;color:#0f172a}
+.sub{font-size:11px;color:#64748b;margin-top:4px}
+.grid{display:flex;gap:5px}
 .col{flex:1}
-.day-hdr{background:#334155;color:#fff;text-align:center;padding:8px 2px;font-size:10px;font-weight:800;border-radius:7px;margin-bottom:5px;letter-spacing:.7px}
-.cell{border-radius:7px;padding:6px 5px;margin-bottom:5px;height:68px;display:flex;flex-direction:column;justify-content:center}
-.filled{background:#fff;border:1px solid #e2e8f0;border-left:3px solid #F59E0B}
-.empty{background:#f8fafc;border:1px dashed #cbd5e1;align-items:center}
-.intervalo{background:#FFF7ED;border:1.5px solid #FED7AA;align-items:center}
-.t-aula{font-size:8.5px;font-weight:700;color:#F59E0B;margin-bottom:3px}
-.t-empty{font-size:8.5px;font-weight:600;color:#94a3b8;margin-bottom:3px}
-.t-int{font-size:9px;font-weight:700;color:#ea580c;margin-bottom:2px}
-.subj{font-size:10px;font-weight:700;color:#1a1a2e;line-height:1.3}
-.dash{color:#cbd5e1;font-size:14px}
-.int-lbl{font-size:8px;color:#c2410c;font-weight:600;letter-spacing:.3px}
+.day-hdr{background:#f1f5f9;color:#334155;text-align:center;padding:8px 2px;font-size:10px;font-weight:800;border-radius:6px;margin-bottom:4px;letter-spacing:.7px;border:1px solid #e2e8f0}
+.cell{border-radius:6px;padding:7px 5px;margin-bottom:4px;height:68px;display:flex;flex-direction:column;justify-content:center;border:1px solid #e2e8f0}
+.filled{background:#fff;border-left:3px solid #3b82f6}
+.empty{background:#f8fafc;border-style:dashed;align-items:center}
+.intervalo{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;align-items:center}
+.t-aula{font-size:8.5px;font-weight:700;color:#3b82f6;margin-bottom:3px}
+.t-empty{font-size:8.5px;color:#94a3b8;margin-bottom:3px}
+.t-int{font-size:9px;font-weight:700;color:#d97706;margin-bottom:2px}
+.subj{font-size:10.5px;font-weight:700;color:#0f172a;line-height:1.3}
+.dash{color:#cbd5e1;font-size:13px}
+.int-lbl{font-size:8px;color:#92400e;font-weight:600;letter-spacing:.3px}
+.footer{margin-top:18px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center}
 </style></head>
 <body>
 <div class="header">
@@ -539,6 +540,7 @@ h1{font-size:20px;font-weight:800;margin-bottom:4px}
   <div class="sub">Turno ${turnoLabel} &nbsp;·&nbsp; ${dataStr}</div>
 </div>
 <div class="grid">${dayCols}</div>
+<div class="footer">EducaPlay · Cronograma gerado em ${dataStr}</div>
 </body></html>`;
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
