@@ -28,6 +28,13 @@ type Professor = {
   materias?: string[];
 };
 
+type NovoProfessor = {
+  nome: string;
+  email: string;
+  senha: string;
+  materias: string[];
+};
+
 type Bloqueio = {
   id: string;
   diaSemana: string | null;
@@ -53,6 +60,76 @@ export default function ProfessoresScreen() {
   const [modalExcluirVisivel, setModalExcluirVisivel] = useState(false);
   const [fraseDigitada, setFraseDigitada] = useState("");
   const [excluindo, setExcluindo] = useState(false);
+
+  // Modal de cadastro de professor
+  const [modalCadastroVisivel, setModalCadastroVisivel] = useState(false);
+  const [novoNome, setNovoNome] = useState("");
+  const [novoEmail, setNovoEmail] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [novaSenhaVisivel, setNovaSenhaVisivel] = useState(false);
+  const [novasMaterias, setNovasMaterias] = useState<string[]>([]);
+  const [materiaInput, setMateriaInput] = useState("");
+  const [cadastrando, setCadastrando] = useState(false);
+
+  const abrirModalCadastro = useCallback(() => {
+    setNovoNome("");
+    setNovoEmail("");
+    setNovaSenha("");
+    setNovasMaterias([]);
+    setMateriaInput("");
+    setModalCadastroVisivel(true);
+  }, []);
+
+  const fecharModalCadastro = useCallback(() => {
+    setModalCadastroVisivel(false);
+  }, []);
+
+  const adicionarMateria = () => {
+    const trimmed = materiaInput.trim();
+    if (!trimmed) return;
+    if (novasMaterias.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
+      setMateriaInput("");
+      return;
+    }
+    setNovasMaterias((prev) => [...prev, trimmed]);
+    setMateriaInput("");
+  };
+
+  const removerMateria = (idx: number) => {
+    setNovasMaterias((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleCadastrarProfessor = useCallback(async () => {
+    if (!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()) {
+      Alert.alert("Atenção", "Preencha nome, e-mail e senha.");
+      return;
+    }
+    if (novaSenha.length < 6) {
+      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+    setCadastrando(true);
+    try {
+      const res = await api.post("/professores", {
+        nome: novoNome.trim(),
+        email: novoEmail.trim().toLowerCase(),
+        senha: novaSenha,
+        materias: novasMaterias,
+      });
+      setProfessores((prev) => [...prev, res.data].sort((a, b) => a.nome.localeCompare(b.nome)));
+      fecharModalCadastro();
+      Alert.alert("Sucesso", `Professor ${res.data.nome} cadastrado com sucesso.`);
+    } catch (err: any) {
+      const msg = err?.response?.data?.error;
+      if (err?.response?.status === 409) {
+        Alert.alert("E-mail já cadastrado", "Este e-mail já está em uso. Use outro.");
+      } else {
+        Alert.alert("Erro", msg || "Não foi possível cadastrar o professor.");
+      }
+    } finally {
+      setCadastrando(false);
+    }
+  }, [novoNome, novoEmail, novaSenha, novasMaterias, fecharModalCadastro]);
 
   const FRASE_CONFIRMACAO = "excluir professor";
 
@@ -125,7 +202,10 @@ export default function ProfessoresScreen() {
           <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Professores</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity style={cad.headerBtn} onPress={abrirModalCadastro} activeOpacity={0.8}>
+          <Ionicons name="person-add-outline" size={18} color="#fff" />
+          <Text style={cad.headerBtnText}>Cadastrar</Text>
+        </TouchableOpacity>
       </View>
 
       {carregando ? (
@@ -268,6 +348,132 @@ export default function ProfessoresScreen() {
         </View>
       </Modal>
 
+      {/* Modal de cadastro de professor */}
+      <Modal
+        visible={modalCadastroVisivel}
+        animationType="slide"
+        transparent
+        onRequestClose={fecharModalCadastro}
+      >
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "padding"}>
+          <View style={cad.overlay}>
+            <View style={cad.sheet}>
+              <View style={m.handle} />
+              <View style={cad.sheetHeader}>
+                <Text style={cad.sheetTitle}>Cadastrar Professor</Text>
+                <TouchableOpacity onPress={fecharModalCadastro} style={m.closeBtn} activeOpacity={0.7}>
+                  <Ionicons name="close" size={22} color="#1a1a2e" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={{ flex: 1 }} contentContainerStyle={cad.sheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {/* Nome */}
+                <View style={cad.inputRow}>
+                  <Ionicons name="person-outline" size={18} color="#888" style={cad.inputIcon} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={cad.inputLabel}>Nome completo *</Text>
+                    <TextInput
+                      style={cad.textInput}
+                      placeholder="Nome do professor"
+                      placeholderTextColor="#bbb"
+                      value={novoNome}
+                      onChangeText={setNovoNome}
+                      autoCapitalize="words"
+                    />
+                  </View>
+                </View>
+
+                {/* E-mail */}
+                <View style={cad.inputRow}>
+                  <Ionicons name="mail-outline" size={18} color="#888" style={cad.inputIcon} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={cad.inputLabel}>E-mail *</Text>
+                    <TextInput
+                      style={cad.textInput}
+                      placeholder="E-mail do professor"
+                      placeholderTextColor="#bbb"
+                      value={novoEmail}
+                      onChangeText={setNovoEmail}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
+
+                {/* Senha */}
+                <View style={cad.inputRow}>
+                  <Ionicons name="lock-closed-outline" size={18} color="#888" style={cad.inputIcon} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={cad.inputLabel}>Senha *</Text>
+                    <TextInput
+                      style={cad.textInput}
+                      placeholder="Senha de acesso do professor"
+                      placeholderTextColor="#bbb"
+                      value={novaSenha}
+                      onChangeText={setNovaSenha}
+                      secureTextEntry={!novaSenhaVisivel}
+                      autoCapitalize="none"
+                    />
+                  </View>
+                  <TouchableOpacity onPress={() => setNovaSenhaVisivel(!novaSenhaVisivel)}>
+                    <Ionicons name={novaSenhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Matérias */}
+                <Text style={cad.materiaLabel}>Matérias que leciona</Text>
+                {novasMaterias.length > 0 && (
+                  <View style={cad.chipsRow}>
+                    {novasMaterias.map((mat, idx) => (
+                      <View key={idx} style={pc.chip}>
+                        <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                        <Text style={pc.chipText}>{mat}</Text>
+                        <TouchableOpacity onPress={() => removerMateria(idx)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                          <Ionicons name="close" size={13} color="#2d6a4f" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                )}
+                <View style={cad.addRow}>
+                  <View style={[cad.inputRow, { flex: 1, marginBottom: 0 }]}>
+                    <Ionicons name="book-outline" size={18} color="#888" style={cad.inputIcon} />
+                    <TextInput
+                      style={[cad.textInput, { flex: 1 }]}
+                      placeholder="Ex: Matemática, Português..."
+                      placeholderTextColor="#bbb"
+                      value={materiaInput}
+                      onChangeText={setMateriaInput}
+                      autoCapitalize="words"
+                      onSubmitEditing={adicionarMateria}
+                      returnKeyType="done"
+                    />
+                  </View>
+                  <TouchableOpacity style={cad.addBtn} onPress={adicionarMateria} activeOpacity={0.8}>
+                    <Ionicons name="add" size={20} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+                <Text style={cad.materiaHint}>Adicione uma de cada vez. Toque + ou pressione "concluir".</Text>
+
+                <TouchableOpacity
+                  style={[cad.confirmarBtn, cadastrando && { opacity: 0.7 }]}
+                  onPress={handleCadastrarProfessor}
+                  activeOpacity={0.85}
+                  disabled={cadastrando}
+                >
+                  {cadastrando ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={cad.confirmarBtnText}>Cadastrar Professor</Text>
+                  )}
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       {/* Modal de confirmação de exclusão */}
       <Modal
         visible={modalExcluirVisivel}
@@ -359,6 +565,118 @@ function BloqueioRow({ b }: { b: Bloqueio }) {
     </View>
   );
 }
+
+const cad = StyleSheet.create({
+  headerBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#3a7d44",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  headerBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "90%",
+    paddingTop: 12,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sheetTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1a1a2e",
+  },
+  sheetScroll: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F7F8FA",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E8E8F0",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
+  inputLabel: {
+    fontSize: 11,
+    color: "#888",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  textInput: {
+    fontSize: 14,
+    color: "#1a1a2e",
+    padding: 0,
+  },
+  materiaLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1a1a2e",
+    marginBottom: 8,
+  },
+  chipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 8,
+  },
+  addRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  addBtn: {
+    backgroundColor: "#3a7d44",
+    borderRadius: 10,
+    padding: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  materiaHint: {
+    fontSize: 11,
+    color: "#aaa",
+    marginBottom: 20,
+  },
+  confirmarBtn: {
+    backgroundColor: "#3a7d44",
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  confirmarBtnText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
+  },
+});
 
 const pc = StyleSheet.create({
   chip: {

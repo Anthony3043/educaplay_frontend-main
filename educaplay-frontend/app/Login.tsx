@@ -110,9 +110,9 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <View style={s.createAccountRow}>
-              <Text style={s.createAccountText}>Não tem uma conta? </Text>
-              <TouchableOpacity onPress={() => router.push("/Register")}>
-                <Text style={s.createAccountLink}>Criar conta →</Text>
+              <Text style={s.createAccountText}>É da supervisão? </Text>
+              <TouchableOpacity onPress={() => router.push("/CodigoSupervisao")}>
+                <Text style={s.createAccountLink}>Cadastrar →</Text>
               </TouchableOpacity>
             </View>
           </View>
