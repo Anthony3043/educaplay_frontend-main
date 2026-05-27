@@ -553,6 +553,7 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
         .replace(/^_|_$/g, "")             // remove underscores nas bordas
         + ".pdf";
       const destFile = new File(Paths.cache, nomeArquivo);
+      if (destFile.exists) destFile.delete();
       new File(uri).copy(destFile);
       const novoUri = destFile.uri;
 
