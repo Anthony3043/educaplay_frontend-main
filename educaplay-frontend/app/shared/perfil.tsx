@@ -1,4 +1,4 @@
-import { styles as s } from "../styles/PerfilStyles";
+import { styles as s } from "../../styles/PerfilStyles";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -8,8 +8,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "../context/AuthContext";
-import api from "../src/services/api";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../src/services/api";
 
 const TABS = [
   { id: "home", ionicon: "home-outline" as const, label: "Home" },

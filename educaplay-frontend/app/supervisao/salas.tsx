@@ -8,7 +8,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/src/constants/colors";
-import api from "../src/services/api";
+import api from "../../src/services/api";
 
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
 

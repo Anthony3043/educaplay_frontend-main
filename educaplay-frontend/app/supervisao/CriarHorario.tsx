@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../src/services/api";
+import api from "../../src/services/api";
 
 type Professor = { id: string; nome: string; cargo?: string | null; foto?: string | null; materias?: string[] };
 type ProfIndisponivel = { professor: Professor; motivo: string; tipo: "em_aula" | "bloqueado" };

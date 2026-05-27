@@ -31,8 +31,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../src/services/api";
-import { useAuth } from "../context/AuthContext";
+import api from "../../src/services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const SNAP = Math.round((SLOT_H + 8) / 2);
 

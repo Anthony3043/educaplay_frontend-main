@@ -16,7 +16,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import api from "../src/services/api";
+import api from "../../src/services/api";
 
 const COUNTDOWN_INICIAL = 60;
 

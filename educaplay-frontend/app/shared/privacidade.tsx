@@ -10,8 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LocalAuthentication from "expo-local-authentication";
-import api from "../src/services/api";
-import { useAuth } from "../context/AuthContext";
+import api from "../../src/services/api";
+import { useAuth } from "../../context/AuthContext";
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
 const FRASE_CONFIRMACAO = "EXCLUIR MINHA CONTA";

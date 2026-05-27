@@ -2,7 +2,7 @@ import { styles as s } from "@/styles/configuracoesstyles";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import type { Href } from "expo-router";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   ScrollView,
   StatusBar,

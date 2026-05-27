@@ -18,8 +18,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../src/services/api";
-import { useAuth } from "../context/AuthContext";
+import api from "../../src/services/api";
+import { useAuth } from "../../context/AuthContext";
 
 type TurnoId = "matutino" | "vespertino";
 

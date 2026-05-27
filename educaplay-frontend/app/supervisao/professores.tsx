@@ -1,4 +1,4 @@
-import { styles as s } from "../styles/ProfessoresStyles";
+import { styles as s } from "../../styles/ProfessoresStyles";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../src/services/api";
+import api from "../../src/services/api";
 
 type Professor = {
   id: string;

@@ -19,7 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../src/services/api";
+import api from "../../src/services/api";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();

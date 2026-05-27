@@ -9,9 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../src/services/api";
-import { agendarLembretes, cancelarLembretes } from "../hooks/useNotifications";
-import { useAuth } from "../context/AuthContext";
+import api from "../../src/services/api";
+import { agendarLembretes, cancelarLembretes } from "../../hooks/useNotifications";
+import { useAuth } from "../../context/AuthContext";
 
 
 type Notificacao = { id: string; icon: string; titulo: string; mensagem: string; lida: boolean; createdAt: string };

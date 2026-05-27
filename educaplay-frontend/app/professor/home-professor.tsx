@@ -15,9 +15,9 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { homeStyles as s } from "../styles/homeStyles";
-import { useAuth } from "../context/AuthContext";
-import api from "../src/services/api";
+import { homeStyles as s } from "../../styles/homeStyles";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../src/services/api";
 
 const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.72;
