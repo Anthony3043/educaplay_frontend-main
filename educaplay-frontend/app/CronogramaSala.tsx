@@ -523,7 +523,7 @@ export default function CronogramaSalaScreen() {
           const t = daySlotTimes[dia][slot];
           const timeStr = t ? `<div class="time-tag">${t.start}–${t.end}</div>` : "";
           return aula
-            ? `<td>${timeStr}<div class="subj">${aula.subject}</div>${aula.teacher ? `<div class="teach">👤 ${aula.teacher}</div>` : ""}</td>`
+            ? `<td>${timeStr}<div class="subj">${aula.subject}</div></td>`
             : `<td>${timeStr}<span class="empty">—</span></td>`;
         }).join("");
         return `<tr><td class="slot-col">Aula ${slot}</td>${cells}</tr>`;
