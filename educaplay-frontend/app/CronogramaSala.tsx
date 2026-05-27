@@ -4,6 +4,7 @@ import {
   computeSchedule,
   intervalStorageKey,
   intervalStorageKeyPerDay,
+  timeToSlotIndex,
   DEFAULT_INT1_GAP,
   DEFAULT_INT2_GAP,
   SLOT_H,
@@ -188,10 +189,17 @@ function CalendarioSemanal({
     return pans;
   })());
 
+  // Lookup by slotIndex (1-7) so dragging intervals never breaks existing aulas
   const lookup: Record<string, Aula> = {};
   aulas
     .filter(a => !a.isInterval && !!a.diaSemana)
-    .forEach(a => { const k = `${a.diaSemana}_${a.timeStart}`; if (!lookup[k]) lookup[k] = a; });
+    .forEach(a => {
+      const si = timeToSlotIndex(turno, a.timeStart);
+      if (si !== null) {
+        const k = `${a.diaSemana}_${si}`;
+        if (!lookup[k]) lookup[k] = a;
+      }
+    });
 
   const semDia = aulas
     .filter(a => !a.isInterval && !a.diaSemana)
@@ -261,7 +269,12 @@ function CalendarioSemanal({
                           key={item.key}
                           style={[
                             cal.intervaloCelula,
-                            { marginBottom: 6, transform: [{ translateY: animRefs.current[panKey] }] },
+                            {
+                              marginBottom: 6,
+                              zIndex: 5,
+                              elevation: 5,
+                              transform: [{ translateY: animRefs.current[panKey] }],
+                            },
                           ]}
                           {...pansRef.current[panKey].panHandlers}
                         >
@@ -271,9 +284,10 @@ function CalendarioSemanal({
                         </Animated.View>
                       );
                     }
-                    const aula = lookup[`${dia}_${item.start}`];
+                    // Lookup by slot index so moving intervals doesn't break existing aulas
+                    const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
                     return (
-                      <View key={item.key} style={{ marginBottom: 6 }}>
+                      <View key={item.key} style={{ marginBottom: 6, minHeight: SLOT_H }}>
                         {aula ? (
                           <TouchableOpacity
                             style={[cal.aulaCard, { borderLeftColor: cor }]}
@@ -281,9 +295,9 @@ function CalendarioSemanal({
                             activeOpacity={0.82}
                           >
                             <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
-                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeStart}</Text>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{item.start}</Text>
                               <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
-                              <Text style={[cal.aulaTime, { color: cor }]}>{aula.timeEnd}</Text>
+                              <Text style={[cal.aulaTime, { color: cor }]}>{item.end}</Text>
                             </View>
                             <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
                             {aula.teacher ? (
@@ -548,7 +562,7 @@ const cal = StyleSheet.create({
   detailText: { fontSize: 10, color: "#666", flex: 1 },
 
   emptyCell: {
-    flex: 1, minHeight: 76, borderWidth: 1, borderColor: "#EBEBEB",
+    height: SLOT_H, borderWidth: 1, borderColor: "#EBEBEB",
     borderRadius: 10, borderStyle: "dashed", backgroundColor: "#FAFAFA",
     alignItems: "center", justifyContent: "center",
   },

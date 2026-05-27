@@ -76,6 +76,24 @@ export function intervalStorageKeyPerDay(turno: string, dia: string): string {
   return `@educaplay_interval_config_${turno}_${dia}`;
 }
 
+// Derives the slot index (1-7) from a stored timeStart without needing gap values.
+// Works because: elapsed = numAulas*45 + numIntervals*15, and elapsed%45 ∈ {0,15,30}.
+export function timeToSlotIndex(turno: string, timeStart: string): number | null {
+  const parts = timeStart.split(":");
+  if (parts.length < 2) return null;
+  const totalMins = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+  if (isNaN(totalMins)) return null;
+  const base = turno === "matutino" ? 7 * 60 : 13 * 60;
+  const elapsed = totalMins - base;
+  if (elapsed < 0) return null;
+  const rem = elapsed % 45;
+  const numIntervals = rem === 0 ? 0 : rem === 15 ? 1 : rem === 30 ? 2 : -1;
+  if (numIntervals < 0) return null;
+  const numAulas = (elapsed - numIntervals * 15) / 45;
+  if (!Number.isInteger(numAulas) || numAulas < 0 || numAulas > 6) return null;
+  return numAulas + 1;
+}
+
 // Returns the 7 aula slots with default interval positions.
 export function getSlotsForTurno(turno: string): Slot[] {
   return computeAulaSlots(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
