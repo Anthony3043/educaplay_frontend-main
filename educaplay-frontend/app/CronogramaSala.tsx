@@ -32,6 +32,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import api from "../src/services/api";
+import { useAuth } from "../context/AuthContext";
 
 if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -339,6 +340,7 @@ function CalendarioSemanal({
 // ─── Tela principal ───────────────────────────────────────────────────────────
 export default function CronogramaSalaScreen() {
   const router = useRouter();
+  const { usuario } = useAuth();
   const { salaId, salaNome, salaTurma } = useLocalSearchParams<{
     salaId: string;
     salaNome: string;
@@ -449,7 +451,10 @@ export default function CronogramaSalaScreen() {
       const turno = selectedTurno;
       const aulasTurno = cronogramas[turno];
       const turnoLabel = turno === "matutino" ? "Matutino" : "Vespertino";
+      const dataStr = new Date().toLocaleDateString("pt-BR");
+      const instituicao = (usuario as any)?.instituicao || "";
 
+      // Lookup de aulas por índice de slot
       const lookup: Record<string, Aula> = {};
       aulasTurno
         .filter(a => !a.isInterval && !!a.diaSemana)
@@ -461,52 +466,96 @@ export default function CronogramaSalaScreen() {
           }
         });
 
-      const schedule = computeSchedule(turno, DEFAULT_INT1_GAP, DEFAULT_INT2_GAP);
-      const dataStr = new Date().toLocaleDateString("pt-BR");
+      // Carrega gaps reais de cada dia do AsyncStorage
+      const dayGapValues: Record<string, { g1: number; g2: number }> = {};
+      for (const dia of DIAS_SEMANA) {
+        try {
+          let raw = await AsyncStorage.getItem(intervalStorageKeyPerDay(turno, dia));
+          if (!raw) raw = await AsyncStorage.getItem(intervalStorageKey(turno));
+          if (raw) {
+            const { g1, g2 } = JSON.parse(raw);
+            if (Number.isInteger(g1) && Number.isInteger(g2) && g1 >= 0 && g2 <= 7 && g1 < g2) {
+              dayGapValues[dia] = { g1, g2 };
+              continue;
+            }
+          }
+        } catch {}
+        dayGapValues[dia] = { g1: DEFAULT_INT1_GAP, g2: DEFAULT_INT2_GAP };
+      }
 
-      const rows = schedule.map(item => {
-        if (item.type === "intervalo") {
-          return `<tr>
-            <td class="int-time">☕ ${item.start}<br>${item.end}</td>
-            <td class="int-cell" colspan="6">Intervalo</td>
-          </tr>`;
+      // Computa horários reais por slot e por intervalo para cada dia
+      type TimeRange = { start: string; end: string };
+      const daySlotTimes: Record<string, Record<number, TimeRange>> = {};
+      const dayIntTimes: Record<string, { i1: TimeRange; i2: TimeRange }> = {};
+      for (const dia of DIAS_SEMANA) {
+        const sched = computeSchedule(turno, dayGapValues[dia].g1, dayGapValues[dia].g2);
+        daySlotTimes[dia] = {};
+        let i1: TimeRange = { start: "—", end: "" };
+        let i2: TimeRange = { start: "—", end: "" };
+        for (const item of sched) {
+          if (item.type === "aula" && item.slotIndex !== undefined) {
+            daySlotTimes[dia][item.slotIndex] = { start: item.start, end: item.end };
+          } else if (item.type === "intervalo") {
+            if (item.intervalId === "i1") i1 = { start: item.start, end: item.end };
+            if (item.intervalId === "i2") i2 = { start: item.start, end: item.end };
+          }
         }
+        dayIntTimes[dia] = { i1, i2 };
+      }
+
+      // 7 linhas de aula
+      const aulaRows = [1, 2, 3, 4, 5, 6, 7].map(slot => {
         const cells = DIAS_SEMANA.map(dia => {
-          const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
+          const aula = lookup[`${dia}_${slot}`];
+          const t = daySlotTimes[dia][slot];
+          const timeStr = t ? `<div class="time-tag">${t.start}–${t.end}</div>` : "";
           return aula
-            ? `<td><div class="subj">${aula.subject}</div>${aula.teacher ? `<div class="teach">👤 ${aula.teacher}</div>` : ""}</td>`
-            : `<td><span class="empty">—</span></td>`;
+            ? `<td>${timeStr}<div class="subj">${aula.subject}</div>${aula.teacher ? `<div class="teach">👤 ${aula.teacher}</div>` : ""}</td>`
+            : `<td>${timeStr}<span class="empty">—</span></td>`;
         }).join("");
-        return `<tr><td class="time">${item.start}<br><span class="end">${item.end}</span></td>${cells}</tr>`;
+        return `<tr><td class="slot-col">Aula ${slot}</td>${cells}</tr>`;
+      }).join("");
+
+      // 2 linhas de intervalo (horário real por dia)
+      const intRows = (["i1", "i2"] as const).map((iKey, idx) => {
+        const cells = DIAS_SEMANA.map(dia => {
+          const t = dayIntTimes[dia][iKey];
+          return t.start === "—"
+            ? `<td class="int-cell">—</td>`
+            : `<td class="int-cell">☕ ${t.start}<br>${t.end}</td>`;
+        }).join("");
+        return `<tr><td class="slot-col int-label">Intervalo ${idx + 1}</td>${cells}</tr>`;
       }).join("");
 
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;padding:24px;color:#1a1a2e}
+.inst{font-size:13px;color:#555;margin-bottom:2px}
 h1{font-size:20px;font-weight:bold}
-.sub{font-size:12px;color:#777;margin-top:4px}
-table{width:100%;border-collapse:collapse;margin-top:16px}
+.sub{font-size:12px;color:#777;margin-top:4px;margin-bottom:18px}
+table{width:100%;border-collapse:collapse}
 th{background:#1a1a2e;color:#fff;padding:10px 4px;font-size:11px;text-align:center;font-weight:bold}
-th:first-child{width:72px}
-td{border:1px solid #e0e0e0;padding:8px 4px;font-size:10px;text-align:center;vertical-align:middle;height:52px}
-.time{background:#f5f5f5;font-weight:bold;font-size:10px;white-space:nowrap}
-.end{color:#999;font-size:9px}
+th:first-child{width:68px}
+td{border:1px solid #e0e0e0;padding:7px 4px;font-size:10px;text-align:center;vertical-align:middle;height:54px}
+.slot-col{background:#f5f5f5;font-weight:700;font-size:10px;white-space:nowrap}
+.int-label{background:#FEF3C7;color:#92400e}
+.time-tag{font-size:9px;color:#888;margin-bottom:3px}
 .subj{font-weight:700;font-size:11px;color:#1a1a2e}
-.teach{color:#666;font-size:9px;margin-top:3px}
+.teach{color:#666;font-size:9px;margin-top:2px}
 .empty{color:#bbb}
-.int-time{background:#FEF3C7;font-weight:bold;font-size:10px}
-.int-cell{background:#FFF8F0;color:#92400e;font-weight:bold;font-size:11px}
-tr:nth-child(even) td:not(:first-child){background:#fafafa}
+.int-cell{background:#FFF8F0;color:#92400e;font-weight:600;font-size:10px}
+tr:nth-child(even) td:not(.slot-col){background:#fafafa}
 </style></head>
 <body>
+${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
 <h1>${tituloSala}</h1>
 <div class="sub">Turno ${turnoLabel} · Exportado em ${dataStr}</div>
 <table>
 <thead><tr>
-  <th>Horário</th><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th><th>Sábado</th>
+  <th></th><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th><th>Sábado</th>
 </tr></thead>
-<tbody>${rows}</tbody>
+<tbody>${aulaRows}${intRows}</tbody>
 </table></body></html>`;
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
