@@ -13,8 +13,6 @@ import {
   Animated,
   LayoutAnimation,
   PanResponder,
-  Platform,
-  UIManager,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -25,10 +23,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { styles as s } from "@/styles/EditarHorarioStyles";
-
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const SNAP = Math.round((SLOT_H + 8) / 2);
 

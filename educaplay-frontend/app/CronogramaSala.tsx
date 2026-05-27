@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system/legacy";
+import { File, Paths } from "expo-file-system";
 import { styles as s } from "@/styles/Cronogramasstyles";
 import { Colors } from "@/src/constants/colors";
 import {
@@ -552,8 +552,9 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
         .replace(/_+/g, "_")               // colapsa underscores duplos
         .replace(/^_|_$/g, "")             // remove underscores nas bordas
         + ".pdf";
-      const novoUri = `${FileSystem.cacheDirectory}${nomeArquivo}`;
-      await FileSystem.copyAsync({ from: uri, to: novoUri });
+      const destFile = new File(Paths.cache, nomeArquivo);
+      new File(uri).copy(destFile);
+      const novoUri = destFile.uri;
 
       await Sharing.shareAsync(novoUri, { mimeType: "application/pdf", dialogTitle: "Exportar Cronograma" });
     } catch {
