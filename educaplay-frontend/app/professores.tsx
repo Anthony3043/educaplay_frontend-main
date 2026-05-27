@@ -128,21 +128,42 @@ export default function ProfessoresScreen() {
     setMateriasEditadas((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSalvarMaterias = useCallback(async () => {
+  const handleSalvarMaterias = useCallback(() => {
     if (!profSelecionado) return;
-    setSalvando(true);
-    try {
-      const res = await api.put(`/professores/${profSelecionado.id}/materias`, { materias: materiasEditadas });
-      setProfessores((prev) =>
-        prev.map((p) => p.id === profSelecionado.id ? { ...p, materias: res.data.materias } : p)
-      );
-      setProfSelecionado((prev) => prev ? { ...prev, materias: res.data.materias } : prev);
-      setModalEditarMaterias(false);
-    } catch {
-      Alert.alert("Erro", "Não foi possível salvar as matérias. Tente novamente.");
-    } finally {
-      setSalvando(false);
-    }
+    const original = profSelecionado.materias ?? [];
+    const adicionadas = materiasEditadas.filter((m) => !original.includes(m));
+    const removidas = original.filter((m) => !materiasEditadas.includes(m));
+
+    let verbo = "alterar as matérias";
+    if (adicionadas.length > 0 && removidas.length === 0) verbo = "adicionar matérias a";
+    else if (removidas.length > 0 && adicionadas.length === 0) verbo = "excluir matérias de";
+    else verbo = "alterar as matérias de";
+
+    Alert.alert(
+      "Confirmar alteração",
+      `Deseja realmente ${verbo} ${profSelecionado.nome}?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Confirmar",
+          onPress: async () => {
+            setSalvando(true);
+            try {
+              const res = await api.put(`/professores/${profSelecionado.id}/materias`, { materias: materiasEditadas });
+              setProfessores((prev) =>
+                prev.map((p) => p.id === profSelecionado.id ? { ...p, materias: res.data.materias } : p)
+              );
+              setProfSelecionado((prev) => prev ? { ...prev, materias: res.data.materias } : prev);
+              setModalEditarMaterias(false);
+            } catch {
+              Alert.alert("Erro", "Não foi possível salvar as matérias. Tente novamente.");
+            } finally {
+              setSalvando(false);
+            }
+          },
+        },
+      ]
+    );
   }, [profSelecionado, materiasEditadas]);
 
   const abrirModalCadastro = useCallback(() => {
