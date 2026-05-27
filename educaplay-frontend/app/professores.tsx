@@ -85,6 +85,26 @@ export default function ProfessoresScreen() {
     setModalEditarMaterias(true);
   }, [profSelecionado]);
 
+  const fecharEditarMaterias = useCallback(() => {
+    const original = profSelecionado?.materias ?? [];
+    const mudou =
+      materiasEditadas.length !== original.length ||
+      materiasEditadas.some((m) => !original.includes(m));
+
+    if (mudou) {
+      Alert.alert(
+        "Descartar alterações?",
+        "Você tem alterações não salvas. Deseja descartá-las?",
+        [
+          { text: "Continuar editando", style: "cancel" },
+          { text: "Descartar", style: "destructive", onPress: () => setModalEditarMaterias(false) },
+        ]
+      );
+    } else {
+      setModalEditarMaterias(false);
+    }
+  }, [profSelecionado, materiasEditadas]);
+
   const adicionarMateriaEdit = () => {
     const trimmed = materiaEditInput.trim();
     if (!trimmed) return;
@@ -544,7 +564,7 @@ export default function ProfessoresScreen() {
       </Modal>
 
       {/* Modal de edição de matérias */}
-      <Modal visible={modalEditarMaterias} animationType="slide" transparent onRequestClose={() => setModalEditarMaterias(false)}>
+      <Modal visible={modalEditarMaterias} animationType="slide" transparent onRequestClose={fecharEditarMaterias}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "padding"}>
           <View style={cad.overlay}>
             <View style={[cad.sheet, { height: "75%" }]}>
@@ -554,7 +574,7 @@ export default function ProfessoresScreen() {
                   <Text style={cad.sheetTitle}>Editar Matérias</Text>
                   <Text style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{profSelecionado?.nome}</Text>
                 </View>
-                <TouchableOpacity onPress={() => setModalEditarMaterias(false)} style={m.closeBtn} activeOpacity={0.7}>
+                <TouchableOpacity onPress={fecharEditarMaterias} style={m.closeBtn} activeOpacity={0.7}>
                   <Ionicons name="close" size={22} color="#1a1a2e" />
                 </TouchableOpacity>
               </View>
