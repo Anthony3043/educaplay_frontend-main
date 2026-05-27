@@ -78,6 +78,9 @@ export default function ProfessoresScreen() {
   const [materiasEditadas, setMateriasEditadas] = useState<string[]>([]);
   const [materiaEditInput, setMateriaEditInput] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [modalConfirmarVisivel, setModalConfirmarVisivel] = useState(false);
+  const [mensagemConfirmacao, setMensagemConfirmacao] = useState("");
+  const confirmarAcao = React.useRef<() => void>(() => {});
 
   const abrirEditarMaterias = useCallback(() => {
     setMateriasEditadas(profSelecionado?.materias ?? []);
@@ -134,36 +137,28 @@ export default function ProfessoresScreen() {
     const adicionadas = materiasEditadas.filter((m) => !original.includes(m));
     const removidas = original.filter((m) => !materiasEditadas.includes(m));
 
-    let verbo = "alterar as matérias";
+    let verbo = "alterar as matérias de";
     if (adicionadas.length > 0 && removidas.length === 0) verbo = "adicionar matérias a";
     else if (removidas.length > 0 && adicionadas.length === 0) verbo = "excluir matérias de";
-    else verbo = "alterar as matérias de";
 
-    Alert.alert(
-      "Confirmar alteração",
-      `Deseja realmente ${verbo} ${profSelecionado.nome}?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Confirmar",
-          onPress: async () => {
-            setSalvando(true);
-            try {
-              const res = await api.put(`/professores/${profSelecionado.id}/materias`, { materias: materiasEditadas });
-              setProfessores((prev) =>
-                prev.map((p) => p.id === profSelecionado.id ? { ...p, materias: res.data.materias } : p)
-              );
-              setProfSelecionado((prev) => prev ? { ...prev, materias: res.data.materias } : prev);
-              setModalEditarMaterias(false);
-            } catch {
-              Alert.alert("Erro", "Não foi possível salvar as matérias. Tente novamente.");
-            } finally {
-              setSalvando(false);
-            }
-          },
-        },
-      ]
-    );
+    setMensagemConfirmacao(`Deseja realmente ${verbo} ${profSelecionado.nome}?`);
+    confirmarAcao.current = async () => {
+      setModalConfirmarVisivel(false);
+      setSalvando(true);
+      try {
+        const res = await api.put(`/professores/${profSelecionado.id}/materias`, { materias: materiasEditadas });
+        setProfessores((prev) =>
+          prev.map((p) => p.id === profSelecionado.id ? { ...p, materias: res.data.materias } : p)
+        );
+        setProfSelecionado((prev) => prev ? { ...prev, materias: res.data.materias } : prev);
+        setModalEditarMaterias(false);
+      } catch {
+        Alert.alert("Erro", "Não foi possível salvar as matérias. Tente novamente.");
+      } finally {
+        setSalvando(false);
+      }
+    };
+    setModalConfirmarVisivel(true);
   }, [profSelecionado, materiasEditadas]);
 
   const abrirModalCadastro = useCallback(() => {
@@ -651,6 +646,27 @@ export default function ProfessoresScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Modal de confirmação de alteração de matérias */}
+      <Modal visible={modalConfirmarVisivel} transparent animationType="fade" onRequestClose={() => setModalConfirmarVisivel(false)}>
+        <View style={conf.overlay}>
+          <View style={conf.box}>
+            <View style={conf.iconCircle}>
+              <Ionicons name="create-outline" size={34} color="#fff" />
+            </View>
+            <Text style={conf.titulo}>Confirmar alteração</Text>
+            <Text style={conf.mensagem}>{mensagemConfirmacao}</Text>
+            <View style={conf.botoesRow}>
+              <TouchableOpacity style={conf.cancelarBtn} onPress={() => setModalConfirmarVisivel(false)} activeOpacity={0.8}>
+                <Text style={conf.cancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={conf.confirmarBtn} onPress={() => confirmarAcao.current()} activeOpacity={0.85}>
+                <Text style={conf.confirmarText}>Confirmar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de sucesso ao cadastrar professor */}
       <Modal visible={modalSucessoVisivel} transparent animationType="fade" onRequestClose={() => setModalSucessoVisivel(false)}>
         <View style={suc.overlay}>
@@ -761,6 +777,91 @@ function BloqueioRow({ b }: { b: Bloqueio }) {
     </View>
   );
 }
+
+const conf = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  box: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 28,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#3a7d44",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 18,
+    shadowColor: "#3a7d44",
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  titulo: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1a1a2e",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  mensagem: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  botoesRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  cancelarBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "#E0E0E0",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
+  },
+  cancelarText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#555",
+  },
+  confirmarBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 14,
+    backgroundColor: "#3a7d44",
+    alignItems: "center",
+    shadowColor: "#3a7d44",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  confirmarText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
+  },
+});
 
 const suc = StyleSheet.create({
   overlay: {
