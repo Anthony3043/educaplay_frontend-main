@@ -23,12 +23,13 @@ const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.72;
 
 const DICAS = [
-  "Mantenha seus horários sempre\natualizados e evite conflitos!",
-  "Cadastre todos os professores\nantes de montar o cronograma.",
-  "Use o modo edição para ajustar\naulas rapidamente no cronograma.",
-  "Verifique as salas disponíveis\nantes de alocar uma turma.",
-  "Organize os turnos separadamente\npara facilitar a visualização.",
-  "Salve o cronograma em PDF para\ncompartilhar com a equipe.",
+  "Configure o local da escola antes\nde liberar o bater ponto para\nos professores!",
+  "Acesse "Pontos do Dia" para ver\nquem registrou presença e notificar\nquem faltou com um toque.",
+  "Professores nunca são excluídos:\ndesative-os para preservar o\nhistórico de aulas e pontos.",
+  "Você pode permitir que professores\neditem o mapa de sala — basta\nativar a permissão no perfil deles.",
+  "Cada sala tem seu próprio mapa\nde carteiras. Ajuste o número de\ncolunas conforme o layout real.",
+  "Defina o raio de tolerância do\nGPS com cuidado — muito pequeno\npode impedir o ponto ser batido.",
+  "Após cadastrar as salas, atribua-as\nàs aulas no cronograma para que\no mapa de sala funcione.",
 ];
 
 const MENU_ITEMS = [

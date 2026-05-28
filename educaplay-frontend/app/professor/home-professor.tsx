@@ -23,12 +23,12 @@ const { width } = Dimensions.get("window");
 const DRAWER_WIDTH = width * 0.72;
 
 const DICAS = [
-  "Registre sua disponibilidade\ncom antecedência para evitar conflitos!",
-  "Consulte o cronograma regularmente\npara se manter atualizado.",
-  "Atualize seus horários disponíveis\nsempre que houver mudanças.",
-  "Verifique se suas aulas estão\ncorretas no cronograma.",
-  "Mantenha seu perfil atualizado\npara facilitar a alocação.",
-  "Em caso de dúvidas, entre em\ncontato com a supervisão.",
+  "Bata o ponto ao chegar na escola!\nAbra o cronograma, selecione o dia\ne toque em "Bater Ponto".",
+  "O ponto só é aceito se você\nestiver dentro do raio da escola.\nCertifique-se de estar no local.",
+  "Se já bateu o ponto, o badge\nverde aparece automaticamente\nno card da aula.",
+  "No Mapa de Sala você vê onde\ncada aluno senta. Se tiver\npermissão, pode editar os nomes.",
+  "Seu cronograma mostra todas as\naulas atribuídas a você por dia\ne por turno.",
+  "Mantenha sua disponibilidade\natualizada para a supervisão\nalocar suas aulas corretamente.",
 ];
 
 const MENU_ITEMS = [
