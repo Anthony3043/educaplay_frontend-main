@@ -1,9 +1,4 @@
-/**
- * app/styles/homeStyles.ts - Estilos da tela Home do PlanejaEdu
- */
-
 import { StyleSheet, Dimensions } from 'react-native';
-import { Colors } from '@/src/constants/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -11,7 +6,7 @@ export const homeStyles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#F4F6FA',
   },
 
   // ── Header ───────────────────────────────────────────────
@@ -19,10 +14,12 @@ export const homeStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
   },
   headerLogo: {
     flexDirection: 'row',
@@ -36,27 +33,16 @@ export const homeStyles = StyleSheet.create({
   headerLogoText: {
     fontSize: 20,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: '#1a1a2e',
   },
   headerLogoAccent: {
-    color: Colors.primary,
-  },
-  menuIcon: {
-    fontSize: 22,
-    color: Colors.textPrimary,
-  },
-  notifWrapper: {
-    position: 'relative',
-  },
-  notifIcon: {
-    fontSize: 22,
-    color: Colors.textPrimary,
+    color: '#3a7d44',
   },
   notifBadge: {
     position: 'absolute',
     top: -4,
     right: -4,
-    backgroundColor: Colors.error,
+    backgroundColor: '#ef4444',
     borderRadius: 10,
     minWidth: 18,
     height: 18,
@@ -65,42 +51,40 @@ export const homeStyles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   notifBadgeText: {
-    color: Colors.textOnPrimary,
+    color: '#fff',
     fontSize: 10,
     fontWeight: '700',
   },
 
   // ── Scroll ───────────────────────────────────────────────
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 32,
+    gap: 12,
   },
 
-  // ── Banner de boas-vindas ─────────────────────────────────
+  // ── Banner ───────────────────────────────────────────────
   banner: {
-    backgroundColor: Colors.surface,
-    paddingLeft: 20,
-    paddingTop: 18,
+    backgroundColor: '#3a7d44',
+    paddingLeft: 22,
+    paddingTop: 22,
     paddingRight: 148,
     paddingBottom: 0,
     overflow: 'hidden',
-    minHeight: 148,
+    minHeight: 152,
   },
   bannerTextArea: {
-    paddingBottom: 18,
+    paddingBottom: 22,
+    gap: 6,
   },
   bannerGreeting: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
-    color: Colors.textPrimary,
-    marginBottom: 6,
-  },
-  bannerEmoji: {
-    fontSize: 20,
+    color: '#fff',
   },
   bannerSubtitle: {
     fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 19,
+    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 20,
   },
   bannerMascote: {
     position: 'absolute',
@@ -110,147 +94,146 @@ export const homeStyles = StyleSheet.create({
     height: 218,
   },
 
-  // ── Divisor ───────────────────────────────────────────────
+  // ── Divisor (mantido por compatibilidade) ────────────────
   divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginHorizontal: 0,
+    height: 0,
   },
 
-  // ── Seção Menu Principal ──────────────────────────────────
+  // ── Seção ─────────────────────────────────────────────────
   section: {
-    backgroundColor: Colors.surface,
-    marginTop: 10,
-    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginHorizontal: 16,
     paddingTop: 18,
     paddingBottom: 18,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: Colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1a1a2e',
     marginBottom: 14,
+    letterSpacing: 0.1,
   },
 
   // ── Cards do menu ─────────────────────────────────────────
   menuGrid: {
     flexDirection: 'row',
     gap: 12,
-    paddingRight: 16,
+    paddingRight: 20,
   },
   menuCard: {
-    width: 130,
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: 18,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    gap: 10,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    width: 148,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
   },
-  menuCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+  menuCardTop: {
+    height: 90,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  menuCardIconText: {
-    fontSize: 26,
+  menuCardIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.55)',
+  },
+  menuCardBody: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 14,
+    gap: 3,
   },
   menuCardTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#1a1a2e',
   },
   menuCardSubtitle: {
     fontSize: 11,
-    color: Colors.textSecondary,
-    textAlign: 'center',
+    color: '#888',
     lineHeight: 15,
-    marginTop: -4,
   },
 
-  // ── Botão Criar Cronograma ────────────────────────────────
+  // ── Botão principal (Criar / Ver cronograma) ──────────────
   btnCriar: {
-    backgroundColor: Colors.primary,
+    backgroundColor: '#3a7d44',
     marginHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 14,
+    borderRadius: 16,
     paddingVertical: 17,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.3,
+    shadowColor: '#3a7d44',
+    shadowOpacity: 0.35,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  btnCriarIcon: {
-    fontSize: 22,
-    color: Colors.textOnPrimary,
-    fontWeight: '300',
+    elevation: 5,
   },
   btnCriarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.textOnPrimary,
+    color: '#fff',
     letterSpacing: 0.2,
   },
 
-  // ── Card Dica do Zé Bloquinho ─────────────────────────────
+  // ── Dica do Zé Bloquinho ──────────────────────────────────
   dicaCard: {
-    backgroundColor: Colors.primaryPale,
+    backgroundColor: '#fff',
     marginHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 14,
+    borderRadius: 20,
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.primaryPale,
+    borderWidth: 1.5,
+    borderColor: '#d1fae5',
+    shadowColor: '#3a7d44',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   dicaMascote: {
-    width: 110,
-    height: 110,
+    width: 100,
+    height: 100,
   },
   dicaTextArea: {
     flex: 1,
-    gap: 3,
+    gap: 4,
   },
   dicaTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.primary,
-    marginBottom: 2,
-  },
-  dicaTitleEmoji: {
-    fontSize: 13,
+    color: '#3a7d44',
   },
   dicaText: {
     fontSize: 12,
-    color: Colors.textSecondary,
+    color: '#555',
     lineHeight: 17,
   },
 
   // ── Bottom Tab Bar ────────────────────────────────────────
   tabBar: {
     flexDirection: 'row',
-    backgroundColor: Colors.surface,
+    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingBottom: 8,
-    paddingTop: 8,
+    borderTopColor: '#EFEFEF',
+    paddingBottom: 10,
+    paddingTop: 10,
   },
   tabItem: {
     flex: 1,
@@ -258,19 +241,13 @@ export const homeStyles = StyleSheet.create({
     justifyContent: 'center',
     gap: 3,
   },
-  tabIcon: {
-    fontSize: 22,
-  },
   tabLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: Colors.textMuted,
+    color: '#aaa',
   },
   tabLabelActive: {
-    color: Colors.primary,
-  },
-  tabIconActive: {
-    // tint aplicado via prop tintColor na Image
+    color: '#3a7d44',
   },
 
   // ── Drawer lateral ───────────────────────────────────────
@@ -284,71 +261,66 @@ export const homeStyles = StyleSheet.create({
     position: 'absolute',
     top: 0, left: 0, bottom: 0,
     width: width * 0.72,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#fff',
     zIndex: 11,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.2,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
     shadowRadius: 16,
     elevation: 16,
   },
   drawerHeader: {
+    backgroundColor: '#3a7d44',
     paddingTop: 48,
     paddingHorizontal: 24,
-    paddingBottom: 20,
+    paddingBottom: 24,
     gap: 4,
   },
-  drawerLogo: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginBottom: 10,
-  },
   drawerAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    marginBottom: 12,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   drawerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: '#fff',
   },
   drawerSubtitle: {
     fontSize: 13,
-    color: Colors.textMuted,
+    color: 'rgba(255,255,255,0.75)',
+    fontWeight: '500',
   },
   drawerDivider: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: '#F0F0F0',
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginVertical: 6,
   },
   drawerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    gap: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 13,
+    gap: 14,
   },
   drawerItemIcon: {
-    fontSize: 20,
     width: 28,
     textAlign: 'center',
   },
   drawerItemLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: '#1a1a2e',
   },
   drawerLogout: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    gap: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 13,
+    gap: 14,
     marginTop: 4,
   },
 });

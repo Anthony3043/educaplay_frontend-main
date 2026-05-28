@@ -169,28 +169,30 @@ export default function HomeScreen() {
               <Text style={s.bannerGreeting}>Olá, {userName}!</Text>
               <Text style={{ fontSize: 20 }}>✨</Text>
             </View>
-            <Text style={s.bannerSubtitle}>Que bom ver você por aqui.{"\n"}Vamos organizar um{"\n"}dia incrível de aulas!</Text>
+            <Text style={s.bannerSubtitle}>Bem-vindo à supervisão.{"\n"}Vamos organizar um{"\n"}dia incrível de aulas!</Text>
           </View>
           <Image source={require("@/assets/images/ze_bloco_menu_supervisao.png")} style={s.bannerMascote} resizeMode="contain" />
         </View>
 
-        <View style={s.divider} />
-
         {/* Menu Principal */}
         <View style={[s.section, { paddingHorizontal: 0 }]}>
-          <Text style={[s.sectionTitle, { paddingHorizontal: 16 }]}>Menu Principal</Text>
+          <Text style={[s.sectionTitle, { paddingHorizontal: 18 }]}>Menu Principal</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[s.menuGrid, { paddingLeft: 16 }]}
+            contentContainerStyle={[s.menuGrid, { paddingLeft: 18 }]}
           >
             {MENU_ITEMS.map((item) => (
-              <TouchableOpacity key={item.id} style={s.menuCard} onPress={() => router.push(item.route as any)} activeOpacity={0.75}>
-                <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
-                  <Ionicons name={item.ionicon} size={28} color="#1a1a2e" />
+              <TouchableOpacity key={item.id} style={s.menuCard} onPress={() => router.push(item.route as any)} activeOpacity={0.8}>
+                <View style={[s.menuCardTop, { backgroundColor: item.iconBg }]}>
+                  <View style={s.menuCardIcon}>
+                    <Ionicons name={item.ionicon} size={30} color="#1a1a2e" />
+                  </View>
                 </View>
-                <Text style={s.menuCardTitle}>{item.title}</Text>
-                <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
+                <View style={s.menuCardBody}>
+                  <Text style={s.menuCardTitle}>{item.title}</Text>
+                  <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -211,7 +213,7 @@ export default function HomeScreen() {
               <Ionicons name="bulb-outline" size={16} color="#f59e0b" />
             </View>
             <Animated.Text style={[s.dicaText, { opacity: dicaOpacity }]}>{dicaTexto}</Animated.Text>
-            <Text style={{ fontSize: 10, color: "#aaa", marginTop: 4 }}>Toque para ver outra dica →</Text>
+            <Text style={{ fontSize: 10, color: "#aaa", marginTop: 6 }}>Toque para ver outra dica →</Text>
           </View>
         </TouchableOpacity>
       </ScrollView>
@@ -242,18 +244,12 @@ export default function HomeScreen() {
               {usuario?.foto ? (
                 <Image source={{ uri: usuario.foto }} style={s.drawerAvatar} resizeMode="cover" />
               ) : (
-                <View style={[s.drawerAvatar, { alignItems: "center", justifyContent: "center", backgroundColor: "#e8f5ea" }]}>
-                  <Ionicons name="person-outline" size={28} color="#3a7d44" />
+                <View style={[s.drawerAvatar, { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.2)" }]}>
+                  <Ionicons name="person-outline" size={28} color="#fff" />
                 </View>
               )}
               <Text style={s.drawerTitle}>{userName}</Text>
               <Text style={s.drawerSubtitle}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel ?? ""}</Text>
-              {usuario?.papel === "Professor" && usuario?.cargo ? (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                  <Ionicons name="book-outline" size={12} color="#3a7d44" />
-                  <Text style={{ fontSize: 12, color: "#3a7d44", fontWeight: "600" }}>{usuario.cargo}</Text>
-                </View>
-              ) : null}
             </View>
 
             <View style={s.drawerDivider} />
