@@ -48,13 +48,15 @@ export default function SalasScreen() {
 
   const handleSalvar = async () => {
     if (!nome.trim()) { Alert.alert("Atenção", "Informe o nome da sala."); return; }
+    if (!turma.trim()) { Alert.alert("Atenção", "Informe a turma da sala."); return; }
+    if (!capacidade.trim()) { Alert.alert("Atenção", "Informe a capacidade de alunos."); return; }
     setSalvando(true);
     try {
       if (editando) {
-        const res = await api.put(`/salas/${editando.id}`, { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
+        const res = await api.put(`/salas/${editando.id}`, { nome: nome.trim(), turma: turma.trim(), capacidade: capacidade.trim() });
         setSalas((prev) => prev.map((s) => s.id === editando.id ? res.data : s));
       } else {
-        const res = await api.post("/salas", { nome: nome.trim(), turma: turma.trim() || null, capacidade: capacidade.trim() || null });
+        const res = await api.post("/salas", { nome: nome.trim(), turma: turma.trim(), capacidade: capacidade.trim() });
         setSalas((prev) => [...prev, res.data]);
       }
       fecharModal();
@@ -222,13 +224,13 @@ export default function SalasScreen() {
                   onFocus={() => setNomeFocused(true)} onBlur={() => setNomeFocused(false)} />
               </View>
               <View>
-                <Text style={s.modalLabel}>Turma (opcional)</Text>
+                <Text style={s.modalLabel}>Turma *</Text>
                 <TextInput style={[s.modalInput, turmaFocused && s.modalInputFocused]} value={turma} onChangeText={setTurma}
                   placeholder="Ex: 3º A, 2º B, 1º Ano..." placeholderTextColor="#AAAAAA"
                   onFocus={() => setTurmaFocused(true)} onBlur={() => setTurmaFocused(false)} />
               </View>
               <View>
-                <Text style={s.modalLabel}>Capacidade (opcional)</Text>
+                <Text style={s.modalLabel}>Capacidade de alunos *</Text>
                 <TextInput style={[s.modalInput, capFocused && s.modalInputFocused]} value={capacidade} onChangeText={setCapacidade}
                   placeholder="Ex: 35 alunos" placeholderTextColor="#AAAAAA"
                   onFocus={() => setCapFocused(true)} onBlur={() => setCapFocused(false)} />
