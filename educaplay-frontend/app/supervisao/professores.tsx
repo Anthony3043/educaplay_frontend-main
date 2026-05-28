@@ -11,6 +11,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -26,6 +27,8 @@ type Professor = {
   cargo?: string | null;
   foto?: string | null;
   materias?: string[];
+  ativo: boolean;
+  podeEditarMapaSala: boolean;
 };
 
 type NovoProfessor = {
@@ -50,16 +53,22 @@ export default function ProfessoresScreen() {
   const [professores, setProfessores] = useState<Professor[]>([]);
   const [carregando, setCarregando] = useState(true);
 
-  // Modal de indisponibilidades
+  // Modal de indisponibilidades / detalhe
   const [modalVisivel, setModalVisivel] = useState(false);
   const [profSelecionado, setProfSelecionado] = useState<Professor | null>(null);
   const [bloqueios, setBloqueios] = useState<Bloqueio[]>([]);
   const [carregandoBloqueios, setCarregandoBloqueios] = useState(false);
 
-  // Modal de confirmação de exclusão
-  const [modalExcluirVisivel, setModalExcluirVisivel] = useState(false);
-  const [fraseDigitada, setFraseDigitada] = useState("");
-  const [excluindo, setExcluindo] = useState(false);
+  // Modal de confirmação de desativação
+  const [modalDesativarVisivel, setModalDesativarVisivel] = useState(false);
+  const [desativando, setDesativando] = useState(false);
+
+  // Modal de confirmação de reativação
+  const [modalReativarVisivel, setModalReativarVisivel] = useState(false);
+  const [reativando, setReativando] = useState(false);
+
+  // Permissão de mapa
+  const [atualizandoPermissao, setAtualizandoPermissao] = useState(false);
 
   // Modal de cadastro de professor
   const [modalCadastroVisivel, setModalCadastroVisivel] = useState(false);
@@ -163,17 +172,11 @@ export default function ProfessoresScreen() {
   }, [profSelecionado, materiasEditadas]);
 
   const abrirModalCadastro = useCallback(() => {
-    setNovoNome("");
-    setNovoEmail("");
-    setNovaSenha("");
-    setNovasMaterias([]);
-    setMateriaInput("");
+    setNovoNome(""); setNovoEmail(""); setNovaSenha(""); setNovasMaterias([]); setMateriaInput("");
     setModalCadastroVisivel(true);
   }, []);
 
-  const fecharModalCadastro = useCallback(() => {
-    setModalCadastroVisivel(false);
-  }, []);
+  const fecharModalCadastro = useCallback(() => { setModalCadastroVisivel(false); }, []);
 
   const adicionarMateria = () => {
     const trimmed = materiaInput.trim();
@@ -187,8 +190,7 @@ export default function ProfessoresScreen() {
       return;
     }
     if (novasMaterias.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
-      setMateriaInput("");
-      return;
+      setMateriaInput(""); return;
     }
     setNovasMaterias((prev) => [...prev, trimmed]);
     setMateriaInput("");
@@ -220,18 +222,15 @@ export default function ProfessoresScreen() {
       setNomeProfCadastrado(res.data.nome);
       setModalSucessoVisivel(true);
     } catch (err: any) {
-      const msg = err?.response?.data?.error;
       if (err?.response?.status === 409) {
         Alert.alert("E-mail já cadastrado", "Este e-mail já está em uso. Use outro.");
       } else {
-        Alert.alert("Erro", msg || "Não foi possível cadastrar o professor.");
+        Alert.alert("Erro", err?.response?.data?.error || "Não foi possível cadastrar o professor.");
       }
     } finally {
       setCadastrando(false);
     }
   }, [novoNome, novoEmail, novaSenha, novasMaterias, fecharModalCadastro]);
-
-  const FRASE_CONFIRMACAO = "excluir professor";
 
   useEffect(() => {
     api.get("/professores")
@@ -248,7 +247,6 @@ export default function ProfessoresScreen() {
       const res = await api.get(`/bloqueios/professor/${prof.id}`);
       setBloqueios(res.data);
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar os horários de indisponibilidade.");
       setBloqueios([]);
     } finally {
       setCarregandoBloqueios(false);
@@ -261,37 +259,66 @@ export default function ProfessoresScreen() {
     setBloqueios([]);
   }, []);
 
-  const abrirModalExcluir = useCallback(() => {
-    setFraseDigitada("");
-    setModalExcluirVisivel(true);
-  }, []);
-
-  const fecharModalExcluir = useCallback(() => {
-    setModalExcluirVisivel(false);
-    setFraseDigitada("");
-  }, []);
-
-  const handleExcluirProfessor = useCallback(async () => {
+  const handleDesativarProfessor = useCallback(async () => {
     if (!profSelecionado) return;
-    setExcluindo(true);
+    setDesativando(true);
     try {
-      await api.delete(`/professores/${profSelecionado.id}`);
-      setProfessores((prev) => prev.filter((p) => p.id !== profSelecionado.id));
-      fecharModalExcluir();
-      fecharModal();
-      Alert.alert("Sucesso", `A conta de ${profSelecionado.nome} foi excluída.`);
+      await api.put(`/professores/${profSelecionado.id}/desativar`);
+      setProfessores((prev) =>
+        prev.map((p) => p.id === profSelecionado.id ? { ...p, ativo: false } : p)
+      );
+      setProfSelecionado((prev) => prev ? { ...prev, ativo: false } : prev);
+      setModalDesativarVisivel(false);
+      Alert.alert("Professor desativado", `${profSelecionado.nome} foi desativado. O acesso dele ao app foi bloqueado.`);
     } catch {
-      Alert.alert("Erro", "Não foi possível excluir o professor. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível desativar o professor. Tente novamente.");
     } finally {
-      setExcluindo(false);
+      setDesativando(false);
     }
-  }, [profSelecionado, fecharModal, fecharModalExcluir]);
+  }, [profSelecionado]);
+
+  const handleReativarProfessor = useCallback(async () => {
+    if (!profSelecionado) return;
+    setReativando(true);
+    try {
+      await api.put(`/professores/${profSelecionado.id}/reativar`);
+      setProfessores((prev) =>
+        prev.map((p) => p.id === profSelecionado.id ? { ...p, ativo: true } : p)
+      );
+      setProfSelecionado((prev) => prev ? { ...prev, ativo: true } : prev);
+      setModalReativarVisivel(false);
+      Alert.alert("Professor reativado", `${profSelecionado.nome} pode acessar o app novamente.`);
+    } catch {
+      Alert.alert("Erro", "Não foi possível reativar o professor. Tente novamente.");
+    } finally {
+      setReativando(false);
+    }
+  }, [profSelecionado]);
+
+  const handleTogglePermissaoMapa = useCallback(async (valor: boolean) => {
+    if (!profSelecionado) return;
+    setAtualizandoPermissao(true);
+    try {
+      await api.put(`/professores/${profSelecionado.id}/permissao-mapa`, { podeEditarMapaSala: valor });
+      setProfessores((prev) =>
+        prev.map((p) => p.id === profSelecionado.id ? { ...p, podeEditarMapaSala: valor } : p)
+      );
+      setProfSelecionado((prev) => prev ? { ...prev, podeEditarMapaSala: valor } : prev);
+    } catch {
+      Alert.alert("Erro", "Não foi possível atualizar a permissão.");
+    } finally {
+      setAtualizandoPermissao(false);
+    }
+  }, [profSelecionado]);
 
   const bloqueiosPorDia = DIAS.reduce<Record<string, Bloqueio[]>>((acc, dia) => {
     acc[dia] = bloqueios.filter((b) => b.diaSemana === dia);
     return acc;
   }, {});
   const semDia = bloqueios.filter((b) => !b.diaSemana);
+
+  const ativos = professores.filter((p) => p.ativo);
+  const inativos = professores.filter((p) => !p.ativo);
 
   return (
     <SafeAreaView style={s.container}>
@@ -313,72 +340,102 @@ export default function ProfessoresScreen() {
       ) : (
         <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
           <Text style={s.counter}>
-            {professores.length} {professores.length === 1 ? "professor cadastrado" : "professores cadastrados"}
+            {ativos.length} {ativos.length === 1 ? "professor ativo" : "professores ativos"}
+            {inativos.length > 0 ? ` · ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}` : ""}
           </Text>
 
           {professores.length === 0 ? (
             <View style={s.emptyState}>
               <Ionicons name="people-outline" size={48} color="#ccc" />
               <Text style={s.emptyTitle}>Nenhum professor cadastrado</Text>
-              <Text style={s.emptySubtitle}>
-                Os professores aparecerão aqui{"\n"}conforme se cadastrarem no aplicativo.
-              </Text>
+              <Text style={s.emptySubtitle}>Os professores aparecerão aqui{"\n"}conforme se cadastrarem no aplicativo.</Text>
             </View>
           ) : (
-            professores.map((prof) => (
-              <TouchableOpacity
-                key={prof.id}
-                style={s.professorCard}
-                onPress={() => abrirModal(prof)}
-                activeOpacity={0.75}
-              >
-                <View style={s.professorAvatar}>
-                  {prof.foto ? (
-                    <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
-                  ) : (
-                    <Ionicons name="person-circle-outline" size={48} color="#bbb" />
-                  )}
-                </View>
-                <View style={s.professorInfo}>
-                  <Text style={s.professorNome}>{prof.nome}</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                    <Ionicons name="person-outline" size={12} color="#7a7f9a" />
-                    <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
+            <>
+              {ativos.map((prof) => (
+                <TouchableOpacity
+                  key={prof.id}
+                  style={s.professorCard}
+                  onPress={() => abrirModal(prof)}
+                  activeOpacity={0.75}
+                >
+                  <View style={s.professorAvatar}>
+                    {prof.foto ? (
+                      <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
+                    ) : (
+                      <Ionicons name="person-circle-outline" size={48} color="#bbb" />
+                    )}
                   </View>
-                  {(prof.materias ?? []).length > 0 && (
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
-                      {(prof.materias ?? []).map((m, i) => (
-                        <View key={i} style={pc.chip}>
-                          <Ionicons name="book-outline" size={10} color="#3a7d44" />
-                          <Text style={pc.chipText}>{m}</Text>
-                        </View>
-                      ))}
+                  <View style={s.professorInfo}>
+                    <Text style={s.professorNome}>{prof.nome}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                      <Ionicons name="person-outline" size={12} color="#7a7f9a" />
+                      <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
                     </View>
-                  )}
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#ccc" />
-              </TouchableOpacity>
-            ))
+                    {(prof.materias ?? []).length > 0 && (
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
+                        {(prof.materias ?? []).map((m, i) => (
+                          <View key={i} style={pc.chip}>
+                            <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                            <Text style={pc.chipText}>{m}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#ccc" />
+                </TouchableOpacity>
+              ))}
+
+              {inativos.length > 0 && (
+                <>
+                  <View style={li.secaoHeader}>
+                    <Ionicons name="ban-outline" size={14} color="#aaa" />
+                    <Text style={li.secaoTitulo}>Desativados</Text>
+                  </View>
+                  {inativos.map((prof) => (
+                    <TouchableOpacity
+                      key={prof.id}
+                      style={[s.professorCard, li.cardInativo]}
+                      onPress={() => abrirModal(prof)}
+                      activeOpacity={0.75}
+                    >
+                      <View style={[s.professorAvatar, { opacity: 0.5 }]}>
+                        <Ionicons name="person-circle-outline" size={48} color="#bbb" />
+                      </View>
+                      <View style={[s.professorInfo, { opacity: 0.6 }]}>
+                        <Text style={[s.professorNome, { color: "#999" }]}>{prof.nome}</Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+                          <Ionicons name="ban-outline" size={12} color="#bbb" />
+                          <Text style={{ fontSize: 12, color: "#bbb", fontWeight: "600" }}>Desativado</Text>
+                        </View>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color="#ddd" />
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+            </>
           )}
         </ScrollView>
       )}
 
-      {/* Modal de indisponibilidades */}
-      <Modal
-        visible={modalVisivel}
-        animationType="slide"
-        transparent
-        onRequestClose={fecharModal}
-      >
+      {/* Modal de detalhes / indisponibilidades */}
+      <Modal visible={modalVisivel} animationType="slide" transparent onRequestClose={fecharModal}>
         <View style={m.overlay}>
           <View style={m.sheet}>
-            {/* Handle */}
             <View style={m.handle} />
 
-            {/* Header */}
             <View style={m.sheetHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={m.sheetTitle}>{profSelecionado?.nome}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Text style={m.sheetTitle}>{profSelecionado?.nome}</Text>
+                  {profSelecionado && !profSelecionado.ativo && (
+                    <View style={li.badge}>
+                      <Text style={li.badgeText}>Inativo</Text>
+                    </View>
+                  )}
+                </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
                   <Ionicons name="person-outline" size={12} color="#7a7f9a" />
                   <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
@@ -418,9 +475,7 @@ export default function ProfessoresScreen() {
                           <Ionicons name="calendar-outline" size={14} color="#3a7d44" />
                           <Text style={m.diaHeaderText}>{dia}</Text>
                         </View>
-                        {bloqueiosPorDia[dia].map((b) => (
-                          <BloqueioRow key={b.id} b={b} />
-                        ))}
+                        {bloqueiosPorDia[dia].map((b) => <BloqueioRow key={b.id} b={b} />)}
                       </View>
                     )
                   )}
@@ -430,13 +485,29 @@ export default function ProfessoresScreen() {
                         <Ionicons name="time-outline" size={14} color="#888" />
                         <Text style={[m.diaHeaderText, { color: "#888" }]}>Sem dia específico</Text>
                       </View>
-                      {semDia.map((b) => (
-                        <BloqueioRow key={b.id} b={b} />
-                      ))}
+                      {semDia.map((b) => <BloqueioRow key={b.id} b={b} />)}
                     </View>
                   )}
                 </>
               )}
+
+              {/* Toggle permissão de mapa de sala */}
+              <View style={pm.box}>
+                <View style={{ flex: 1 }}>
+                  <Text style={pm.titulo}>Editar Mapa de Sala</Text>
+                  <Text style={pm.descricao}>Permite ao professor alterar o mapa de carteiras da sala</Text>
+                </View>
+                {atualizandoPermissao ? (
+                  <ActivityIndicator size="small" color="#3a7d44" />
+                ) : (
+                  <Switch
+                    value={profSelecionado?.podeEditarMapaSala ?? false}
+                    onValueChange={handleTogglePermissaoMapa}
+                    trackColor={{ false: "#E5E7EB", true: "#86efac" }}
+                    thumbColor={profSelecionado?.podeEditarMapaSala ? "#3a7d44" : "#9CA3AF"}
+                  />
+                )}
+              </View>
             </ScrollView>
 
             {/* Botão editar matérias */}
@@ -445,22 +516,32 @@ export default function ProfessoresScreen() {
               <Text style={m.editarBtnText}>Editar Matérias</Text>
             </TouchableOpacity>
 
-            {/* Botão excluir professor */}
-            <TouchableOpacity style={m.excluirBtn} onPress={abrirModalExcluir} activeOpacity={0.8}>
-              <Ionicons name="trash-outline" size={18} color="#ef4444" />
-              <Text style={m.excluirBtnText}>Excluir Professor</Text>
-            </TouchableOpacity>
+            {/* Botão desativar ou reativar */}
+            {profSelecionado?.ativo ? (
+              <TouchableOpacity
+                style={m.excluirBtn}
+                onPress={() => setModalDesativarVisivel(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="ban-outline" size={18} color="#f97316" />
+                <Text style={[m.excluirBtnText, { color: "#f97316" }]}>Desativar Professor</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[m.excluirBtn, { borderColor: "#86efac", backgroundColor: "#f0fdf4" }]}
+                onPress={() => setModalReativarVisivel(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="checkmark-circle-outline" size={18} color="#3a7d44" />
+                <Text style={[m.excluirBtnText, { color: "#3a7d44" }]}>Reativar Professor</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </Modal>
 
-      {/* Modal de cadastro de professor */}
-      <Modal
-        visible={modalCadastroVisivel}
-        animationType="slide"
-        transparent
-        onRequestClose={fecharModalCadastro}
-      >
+      {/* Modal de confirmação de cadastro de professor */}
+      <Modal visible={modalCadastroVisivel} animationType="slide" transparent onRequestClose={fecharModalCadastro}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "padding"}>
           <View style={cad.overlay}>
             <View style={cad.sheet}>
@@ -473,61 +554,31 @@ export default function ProfessoresScreen() {
               </View>
 
               <ScrollView style={{ flex: 1 }} contentContainerStyle={cad.sheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                {/* Nome */}
                 <View style={cad.inputRow}>
                   <Ionicons name="person-outline" size={18} color="#888" style={cad.inputIcon} />
                   <View style={{ flex: 1 }}>
                     <Text style={cad.inputLabel}>Nome completo *</Text>
-                    <TextInput
-                      style={cad.textInput}
-                      placeholder="Nome do professor"
-                      placeholderTextColor="#bbb"
-                      value={novoNome}
-                      onChangeText={setNovoNome}
-                      autoCapitalize="words"
-                    />
+                    <TextInput style={cad.textInput} placeholder="Nome do professor" placeholderTextColor="#bbb" value={novoNome} onChangeText={setNovoNome} autoCapitalize="words" />
                   </View>
                 </View>
-
-                {/* E-mail */}
                 <View style={cad.inputRow}>
                   <Ionicons name="mail-outline" size={18} color="#888" style={cad.inputIcon} />
                   <View style={{ flex: 1 }}>
                     <Text style={cad.inputLabel}>E-mail *</Text>
-                    <TextInput
-                      style={cad.textInput}
-                      placeholder="E-mail do professor"
-                      placeholderTextColor="#bbb"
-                      value={novoEmail}
-                      onChangeText={setNovoEmail}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                    />
+                    <TextInput style={cad.textInput} placeholder="E-mail do professor" placeholderTextColor="#bbb" value={novoEmail} onChangeText={setNovoEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
                   </View>
                 </View>
-
-                {/* Senha */}
                 <View style={cad.inputRow}>
                   <Ionicons name="lock-closed-outline" size={18} color="#888" style={cad.inputIcon} />
                   <View style={{ flex: 1 }}>
                     <Text style={cad.inputLabel}>Senha *</Text>
-                    <TextInput
-                      style={cad.textInput}
-                      placeholder="Senha de acesso do professor"
-                      placeholderTextColor="#bbb"
-                      value={novaSenha}
-                      onChangeText={setNovaSenha}
-                      secureTextEntry={!novaSenhaVisivel}
-                      autoCapitalize="none"
-                    />
+                    <TextInput style={cad.textInput} placeholder="Senha de acesso do professor" placeholderTextColor="#bbb" value={novaSenha} onChangeText={setNovaSenha} secureTextEntry={!novaSenhaVisivel} autoCapitalize="none" />
                   </View>
                   <TouchableOpacity onPress={() => setNovaSenhaVisivel(!novaSenhaVisivel)}>
                     <Ionicons name={novaSenhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" />
                   </TouchableOpacity>
                 </View>
 
-                {/* Matérias */}
                 <Text style={cad.materiaLabel}>Matérias que leciona</Text>
                 {novasMaterias.length > 0 && (
                   <View style={cad.chipsRow}>
@@ -545,16 +596,7 @@ export default function ProfessoresScreen() {
                 <View style={cad.addRow}>
                   <View style={[cad.inputRow, { flex: 1, marginBottom: 0 }]}>
                     <Ionicons name="book-outline" size={18} color="#888" style={cad.inputIcon} />
-                    <TextInput
-                      style={[cad.textInput, { flex: 1 }]}
-                      placeholder="Ex: Matemática, Português..."
-                      placeholderTextColor="#bbb"
-                      value={materiaInput}
-                      onChangeText={setMateriaInput}
-                      autoCapitalize="words"
-                      onSubmitEditing={adicionarMateria}
-                      returnKeyType="done"
-                    />
+                    <TextInput style={[cad.textInput, { flex: 1 }]} placeholder="Ex: Matemática, Português..." placeholderTextColor="#bbb" value={materiaInput} onChangeText={setMateriaInput} autoCapitalize="words" onSubmitEditing={adicionarMateria} returnKeyType="done" />
                   </View>
                   <TouchableOpacity style={cad.addBtn} onPress={adicionarMateria} activeOpacity={0.8}>
                     <Ionicons name="add" size={20} color="#fff" />
@@ -562,17 +604,8 @@ export default function ProfessoresScreen() {
                 </View>
                 <Text style={cad.materiaHint}>Adicione uma de cada vez. Toque + ou pressione "concluir".</Text>
 
-                <TouchableOpacity
-                  style={[cad.confirmarBtn, cadastrando && { opacity: 0.7 }]}
-                  onPress={handleCadastrarProfessor}
-                  activeOpacity={0.85}
-                  disabled={cadastrando}
-                >
-                  {cadastrando ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={cad.confirmarBtnText}>Cadastrar Professor</Text>
-                  )}
+                <TouchableOpacity style={[cad.confirmarBtn, cadastrando && { opacity: 0.7 }]} onPress={handleCadastrarProfessor} activeOpacity={0.85} disabled={cadastrando}>
+                  {cadastrando ? <ActivityIndicator color="#fff" /> : <Text style={cad.confirmarBtnText}>Cadastrar Professor</Text>}
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -595,7 +628,6 @@ export default function ProfessoresScreen() {
                   <Ionicons name="close" size={22} color="#1a1a2e" />
                 </TouchableOpacity>
               </View>
-
               <ScrollView style={{ flex: 1 }} contentContainerStyle={cad.sheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 {materiasEditadas.length > 0 ? (
                   <View style={cad.chipsRow}>
@@ -612,33 +644,17 @@ export default function ProfessoresScreen() {
                 ) : (
                   <Text style={{ fontSize: 13, color: "#aaa", marginBottom: 12 }}>Nenhuma matéria adicionada.</Text>
                 )}
-
                 <View style={cad.addRow}>
                   <View style={[cad.inputRow, { flex: 1, marginBottom: 0 }]}>
                     <Ionicons name="book-outline" size={18} color="#888" style={cad.inputIcon} />
-                    <TextInput
-                      style={[cad.textInput, { flex: 1 }]}
-                      placeholder="Ex: Matemática, Português..."
-                      placeholderTextColor="#bbb"
-                      value={materiaEditInput}
-                      onChangeText={setMateriaEditInput}
-                      autoCapitalize="words"
-                      onSubmitEditing={adicionarMateriaEdit}
-                      returnKeyType="done"
-                    />
+                    <TextInput style={[cad.textInput, { flex: 1 }]} placeholder="Ex: Matemática, Português..." placeholderTextColor="#bbb" value={materiaEditInput} onChangeText={setMateriaEditInput} autoCapitalize="words" onSubmitEditing={adicionarMateriaEdit} returnKeyType="done" />
                   </View>
                   <TouchableOpacity style={cad.addBtn} onPress={adicionarMateriaEdit} activeOpacity={0.8}>
                     <Ionicons name="add" size={20} color="#fff" />
                   </TouchableOpacity>
                 </View>
                 <Text style={cad.materiaHint}>Toque no X para remover. Toque + para adicionar.</Text>
-
-                <TouchableOpacity
-                  style={[cad.confirmarBtn, salvando && { opacity: 0.7 }]}
-                  onPress={handleSalvarMaterias}
-                  activeOpacity={0.85}
-                  disabled={salvando}
-                >
+                <TouchableOpacity style={[cad.confirmarBtn, salvando && { opacity: 0.7 }]} onPress={handleSalvarMaterias} activeOpacity={0.85} disabled={salvando}>
                   {salvando ? <ActivityIndicator color="#fff" /> : <Text style={cad.confirmarBtnText}>Salvar Matérias</Text>}
                 </TouchableOpacity>
               </ScrollView>
@@ -647,7 +663,7 @@ export default function ProfessoresScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Modal de confirmação de alteração de matérias */}
+      {/* Modal confirmação geral */}
       <Modal visible={modalConfirmarVisivel} transparent animationType="fade" onRequestClose={() => setModalConfirmarVisivel(false)}>
         <View style={conf.overlay}>
           <View style={conf.box}>
@@ -668,7 +684,7 @@ export default function ProfessoresScreen() {
         </View>
       </Modal>
 
-      {/* Modal de sucesso ao cadastrar professor */}
+      {/* Modal sucesso ao cadastrar */}
       <Modal visible={modalSucessoVisivel} transparent animationType="fade" onRequestClose={() => setModalSucessoVisivel(false)}>
         <View style={suc.overlay}>
           <View style={suc.box}>
@@ -687,79 +703,53 @@ export default function ProfessoresScreen() {
         </View>
       </Modal>
 
-      {/* Modal de confirmação de exclusão */}
-      <Modal
-        visible={modalExcluirVisivel}
-        transparent
-        animationType="fade"
-        onRequestClose={fecharModalExcluir}
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "padding"}
-        >
-          <View style={ex.overlay}>
-            <View style={ex.box}>
-              {/* Ícone de aviso */}
-              <View style={ex.iconWrap}>
-                <Ionicons name="warning-outline" size={32} color="#ef4444" />
-              </View>
-
-              <Text style={ex.titulo}>Excluir Professor</Text>
-              <Text style={ex.descricao}>
-                Você está prestes a excluir permanentemente a conta de{" "}
-                <Text style={{ fontWeight: "700", color: "#1a1a2e" }}>
-                  {profSelecionado?.nome}
-                </Text>
-                .{"\n"}Esta ação não pode ser desfeita.
-              </Text>
-
-              {/* Instrução de confirmação */}
-              <View style={ex.instrucaoBox}>
-                <Text style={ex.instrucaoLabel}>Para confirmar, digite exatamente:</Text>
-                <Text style={ex.instrucaoFrase}>"excluir professor"</Text>
-              </View>
-
-              <TextInput
-                style={ex.input}
-                placeholder="excluir professor"
-                placeholderTextColor="#bbb"
-                value={fraseDigitada}
-                onChangeText={setFraseDigitada}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-
-              {/* Botões */}
-              <View style={ex.botoesRow}>
-                <TouchableOpacity
-                  style={ex.cancelarBtn}
-                  onPress={fecharModalExcluir}
-                  activeOpacity={0.8}
-                  disabled={excluindo}
-                >
-                  <Text style={ex.cancelarText}>Cancelar</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    ex.confirmarBtn,
-                    fraseDigitada !== FRASE_CONFIRMACAO && ex.confirmarBtnDesativado,
-                  ]}
-                  onPress={handleExcluirProfessor}
-                  activeOpacity={0.8}
-                  disabled={fraseDigitada !== FRASE_CONFIRMACAO || excluindo}
-                >
-                  {excluindo ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={ex.confirmarText}>Excluir</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
+      {/* Modal de confirmação de desativação */}
+      <Modal visible={modalDesativarVisivel} transparent animationType="fade" onRequestClose={() => setModalDesativarVisivel(false)}>
+        <View style={desat.overlay}>
+          <View style={desat.box}>
+            <View style={desat.iconWrap}>
+              <Ionicons name="ban-outline" size={32} color="#f97316" />
+            </View>
+            <Text style={desat.titulo}>Desativar Professor</Text>
+            <Text style={desat.descricao}>
+              <Text style={{ fontWeight: "700", color: "#1a1a2e" }}>{profSelecionado?.nome}</Text>
+              {" "}não conseguirá mais acessar o aplicativo.{"\n"}
+              O professor pode ser reativado a qualquer momento.
+            </Text>
+            <View style={desat.botoesRow}>
+              <TouchableOpacity style={desat.cancelarBtn} onPress={() => setModalDesativarVisivel(false)} activeOpacity={0.8} disabled={desativando}>
+                <Text style={desat.cancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={desat.confirmarBtn} onPress={handleDesativarProfessor} activeOpacity={0.8} disabled={desativando}>
+                {desativando ? <ActivityIndicator size="small" color="#fff" /> : <Text style={desat.confirmarText}>Desativar</Text>}
+              </TouchableOpacity>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
+      </Modal>
+
+      {/* Modal de confirmação de reativação */}
+      <Modal visible={modalReativarVisivel} transparent animationType="fade" onRequestClose={() => setModalReativarVisivel(false)}>
+        <View style={desat.overlay}>
+          <View style={desat.box}>
+            <View style={[desat.iconWrap, { backgroundColor: "#dcfce7" }]}>
+              <Ionicons name="checkmark-circle-outline" size={32} color="#3a7d44" />
+            </View>
+            <Text style={[desat.titulo, { color: "#3a7d44" }]}>Reativar Professor</Text>
+            <Text style={desat.descricao}>
+              <Text style={{ fontWeight: "700", color: "#1a1a2e" }}>{profSelecionado?.nome}</Text>
+              {" "}poderá acessar o aplicativo novamente.
+            </Text>
+            <View style={desat.botoesRow}>
+              <TouchableOpacity style={desat.cancelarBtn} onPress={() => setModalReativarVisivel(false)} activeOpacity={0.8} disabled={reativando}>
+                <Text style={desat.cancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[desat.confirmarBtn, { backgroundColor: "#3a7d44" }]} onPress={handleReativarProfessor} activeOpacity={0.8} disabled={reativando}>
+                {reativando ? <ActivityIndicator size="small" color="#fff" /> : <Text style={desat.confirmarText}>Reativar</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -780,509 +770,108 @@ function BloqueioRow({ b }: { b: Bloqueio }) {
 }
 
 const conf = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-  },
-  box: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 28,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  iconCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: "#3a7d44",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
-    shadowColor: "#3a7d44",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
-  },
-  titulo: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#1a1a2e",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  mensagem: {
-    fontSize: 14,
-    color: "#555",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  botoesRow: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
-  cancelarBtn: {
-    flex: 1,
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    alignItems: "center",
-    backgroundColor: "#fafafa",
-  },
-  cancelarText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#555",
-  },
-  confirmarBtn: {
-    flex: 1,
-    paddingVertical: 13,
-    borderRadius: 14,
-    backgroundColor: "#3a7d44",
-    alignItems: "center",
-    shadowColor: "#3a7d44",
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
-  },
-  confirmarText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#fff",
-  },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20, elevation: 10 },
+  iconCircle: { width: 70, height: 70, borderRadius: 35, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center", marginBottom: 18, elevation: 5 },
+  titulo: { fontSize: 18, fontWeight: "800", color: "#1a1a2e", marginBottom: 10, textAlign: "center" },
+  mensagem: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  botoesRow: { flexDirection: "row", gap: 12, width: "100%" },
+  cancelarBtn: { flex: 1, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#E0E0E0", alignItems: "center", backgroundColor: "#fafafa" },
+  cancelarText: { fontSize: 15, fontWeight: "600", color: "#555" },
+  confirmarBtn: { flex: 1, paddingVertical: 13, borderRadius: 14, backgroundColor: "#3a7d44", alignItems: "center", elevation: 3 },
+  confirmarText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });
 
 const suc = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 32,
-  },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10 },
+  iconCircle: { width: 76, height: 76, borderRadius: 38, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center", marginBottom: 20, elevation: 6 },
+  titulo: { fontSize: 20, fontWeight: "800", color: "#1a1a2e", marginBottom: 10, textAlign: "center" },
+  descricao: { fontSize: 14, color: "#666", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  nome: { fontWeight: "700", color: "#1a1a2e" },
+  btn: { width: "100%", backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 4 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});
+
+const desat = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 20, padding: 24, alignItems: "center" },
+  iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#FFF7ED", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 18, fontWeight: "700", color: "#f97316", marginBottom: 10, textAlign: "center" },
+  descricao: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 21, marginBottom: 20 },
+  botoesRow: { flexDirection: "row", gap: 12, width: "100%" },
+  cancelarBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, borderWidth: 1.5, borderColor: "#E0E0E0", alignItems: "center" },
+  cancelarText: { fontSize: 15, fontWeight: "600", color: "#555" },
+  confirmarBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, backgroundColor: "#f97316", alignItems: "center" },
+  confirmarText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});
+
+const pm = StyleSheet.create({
   box: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 28,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#f0faf2", borderRadius: 14, padding: 14,
+    marginTop: 16, marginBottom: 8,
+    borderWidth: 1, borderColor: "#b7dfbe",
   },
-  iconCircle: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: "#3a7d44",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
-    shadowColor: "#3a7d44",
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
-  titulo: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1a1a2e",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  descricao: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 24,
-  },
-  nome: {
-    fontWeight: "700",
-    color: "#1a1a2e",
-  },
-  btn: {
-    width: "100%",
-    backgroundColor: "#3a7d44",
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: "center",
-    shadowColor: "#3a7d44",
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-  },
-  btnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#fff",
-  },
+  titulo: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
+  descricao: { fontSize: 12, color: "#666", marginTop: 2 },
+});
+
+const li = StyleSheet.create({
+  secaoHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 20, marginBottom: 8, paddingHorizontal: 4 },
+  secaoTitulo: { fontSize: 12, fontWeight: "700", color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 },
+  cardInativo: { opacity: 0.7, borderColor: "#E5E7EB", backgroundColor: "#FAFAFA" },
+  badge: { backgroundColor: "#FFF7ED", borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: "#FED7AA" },
+  badgeText: { fontSize: 11, fontWeight: "700", color: "#f97316" },
 });
 
 const cad = StyleSheet.create({
-  headerBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: "#3a7d44",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  headerBtnText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#fff",
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    height: "85%",
-    paddingTop: 12,
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  sheetTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#1a1a2e",
-  },
-  sheetScroll: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F7F8FA",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E8E8F0",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
-  inputIcon: {
-    marginRight: 8,
-  },
-  inputLabel: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  textInput: {
-    fontSize: 14,
-    color: "#1a1a2e",
-    padding: 0,
-  },
-  materiaLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1a1a2e",
-    marginBottom: 8,
-  },
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginBottom: 8,
-  },
-  addRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
-  },
-  addBtn: {
-    backgroundColor: "#3a7d44",
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  materiaHint: {
-    fontSize: 11,
-    color: "#aaa",
-    marginBottom: 20,
-  },
-  confirmarBtn: {
-    backgroundColor: "#3a7d44",
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  confirmarBtnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#fff",
-  },
+  headerBtn: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#3a7d44", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
+  headerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: "85%", paddingTop: 12 },
+  sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, marginBottom: 16 },
+  sheetTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a2e" },
+  sheetScroll: { paddingHorizontal: 20, paddingBottom: 40 },
+  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#F7F8FA", borderRadius: 12, borderWidth: 1, borderColor: "#E8E8F0", paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
+  inputIcon: { marginRight: 8 },
+  inputLabel: { fontSize: 11, color: "#888", fontWeight: "600", marginBottom: 2 },
+  textInput: { fontSize: 14, color: "#1a1a2e", padding: 0 },
+  materiaLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 8 },
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 8 },
+  addRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
+  addBtn: { backgroundColor: "#3a7d44", borderRadius: 10, padding: 12, alignItems: "center", justifyContent: "center" },
+  materiaHint: { fontSize: 11, color: "#aaa", marginBottom: 20 },
+  confirmarBtn: { backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 15, alignItems: "center", marginBottom: 8 },
+  confirmarBtnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });
 
 const pc = StyleSheet.create({
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    backgroundColor: "#e8f5ea",
-    borderRadius: 8,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  chipText: {
-    fontSize: 11,
-    color: "#3a7d44",
-    fontWeight: "600",
-  },
-});
-
-const ex = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  box: {
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-  },
-  iconWrap: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#FEE2E2",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  titulo: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1a1a2e",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  descricao: {
-    fontSize: 14,
-    color: "#555",
-    textAlign: "center",
-    lineHeight: 21,
-    marginBottom: 20,
-  },
-  instrucaoBox: {
-    width: "100%",
-    backgroundColor: "#FFF5F5",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: "#FECACA",
-    alignItems: "center",
-  },
-  instrucaoLabel: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 4,
-  },
-  instrucaoFrase: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#ef4444",
-    letterSpacing: 0.3,
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: "#1a1a2e",
-    marginBottom: 20,
-    backgroundColor: "#FAFAFA",
-  },
-  botoesRow: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
-  cancelarBtn: {
-    flex: 1,
-    paddingVertical: 13,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: "#E0E0E0",
-    alignItems: "center",
-  },
-  cancelarText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#555",
-  },
-  confirmarBtn: {
-    flex: 1,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: "#ef4444",
-    alignItems: "center",
-  },
-  confirmarBtnDesativado: {
-    backgroundColor: "#FECACA",
-  },
-  confirmarText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#fff",
-  },
+  chip: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "#e8f5ea", borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
+  chipText: { fontSize: 11, color: "#3a7d44", fontWeight: "600" },
 });
 
 const m = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    height: "75%",
-    paddingTop: 12,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#E0E0E0",
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: "80%", paddingTop: 12 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginBottom: 16 },
+  sheetHeader: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, marginBottom: 16 },
   sheetTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a2e" },
   sheetSubtitle: { fontSize: 13, color: "#888", marginTop: 2 },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#F0F0F0",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 8,
-  },
+  closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#F0F0F0", alignItems: "center", justifyContent: "center", marginLeft: 8 },
   sheetScroll: { flex: 1, minHeight: 0 },
-  sheetScrollContent: { paddingHorizontal: 20, paddingBottom: 40 },
+  sheetScrollContent: { paddingHorizontal: 20, paddingBottom: 8 },
   empty: { alignItems: "center", paddingVertical: 32, gap: 10 },
   emptyText: { fontSize: 15, fontWeight: "600", color: "#999" },
   emptySubText: { fontSize: 13, color: "#bbb", textAlign: "center" },
-  diaHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-    marginTop: 4,
-  },
-  diaHeaderText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#3a7d44",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  bloqueioCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "#FFF5F5",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#FFE4E4",
-  },
-  bloqueioIconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#FFE4E4",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  diaHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8, marginTop: 4 },
+  diaHeaderText: { fontSize: 12, fontWeight: "700", color: "#3a7d44", textTransform: "uppercase", letterSpacing: 0.5 },
+  bloqueioCard: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFF5F5", borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: "#FFE4E4" },
+  bloqueioIconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: "#FFE4E4", alignItems: "center", justifyContent: "center" },
   bloqueioHorario: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
   bloqueioDesc: { fontSize: 12, color: "#666", marginTop: 2 },
-  editarBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginHorizontal: 20,
-    marginTop: 8,
-    marginBottom: 8,
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: "#b7dfbe",
-    backgroundColor: "#f0faf2",
-  },
-  editarBtnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#3a7d44",
-  },
-  excluirBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    marginTop: 0,
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: "#FECACA",
-    backgroundColor: "#FFF5F5",
-  },
-  excluirBtnText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#ef4444",
-  },
+  editarBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 20, marginTop: 8, marginBottom: 8, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#b7dfbe", backgroundColor: "#f0faf2" },
+  editarBtnText: { fontSize: 15, fontWeight: "700", color: "#3a7d44" },
+  excluirBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 20, marginBottom: 20, marginTop: 0, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#FED7AA", backgroundColor: "#FFF7ED" },
+  excluirBtnText: { fontSize: 15, fontWeight: "700", color: "#f97316" },
 });

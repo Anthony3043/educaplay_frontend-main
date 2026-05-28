@@ -13,6 +13,7 @@ type Usuario = {
   instituicao?: string | null;
   foto?: string | null;
   materias?: string[];
+  podeEditarMapaSala?: boolean;
 };
 
 type AuthContextType = {

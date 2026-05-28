@@ -34,6 +34,7 @@ const MENU_ITEMS = [
   { id: "cronogramas", ionicon: "calendar-outline" as const, iconBg: "#e8f5ea", title: "Cronogramas", subtitle: "Crie e gerencie\nos horários", route: "/supervisao/cronogramas" },
   { id: "professores", ionicon: "people-outline" as const, iconBg: "#e8f0fe", title: "Professores", subtitle: "Cadastre e visualize\nos professores", route: "/supervisao/professores" },
   { id: "salas", ionicon: "grid-outline" as const, iconBg: "#fff3e0", title: "Salas", subtitle: "Cadastre e gerencie\nas salas da escola", route: "/supervisao/salas" },
+  { id: "config-escola", ionicon: "location-outline" as const, iconBg: "#fef9c3", title: "Local da Escola", subtitle: "Configure o GPS\npara bater ponto", route: "/supervisao/configuracao-escola" },
 ];
 
 const TABS = [
@@ -47,6 +48,7 @@ const DRAWER_ITEMS = [
   { ionicon: "calendar-outline" as const, label: "Cronogramas", route: "/supervisao/cronogramas" },
   { ionicon: "people-outline" as const, label: "Professores", route: "/supervisao/professores" },
   { ionicon: "grid-outline" as const, label: "Salas", route: "/supervisao/salas" },
+  { ionicon: "location-outline" as const, label: "Local da Escola", route: "/supervisao/configuracao-escola" },
   { ionicon: "person-outline" as const, label: "Perfil", route: "/shared/perfil" },
   { ionicon: "settings-outline" as const, label: "Configurações", route: "/shared/configuracoes" },
 ];

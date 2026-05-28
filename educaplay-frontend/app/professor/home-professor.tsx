@@ -48,6 +48,14 @@ const MENU_ITEMS = [
     subtitle: "Veja as aulas\natribuídas a você",
     route: "/professor/cronogramas-professor",
   },
+  {
+    id: "mapa-sala",
+    ionicon: "grid-outline" as const,
+    iconBg: "#fef9c3",
+    title: "Mapa de Sala",
+    subtitle: "Visualize o mapa\nde carteiras",
+    route: "/professor/mapa-sala",
+  },
 ];
 
 const TABS = [
@@ -60,6 +68,7 @@ const DRAWER_ITEMS = [
   { ionicon: "home-outline" as const, label: "Home", route: "/professor/home-professor" },
   { ionicon: "calendar-outline" as const, label: "Minha Agenda", route: "/professor/indisponibilidade" },
   { ionicon: "calendar-outline" as const, label: "Cronogramas", route: "/professor/cronogramas-professor" },
+  { ionicon: "grid-outline" as const, label: "Mapa de Sala", route: "/professor/mapa-sala" },
   { ionicon: "person-outline" as const, label: "Perfil", route: "/shared/perfil" },
   { ionicon: "settings-outline" as const, label: "Configurações", route: "/shared/configuracoes" },
 ];
