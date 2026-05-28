@@ -198,13 +198,17 @@ export default function HomeProfessorScreen() {
         <View style={s.divider} />
 
         {/* Menu Principal */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Menu Principal</Text>
-          <View style={[s.menuGrid, { justifyContent: "center" }]}>
+        <View style={[s.section, { paddingHorizontal: 0 }]}>
+          <Text style={[s.sectionTitle, { paddingHorizontal: 16 }]}>Menu Principal</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[s.menuGrid, { paddingLeft: 16 }]}
+          >
             {MENU_ITEMS.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={[s.menuCard, { maxWidth: "48%" }]}
+                style={s.menuCard}
                 onPress={() => router.push(item.route as any)}
                 activeOpacity={0.75}
               >
@@ -215,7 +219,7 @@ export default function HomeProfessorScreen() {
                 <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Botão Ver Cronograma */}

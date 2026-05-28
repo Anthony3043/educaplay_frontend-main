@@ -136,9 +136,10 @@ export const homeStyles = StyleSheet.create({
   menuGrid: {
     flexDirection: 'row',
     gap: 12,
+    paddingRight: 16,
   },
   menuCard: {
-    flex: 1,
+    width: 130,
     backgroundColor: Colors.surface,
     borderRadius: 14,
     borderWidth: 1,

@@ -4,6 +4,7 @@ import {
   Animated,
   BackHandler,
   Dimensions,
+  FlatList,
   Image,
   ScrollView,
   StatusBar,
@@ -176,9 +177,13 @@ export default function HomeScreen() {
         <View style={s.divider} />
 
         {/* Menu Principal */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Menu Principal</Text>
-          <View style={s.menuGrid}>
+        <View style={[s.section, { paddingHorizontal: 0 }]}>
+          <Text style={[s.sectionTitle, { paddingHorizontal: 16 }]}>Menu Principal</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[s.menuGrid, { paddingLeft: 16 }]}
+          >
             {MENU_ITEMS.map((item) => (
               <TouchableOpacity key={item.id} style={s.menuCard} onPress={() => router.push(item.route as any)} activeOpacity={0.75}>
                 <View style={[s.menuCardIcon, { backgroundColor: item.iconBg }]}>
@@ -188,7 +193,7 @@ export default function HomeScreen() {
                 <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Botão Criar Cronograma */}
