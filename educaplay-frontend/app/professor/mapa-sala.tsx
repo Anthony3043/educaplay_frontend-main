@@ -221,7 +221,9 @@ export default function MapaSalaScreen() {
                     </Text>
                     <Text
                       style={[st.assentoNome, assento.nome ? st.assentoNomeOcupado : st.assentoNomeVago]}
-                      numberOfLines={2}
+                      numberOfLines={3}
+                      adjustsFontSizeToFit
+                      minimumFontSize={6}
                     >
                       {assento.nome ?? "—"}
                     </Text>
@@ -327,7 +329,7 @@ const st = StyleSheet.create({
   mapaGrid: { width: "100%", gap: 8 },
   linhaRow: { flexDirection: "row", justifyContent: "center", gap: 8 },
   assento: {
-    width: 58, height: 68, borderRadius: 10, alignItems: "center", justifyContent: "center",
+    width: 58, minHeight: 68, borderRadius: 10, alignItems: "center", justifyContent: "center",
     borderWidth: 1.5, padding: 4,
   },
   assentoVago: { backgroundColor: "#f7f8fa", borderColor: "#E5E7EB" },
