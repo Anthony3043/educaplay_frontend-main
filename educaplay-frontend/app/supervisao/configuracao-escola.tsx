@@ -3,9 +3,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Clipboard,
-  Linking,
-  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -28,11 +25,6 @@ export default function ConfiguracaoEscolaScreen() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [obtendoLoc, setObtendoLoc] = useState(false);
-
-  // Manual input
-  const [latStr, setLatStr] = useState("");
-  const [lonStr, setLonStr] = useState("");
-  const [modalManualVisivel, setModalManualVisivel] = useState(false);
   const [localNome, setLocalNome] = useState<string | null>(null);
 
   const configurado = config.latitude !== 0 || config.longitude !== 0;
@@ -43,10 +35,6 @@ export default function ConfiguracaoEscolaScreen() {
         const c: Config = res.data;
         setConfig(c);
         setRaioStr(String(c.raio ?? 200));
-        if (c.latitude !== 0 || c.longitude !== 0) {
-          setLatStr(String(c.latitude));
-          setLonStr(String(c.longitude));
-        }
       })
       .catch(() => Alert.alert("Erro", "Não foi possível carregar as configurações."))
       .finally(() => setCarregando(false));
@@ -63,8 +51,6 @@ export default function ConfiguracaoEscolaScreen() {
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const { latitude, longitude } = loc.coords;
       setConfig((prev) => ({ ...prev, latitude, longitude }));
-      setLatStr(String(latitude));
-      setLonStr(String(longitude));
       setLocalNome("Localização atual do dispositivo");
     } catch {
       Alert.alert("Erro", "Não foi possível obter sua localização.");
@@ -73,21 +59,9 @@ export default function ConfiguracaoEscolaScreen() {
     }
   };
 
-  const confirmarManual = () => {
-    const lat = parseFloat(latStr.replace(",", ".").trim());
-    const lon = parseFloat(lonStr.replace(",", ".").trim());
-    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-      Alert.alert("Coordenadas inválidas", "Verifique a latitude e longitude informadas.");
-      return;
-    }
-    setConfig((prev) => ({ ...prev, latitude: lat, longitude: lon }));
-    setLocalNome(null);
-    setModalManualVisivel(false);
-  };
-
   const handleSalvar = async () => {
     if (!configurado) {
-      Alert.alert("Atenção", "Defina a localização da escola antes de salvar.");
+      Alert.alert("Atenção", "Captura a localização da escola antes de salvar.");
       return;
     }
     const raio = parseFloat(raioStr.replace(",", "."));
@@ -134,66 +108,33 @@ export default function ConfiguracaoEscolaScreen() {
                   ? localNome
                   : configurado
                   ? `${config.latitude.toFixed(6)}, ${config.longitude.toFixed(6)}`
-                  : "Defina o local da escola para habilitar o registro de ponto."}
+                  : "Vá até a escola e toque no botão abaixo para definir o local."}
               </Text>
             </View>
           </View>
 
-          {/* Opção 1: GPS */}
-          <View style={st.opcaoCard}>
-            <View style={st.opcaoHeader}>
-              <View style={[st.opcaoIcone, { backgroundColor: "#e8f5ea" }]}>
-                <Ionicons name="navigate" size={20} color="#3a7d44" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={st.opcaoTitulo}>Usar localização atual</Text>
-                <Text style={st.opcaoDesc}>Vá até a escola e toque no botão abaixo</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[st.btnGPS, obtendoLoc && { opacity: 0.7 }]}
-              onPress={obterLocalizacaoAtual}
-              disabled={obtendoLoc}
-              activeOpacity={0.85}
-            >
-              {obtendoLoc
-                ? <ActivityIndicator size="small" color="#fff" />
-                : <Ionicons name="navigate-outline" size={18} color="#fff" />}
-              <Text style={st.btnGPSText}>
-                {obtendoLoc ? "Obtendo localização..." : "Capturar minha localização agora"}
-              </Text>
-            </TouchableOpacity>
+          {/* Dica */}
+          <View style={st.dicaCard}>
+            <Ionicons name="information-circle-outline" size={16} color="#3a7d44" />
+            <Text style={st.dicaText}>
+              Vá até a escola com o aplicativo aberto e toque em "Usar minha localização atual". O GPS capturará o local automaticamente.
+            </Text>
           </View>
 
-          {/* Separador */}
-          <View style={st.separador}>
-            <View style={st.separadorLinha} />
-            <Text style={st.separadorTexto}>ou</Text>
-            <View style={st.separadorLinha} />
-          </View>
-
-          {/* Opção 2: Coordenadas manuais */}
-          <View style={st.opcaoCard}>
-            <View style={st.opcaoHeader}>
-              <View style={[st.opcaoIcone, { backgroundColor: "#eff6ff" }]}>
-                <Ionicons name="pencil" size={20} color="#3b82f6" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={st.opcaoTitulo}>Inserir coordenadas</Text>
-                <Text style={st.opcaoDesc}>Cole as coordenadas copiadas do Google Maps</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={st.btnManual} onPress={() => setModalManualVisivel(true)} activeOpacity={0.85}>
-              <Ionicons name="location-outline" size={18} color="#3b82f6" />
-              <Text style={st.btnManualText}>Inserir latitude e longitude</Text>
-            </TouchableOpacity>
-            <View style={st.dicaMapsCard}>
-              <Ionicons name="logo-google" size={14} color="#888" />
-              <Text style={st.dicaMapsText}>
-                No Google Maps: toque e segure no local da escola → copie as coordenadas que aparecem na parte de baixo da tela
-              </Text>
-            </View>
-          </View>
+          {/* Botão GPS */}
+          <TouchableOpacity
+            style={[st.btnGPS, obtendoLoc && { opacity: 0.7 }]}
+            onPress={obterLocalizacaoAtual}
+            disabled={obtendoLoc}
+            activeOpacity={0.85}
+          >
+            {obtendoLoc
+              ? <ActivityIndicator size="small" color="#fff" />
+              : <Ionicons name="navigate" size={22} color="#fff" />}
+            <Text style={st.btnGPSText}>
+              {obtendoLoc ? "Obtendo localização..." : "Usar minha localização atual"}
+            </Text>
+          </TouchableOpacity>
 
           {/* Raio */}
           <View style={st.inputGrupo}>
@@ -230,49 +171,6 @@ export default function ConfiguracaoEscolaScreen() {
           </TouchableOpacity>
         </ScrollView>
       )}
-
-      {/* Modal coordenadas manuais */}
-      <Modal visible={modalManualVisivel} animationType="slide" transparent onRequestClose={() => setModalManualVisivel(false)}>
-        <View style={st.modalOverlay}>
-          <View style={st.modalBox}>
-            <Text style={st.modalTitulo}>Inserir Coordenadas</Text>
-            <Text style={st.modalDesc}>
-              Cole as coordenadas obtidas do Google Maps ou outro aplicativo de mapas.
-            </Text>
-
-            <Text style={st.modalLabel}>Latitude</Text>
-            <TextInput
-              style={st.modalInput}
-              placeholder="-23.550520"
-              placeholderTextColor="#bbb"
-              value={latStr}
-              onChangeText={setLatStr}
-              keyboardType="numbers-and-punctuation"
-              autoCapitalize="none"
-            />
-
-            <Text style={st.modalLabel}>Longitude</Text>
-            <TextInput
-              style={st.modalInput}
-              placeholder="-46.633308"
-              placeholderTextColor="#bbb"
-              value={lonStr}
-              onChangeText={setLonStr}
-              keyboardType="numbers-and-punctuation"
-              autoCapitalize="none"
-            />
-
-            <View style={st.modalBtns}>
-              <TouchableOpacity style={st.modalBtnCancelar} onPress={() => setModalManualVisivel(false)}>
-                <Text style={st.modalBtnCancelarText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={st.modalBtnConfirmar} onPress={confirmarManual}>
-                <Text style={st.modalBtnConfirmarText}>Confirmar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -297,38 +195,19 @@ const st = StyleSheet.create({
   statusTitulo: { fontSize: 14, fontWeight: "700" },
   statusDescricao: { fontSize: 12, color: "#666", marginTop: 2, lineHeight: 17 },
 
-  opcaoCard: {
-    borderRadius: 14, borderWidth: 1.5, borderColor: "#E8E8F0",
-    backgroundColor: "#fff", padding: 14, gap: 12,
-    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  dicaCard: {
+    flexDirection: "row", gap: 8, alignItems: "flex-start",
+    backgroundColor: "#f0fdf4", borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: "#bbf7d0",
   },
-  opcaoHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
-  opcaoIcone: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  opcaoTitulo: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
-  opcaoDesc: { fontSize: 12, color: "#888", marginTop: 2 },
+  dicaText: { flex: 1, fontSize: 12, color: "#3a7d44", lineHeight: 17 },
 
   btnGPS: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    backgroundColor: "#3a7d44", borderRadius: 12, paddingVertical: 13,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
+    backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 16,
+    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
   },
-  btnGPSText: { fontSize: 14, fontWeight: "700", color: "#fff" },
-
-  btnManual: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    backgroundColor: "#eff6ff", borderRadius: 12, paddingVertical: 13,
-    borderWidth: 1.5, borderColor: "#bfdbfe",
-  },
-  btnManualText: { fontSize: 14, fontWeight: "700", color: "#3b82f6" },
-
-  dicaMapsCard: {
-    flexDirection: "row", gap: 8, alignItems: "flex-start",
-    backgroundColor: "#f9fafb", borderRadius: 10, padding: 10,
-  },
-  dicaMapsText: { flex: 1, fontSize: 11, color: "#666", lineHeight: 16 },
-
-  separador: { flexDirection: "row", alignItems: "center", gap: 10 },
-  separadorLinha: { flex: 1, height: 1, backgroundColor: "#E8E8F0" },
-  separadorTexto: { fontSize: 13, color: "#aaa", fontWeight: "600" },
+  btnGPSText: { fontSize: 16, fontWeight: "700", color: "#fff" },
 
   inputGrupo: { gap: 6 },
   inputLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e" },
@@ -347,35 +226,4 @@ const st = StyleSheet.create({
     shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
   },
   btnSalvarText: { fontSize: 15, fontWeight: "700", color: "#fff" },
-
-  // Modal manual
-  modalOverlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "flex-end",
-  },
-  modalBox: {
-    backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 24, paddingBottom: 36, gap: 10,
-  },
-  modalTitulo: { fontSize: 18, fontWeight: "700", color: "#1a1a2e" },
-  modalDesc: { fontSize: 13, color: "#666", lineHeight: 18, marginBottom: 4 },
-  modalLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginTop: 4 },
-  modalInput: {
-    backgroundColor: "#F7F8FA", borderRadius: 12,
-    borderWidth: 1.5, borderColor: "#E8E8F0",
-    paddingHorizontal: 14, paddingVertical: 12,
-    fontSize: 15, color: "#1a1a2e",
-  },
-  modalBtns: { flexDirection: "row", gap: 10, marginTop: 8 },
-  modalBtnCancelar: {
-    flex: 1, borderRadius: 12, paddingVertical: 13,
-    borderWidth: 1.5, borderColor: "#E8E8F0",
-    alignItems: "center",
-  },
-  modalBtnCancelarText: { fontSize: 14, fontWeight: "700", color: "#888" },
-  modalBtnConfirmar: {
-    flex: 1, borderRadius: 12, paddingVertical: 13,
-    backgroundColor: "#3a7d44", alignItems: "center",
-  },
-  modalBtnConfirmarText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });
