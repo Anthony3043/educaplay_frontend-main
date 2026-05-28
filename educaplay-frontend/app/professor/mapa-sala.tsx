@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,11 +23,10 @@ import { useAuth } from "../../context/AuthContext";
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
 type Assento = { id: string; numero: number; nome: string | null };
 
-const COLUNAS = 5;
-
 export default function MapaSalaScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
+  const { width } = useWindowDimensions();
   const [salas, setSalas] = useState<Sala[]>([]);
   const [carregandoSalas, setCarregandoSalas] = useState(true);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
@@ -100,13 +100,24 @@ export default function MapaSalaScreen() {
     }
   };
 
+  const colunas = React.useMemo(() => {
+    if (assentos.length === 0) return 5;
+    return Math.min(6, Math.max(3, Math.ceil(Math.sqrt(assentos.length))));
+  }, [assentos.length]);
+
+  const cardWidth = React.useMemo(() => {
+    const padding = 32;
+    const gaps = (colunas - 1) * 8;
+    return Math.floor((width - padding - gaps) / colunas);
+  }, [width, colunas]);
+
   const linhas = React.useMemo(() => {
     const rows: Assento[][] = [];
-    for (let i = 0; i < assentos.length; i += COLUNAS) {
-      rows.push(assentos.slice(i, i + COLUNAS));
+    for (let i = 0; i < assentos.length; i += colunas) {
+      rows.push(assentos.slice(i, i + colunas));
     }
     return rows;
-  }, [assentos]);
+  }, [assentos, colunas]);
 
   // --- Tela de lista de salas ---
   if (!salaSelecionada) {
@@ -211,6 +222,7 @@ export default function MapaSalaScreen() {
                     key={assento.id}
                     style={[
                       st.assento,
+                      { width: cardWidth, minHeight: cardWidth },
                       assento.nome ? st.assentoOcupado : st.assentoVago,
                     ]}
                     onPress={() => abrirEdicaoAssento(assento)}
@@ -229,9 +241,8 @@ export default function MapaSalaScreen() {
                     </Text>
                   </TouchableOpacity>
                 ))}
-                {/* Preenche células vazias para alinhar a última linha */}
-                {Array.from({ length: COLUNAS - linha.length }).map((_, idx) => (
-                  <View key={`empty-${idx}`} style={[st.assento, { borderColor: "transparent", backgroundColor: "transparent" }]} />
+                {Array.from({ length: colunas - linha.length }).map((_, idx) => (
+                  <View key={`empty-${idx}`} style={[st.assento, { width: cardWidth, minHeight: cardWidth, borderColor: "transparent", backgroundColor: "transparent" }]} />
                 ))}
               </View>
             ))}
@@ -329,7 +340,7 @@ const st = StyleSheet.create({
   mapaGrid: { width: "100%", gap: 8 },
   linhaRow: { flexDirection: "row", justifyContent: "center", gap: 8 },
   assento: {
-    width: 58, minHeight: 68, borderRadius: 10, alignItems: "center", justifyContent: "center",
+    borderRadius: 10, alignItems: "center", justifyContent: "center",
     borderWidth: 1.5, padding: 4,
   },
   assentoVago: { backgroundColor: "#f7f8fa", borderColor: "#E5E7EB" },
