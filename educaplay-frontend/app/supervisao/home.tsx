@@ -24,7 +24,7 @@ const DRAWER_WIDTH = width * 0.72;
 
 const DICAS = [
   "Configure o local da escola antes\nde liberar o bater ponto para\nos professores!",
-  "Acesse "Pontos do Dia" para ver\nquem registrou presença e notificar\nquem faltou com um toque.",
+  'Acesse "Pontos do Dia" para ver\nquem registrou presença e notificar\nquem faltou com um toque.',
   "Professores nunca são excluídos:\ndesative-os para preservar o\nhistórico de aulas e pontos.",
   "Você pode permitir que professores\neditem o mapa de sala — basta\nativar a permissão no perfil deles.",
   "Cada sala tem seu próprio mapa\nde carteiras. Ajuste o número de\ncolunas conforme o layout real.",
