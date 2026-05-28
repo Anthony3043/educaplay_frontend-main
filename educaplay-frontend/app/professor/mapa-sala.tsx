@@ -31,6 +31,7 @@ export default function MapaSalaScreen() {
   const [carregandoSalas, setCarregandoSalas] = useState(true);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
   const [assentos, setAssentos] = useState<Assento[]>([]);
+  const [colunas, setColunas] = useState(5);
   const [carregandoMapa, setCarregandoMapa] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
@@ -56,6 +57,7 @@ export default function MapaSalaScreen() {
     try {
       const res = await api.get(`/salas/${sala.id}/mapa`);
       setAssentos(res.data.assentos as Assento[]);
+      setColunas(res.data.colunas ?? 5);
     } catch {
       Alert.alert("Erro", "Não foi possível carregar o mapa da sala.");
     } finally {
@@ -66,6 +68,7 @@ export default function MapaSalaScreen() {
   const voltarParaLista = () => {
     setSalaSelecionada(null);
     setAssentos([]);
+    setColunas(5);
   };
 
   const abrirEdicaoAssento = (assento: Assento) => {
@@ -90,7 +93,7 @@ export default function MapaSalaScreen() {
     if (!salaSelecionada) return;
     setSalvando(true);
     try {
-      await api.put(`/salas/${salaSelecionada.id}/mapa`, { assentos });
+      await api.put(`/salas/${salaSelecionada.id}/mapa`, { assentos, colunas });
       Alert.alert("Salvo", "Mapa de sala atualizado com sucesso!");
     } catch (err: any) {
       const msg = err?.response?.data?.error;
@@ -99,11 +102,6 @@ export default function MapaSalaScreen() {
       setSalvando(false);
     }
   };
-
-  const colunas = React.useMemo(() => {
-    if (assentos.length === 0) return 5;
-    return Math.min(6, Math.max(3, Math.ceil(Math.sqrt(assentos.length))));
-  }, [assentos.length]);
 
   const cardWidth = React.useMemo(() => {
     const padding = 32;
@@ -205,6 +203,27 @@ export default function MapaSalaScreen() {
             <View style={st.dicaEditar}>
               <Ionicons name="information-circle-outline" size={14} color="#3a7d44" />
               <Text style={st.dicaEditarText}>Toque em uma carteira para atribuir ou remover um aluno</Text>
+            </View>
+          )}
+
+          {podeEditar && (
+            <View style={st.colunasRow}>
+              <Text style={st.colunasLabel}>Colunas por fileira:</Text>
+              <TouchableOpacity
+                style={[st.colunasBtn, colunas <= 1 && { opacity: 0.3 }]}
+                onPress={() => setColunas((c) => Math.max(1, c - 1))}
+                disabled={colunas <= 1}
+              >
+                <Ionicons name="remove" size={16} color="#3a7d44" />
+              </TouchableOpacity>
+              <Text style={st.colunasValor}>{colunas}</Text>
+              <TouchableOpacity
+                style={[st.colunasBtn, colunas >= 10 && { opacity: 0.3 }]}
+                onPress={() => setColunas((c) => Math.min(10, c + 1))}
+                disabled={colunas >= 10}
+              >
+                <Ionicons name="add" size={16} color="#3a7d44" />
+              </TouchableOpacity>
             </View>
           )}
 
@@ -351,6 +370,17 @@ const st = StyleSheet.create({
   assentoNomeVago: { color: "#ccc" },
   assentoNomeOcupado: { color: "#1a1a2e", fontWeight: "600" },
   totalText: { fontSize: 12, color: "#aaa", marginTop: 20 },
+  colunasRow: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    backgroundColor: "#f0fdf4", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8,
+    borderWidth: 1, borderColor: "#bbf7d0", marginBottom: 4,
+  },
+  colunasLabel: { fontSize: 13, color: "#2d6a4f", fontWeight: "600", flex: 1 },
+  colunasBtn: {
+    width: 30, height: 30, borderRadius: 8,
+    backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center",
+  },
+  colunasValor: { fontSize: 16, fontWeight: "700", color: "#1a1a2e", minWidth: 24, textAlign: "center" },
 });
 
 const me = StyleSheet.create({
