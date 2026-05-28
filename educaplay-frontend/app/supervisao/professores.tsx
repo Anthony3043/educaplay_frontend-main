@@ -317,6 +317,8 @@ export default function ProfessoresScreen() {
   }, {});
   const semDia = bloqueios.filter((b) => !b.diaSemana);
 
+  const [mostrarInativos, setMostrarInativos] = useState(false);
+
   const ativos = professores.filter((p) => p.ativo);
   const inativos = professores.filter((p) => !p.ativo);
 
@@ -339,10 +341,27 @@ export default function ProfessoresScreen() {
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
         <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
-          <Text style={s.counter}>
-            {ativos.length} {ativos.length === 1 ? "professor ativo" : "professores ativos"}
-            {inativos.length > 0 ? ` · ${inativos.length} inativo${inativos.length > 1 ? "s" : ""}` : ""}
-          </Text>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <Text style={s.counter}>
+              {ativos.length} {ativos.length === 1 ? "professor ativo" : "professores ativos"}
+            </Text>
+            {inativos.length > 0 && (
+              <TouchableOpacity
+                style={[li.btnInativos, mostrarInativos && li.btnInativosAtivo]}
+                onPress={() => setMostrarInativos((v) => !v)}
+                activeOpacity={0.75}
+              >
+                <Ionicons
+                  name={mostrarInativos ? "eye-off-outline" : "ban-outline"}
+                  size={13}
+                  color={mostrarInativos ? "#f97316" : "#aaa"}
+                />
+                <Text style={[li.btnInativosText, mostrarInativos && li.btnInativosTextAtivo]}>
+                  {mostrarInativos ? "Ocultar" : `Desativados (${inativos.length})`}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           {professores.length === 0 ? (
             <View style={s.emptyState}>
@@ -387,7 +406,7 @@ export default function ProfessoresScreen() {
                 </TouchableOpacity>
               ))}
 
-              {inativos.length > 0 && (
+              {mostrarInativos && inativos.length > 0 && (
                 <>
                   <View style={li.secaoHeader}>
                     <Ionicons name="ban-outline" size={14} color="#aaa" />
@@ -823,6 +842,17 @@ const li = StyleSheet.create({
   cardInativo: { opacity: 0.7, borderColor: "#E5E7EB", backgroundColor: "#FAFAFA" },
   badge: { backgroundColor: "#FFF7ED", borderRadius: 8, paddingHorizontal: 7, paddingVertical: 2, borderWidth: 1, borderColor: "#FED7AA" },
   badgeText: { fontSize: 11, fontWeight: "700", color: "#f97316" },
+  btnInativos: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "#F5F5F5", borderRadius: 20,
+    paddingHorizontal: 11, paddingVertical: 6,
+    borderWidth: 1.5, borderColor: "#E5E7EB",
+  },
+  btnInativosAtivo: {
+    backgroundColor: "#FFF7ED", borderColor: "#FED7AA",
+  },
+  btnInativosText: { fontSize: 12, fontWeight: "700", color: "#aaa" },
+  btnInativosTextAtivo: { color: "#f97316" },
 });
 
 const cad = StyleSheet.create({
