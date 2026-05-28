@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Keyboard,
+  Clipboard,
+  Linking,
   Modal,
   ScrollView,
   StatusBar,
@@ -16,135 +17,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
-import { WebView } from "react-native-webview";
 import api from "../../src/services/api";
 
 type Config = { latitude: number; longitude: number; raio: number };
-type ResultadoBusca = { place_id: number; display_name: string; lat: string; lon: string };
-
-const HTML_MAPA = (lat: number, lon: number) => `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: sans-serif; }
-    #map { width: 100vw; height: 100vh; }
-    #dica {
-      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.65); color: #fff;
-      font-size: 13px; padding: 8px 16px; border-radius: 20px;
-      z-index: 999; white-space: nowrap; pointer-events: none;
-    }
-    #busca-box {
-      position: absolute; top: 50px; left: 10px; right: 10px;
-      z-index: 1000; display: flex; gap: 6px;
-    }
-    #busca-input {
-      flex: 1; padding: 10px 12px; border-radius: 10px; border: none;
-      font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    #busca-btn {
-      background: #3a7d44; color: #fff; border: none;
-      padding: 10px 14px; border-radius: 10px; font-size: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer;
-    }
-    #resultados {
-      position: absolute; top: 100px; left: 10px; right: 10px;
-      background: #fff; border-radius: 10px; z-index: 1001;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 220px; overflow-y: auto;
-    }
-    .resultado-item {
-      padding: 10px 14px; font-size: 13px; color: #333;
-      border-bottom: 1px solid #f0f0f0; cursor: pointer;
-    }
-    .resultado-item:last-child { border-bottom: none; }
-    .resultado-item:active { background: #f0faf2; }
-  </style>
-</head>
-<body>
-  <div id="dica">Toque no mapa para marcar a escola</div>
-  <div id="busca-box">
-    <input id="busca-input" type="text" placeholder="Buscar endereço..."/>
-    <button id="busca-btn" onclick="buscar()">🔍</button>
-  </div>
-  <div id="resultados" style="display:none"></div>
-  <div id="map"></div>
-
-  <script>
-    var initLat = ${lat !== 0 ? lat : -14.235};
-    var initLon = ${lon !== 0 ? lon : -51.9253};
-    var initZoom = ${lat !== 0 ? 16 : 4};
-
-    var map = L.map('map', { zoomControl: true }).setView([initLat, initLon], initZoom);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap', maxZoom: 19
-    }).addTo(map);
-
-    var marker = null;
-    ${lat !== 0 ? `marker = L.marker([${lat}, ${lon}]).addTo(map);` : ''}
-
-    map.on('click', function(e) {
-      var lat = e.latlng.lat.toFixed(7);
-      var lng = e.latlng.lng.toFixed(7);
-      if (marker) { marker.setLatLng([lat, lng]); }
-      else { marker = L.marker([lat, lng]).addTo(map); }
-      document.getElementById('dica').textContent = 'Toque em "Confirmar" para salvar';
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pin', lat: parseFloat(lat), lon: parseFloat(lng) }));
-    });
-
-    function buscar() {
-      var q = document.getElementById('busca-input').value.trim();
-      if (q.length < 3) return;
-      fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=5', {
-        headers: { 'User-Agent': 'EducaPlay/1.0' }
-      })
-      .then(r => r.json())
-      .then(data => {
-        var box = document.getElementById('resultados');
-        if (!data.length) { box.innerHTML = '<div class="resultado-item" style="color:#aaa">Nenhum resultado encontrado</div>'; box.style.display='block'; return; }
-        box.innerHTML = data.map((d,i) => '<div class="resultado-item" onclick="selecionarResultado(' + i + ')">' + d.display_name + '</div>').join('');
-        box.style.display = 'block';
-        window._resultados = data;
-      });
-    }
-
-    document.getElementById('busca-input').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') buscar();
-    });
-
-    function selecionarResultado(i) {
-      var item = window._resultados[i];
-      var lat = parseFloat(item.lat);
-      var lon = parseFloat(item.lon);
-      map.setView([lat, lon], 17);
-      if (marker) { marker.setLatLng([lat, lon]); }
-      else { marker = L.marker([lat, lon]).addTo(map); }
-      document.getElementById('resultados').style.display = 'none';
-      document.getElementById('busca-input').value = item.display_name.split(',')[0];
-      document.getElementById('dica').textContent = 'Toque em "Confirmar" para salvar';
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pin', lat: lat, lon: lon }));
-    }
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('#busca-box') && !e.target.closest('#resultados')) {
-        document.getElementById('resultados').style.display = 'none';
-      }
-    });
-
-    window.centralizarMapa = function(lat, lon) {
-      map.setView([lat, lon], 17);
-      if (marker) { marker.setLatLng([lat, lon]); }
-      else { marker = L.marker([lat, lon]).addTo(map); }
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'pin', lat: lat, lon: lon }));
-    };
-  </script>
-</body>
-</html>
-`;
 
 export default function ConfiguracaoEscolaScreen() {
   const router = useRouter();
@@ -153,12 +28,12 @@ export default function ConfiguracaoEscolaScreen() {
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [obtendoLoc, setObtendoLoc] = useState(false);
-  const [localNome, setLocalNome] = useState<string | null>(null);
 
-  // Modal do mapa
-  const [mapaVisivel, setMapaVisivel] = useState(false);
-  const [pinTemp, setPinTemp] = useState<{ lat: number; lon: number } | null>(null);
-  const webViewRef = useRef<any>(null);
+  // Manual input
+  const [latStr, setLatStr] = useState("");
+  const [lonStr, setLonStr] = useState("");
+  const [modalManualVisivel, setModalManualVisivel] = useState(false);
+  const [localNome, setLocalNome] = useState<string | null>(null);
 
   const configurado = config.latitude !== 0 || config.longitude !== 0;
 
@@ -168,6 +43,10 @@ export default function ConfiguracaoEscolaScreen() {
         const c: Config = res.data;
         setConfig(c);
         setRaioStr(String(c.raio ?? 200));
+        if (c.latitude !== 0 || c.longitude !== 0) {
+          setLatStr(String(c.latitude));
+          setLonStr(String(c.longitude));
+        }
       })
       .catch(() => Alert.alert("Erro", "Não foi possível carregar as configurações."))
       .finally(() => setCarregando(false));
@@ -183,13 +62,10 @@ export default function ConfiguracaoEscolaScreen() {
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const { latitude, longitude } = loc.coords;
-
-      if (mapaVisivel && webViewRef.current) {
-        webViewRef.current.injectJavaScript(`centralizarMapa(${latitude}, ${longitude}); true;`);
-      } else {
-        setConfig((prev) => ({ ...prev, latitude, longitude }));
-        setLocalNome("Localização atual");
-      }
+      setConfig((prev) => ({ ...prev, latitude, longitude }));
+      setLatStr(String(latitude));
+      setLonStr(String(longitude));
+      setLocalNome("Localização atual do dispositivo");
     } catch {
       Alert.alert("Erro", "Não foi possível obter sua localização.");
     } finally {
@@ -197,34 +73,21 @@ export default function ConfiguracaoEscolaScreen() {
     }
   };
 
-  const handleMensagemMapa = (event: any) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      if (data.type === "pin") {
-        setPinTemp({ lat: data.lat, lon: data.lon });
-      }
-    } catch {}
-  };
-
-  const confirmarPin = () => {
-    if (!pinTemp) return;
-    setConfig((prev) => ({ ...prev, latitude: pinTemp.lat, longitude: pinTemp.lon }));
+  const confirmarManual = () => {
+    const lat = parseFloat(latStr.replace(",", ".").trim());
+    const lon = parseFloat(lonStr.replace(",", ".").trim());
+    if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      Alert.alert("Coordenadas inválidas", "Verifique a latitude e longitude informadas.");
+      return;
+    }
+    setConfig((prev) => ({ ...prev, latitude: lat, longitude: lon }));
     setLocalNome(null);
-    // Geocodificação reversa para nome
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pinTemp.lat}&lon=${pinTemp.lon}&format=json`, {
-      headers: { "User-Agent": "EducaPlay/1.0" },
-    })
-      .then((r) => r.json())
-      .then((d) => setLocalNome(d.display_name ?? null))
-      .catch(() => {});
-
-    setMapaVisivel(false);
-    setPinTemp(null);
+    setModalManualVisivel(false);
   };
 
   const handleSalvar = async () => {
     if (!configurado) {
-      Alert.alert("Atenção", "Marque a localização da escola no mapa antes de salvar.");
+      Alert.alert("Atenção", "Defina a localização da escola antes de salvar.");
       return;
     }
     const raio = parseFloat(raioStr.replace(",", "."));
@@ -271,24 +134,66 @@ export default function ConfiguracaoEscolaScreen() {
                   ? localNome
                   : configurado
                   ? `${config.latitude.toFixed(6)}, ${config.longitude.toFixed(6)}`
-                  : "Marque o local da escola no mapa para habilitar o registro de ponto."}
+                  : "Defina o local da escola para habilitar o registro de ponto."}
               </Text>
             </View>
           </View>
 
-          {/* Botão principal: abrir mapa */}
-          <TouchableOpacity style={st.btnMapa} onPress={() => { setPinTemp(null); setMapaVisivel(true); }} activeOpacity={0.85}>
-            <Ionicons name="map-outline" size={22} color="#fff" />
-            <Text style={st.btnMapaText}>
-              {configurado ? "Alterar localização no mapa" : "Marcar localização no mapa"}
-            </Text>
-          </TouchableOpacity>
+          {/* Opção 1: GPS */}
+          <View style={st.opcaoCard}>
+            <View style={st.opcaoHeader}>
+              <View style={[st.opcaoIcone, { backgroundColor: "#e8f5ea" }]}>
+                <Ionicons name="navigate" size={20} color="#3a7d44" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={st.opcaoTitulo}>Usar localização atual</Text>
+                <Text style={st.opcaoDesc}>Vá até a escola e toque no botão abaixo</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[st.btnGPS, obtendoLoc && { opacity: 0.7 }]}
+              onPress={obterLocalizacaoAtual}
+              disabled={obtendoLoc}
+              activeOpacity={0.85}
+            >
+              {obtendoLoc
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Ionicons name="navigate-outline" size={18} color="#fff" />}
+              <Text style={st.btnGPSText}>
+                {obtendoLoc ? "Obtendo localização..." : "Capturar minha localização agora"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-          {/* Usar localização atual */}
-          <TouchableOpacity style={st.btnGPS} onPress={obterLocalizacaoAtual} disabled={obtendoLoc} activeOpacity={0.8}>
-            {obtendoLoc ? <ActivityIndicator size="small" color="#3a7d44" /> : <Ionicons name="navigate-outline" size={18} color="#3a7d44" />}
-            <Text style={st.btnGPSText}>{obtendoLoc ? "Obtendo localização..." : "Usar minha localização atual"}</Text>
-          </TouchableOpacity>
+          {/* Separador */}
+          <View style={st.separador}>
+            <View style={st.separadorLinha} />
+            <Text style={st.separadorTexto}>ou</Text>
+            <View style={st.separadorLinha} />
+          </View>
+
+          {/* Opção 2: Coordenadas manuais */}
+          <View style={st.opcaoCard}>
+            <View style={st.opcaoHeader}>
+              <View style={[st.opcaoIcone, { backgroundColor: "#eff6ff" }]}>
+                <Ionicons name="pencil" size={20} color="#3b82f6" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={st.opcaoTitulo}>Inserir coordenadas</Text>
+                <Text style={st.opcaoDesc}>Cole as coordenadas copiadas do Google Maps</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={st.btnManual} onPress={() => setModalManualVisivel(true)} activeOpacity={0.85}>
+              <Ionicons name="location-outline" size={18} color="#3b82f6" />
+              <Text style={st.btnManualText}>Inserir latitude e longitude</Text>
+            </TouchableOpacity>
+            <View style={st.dicaMapsCard}>
+              <Ionicons name="logo-google" size={14} color="#888" />
+              <Text style={st.dicaMapsText}>
+                No Google Maps: toque e segure no local da escola → copie as coordenadas que aparecem na parte de baixo da tela
+              </Text>
+            </View>
+          </View>
 
           {/* Raio */}
           <View style={st.inputGrupo}>
@@ -309,14 +214,6 @@ export default function ConfiguracaoEscolaScreen() {
             </Text>
           </View>
 
-          {/* Dica */}
-          <View style={st.dicaCard}>
-            <Ionicons name="information-circle-outline" size={16} color="#3a7d44" />
-            <Text style={st.dicaText}>
-              Abra o mapa, navegue até a escola (use a busca interna ou dê zoom) e toque exatamente no local. Depois toque em "Confirmar".
-            </Text>
-          </View>
-
           {/* Botão salvar */}
           <TouchableOpacity
             style={[st.btnSalvar, (!configurado || salvando) && { opacity: 0.5 }]}
@@ -334,56 +231,47 @@ export default function ConfiguracaoEscolaScreen() {
         </ScrollView>
       )}
 
-      {/* Modal do mapa */}
-      <Modal visible={mapaVisivel} animationType="slide" onRequestClose={() => setMapaVisivel(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#000" }}>
-          {/* Barra do mapa */}
-          <View style={st.mapaHeader}>
-            <TouchableOpacity onPress={() => setMapaVisivel(false)} style={st.mapaCloseBtn}>
-              <Ionicons name="close" size={22} color="#1a1a2e" />
-            </TouchableOpacity>
-            <Text style={st.mapaHeaderTitulo}>Selecionar localização</Text>
-            <TouchableOpacity
-              style={[st.mapaConfirmarBtn, !pinTemp && { opacity: 0.4 }]}
-              onPress={confirmarPin}
-              disabled={!pinTemp}
-              activeOpacity={0.85}
-            >
-              <Text style={st.mapaConfirmarText}>Confirmar</Text>
-            </TouchableOpacity>
-          </View>
+      {/* Modal coordenadas manuais */}
+      <Modal visible={modalManualVisivel} animationType="slide" transparent onRequestClose={() => setModalManualVisivel(false)}>
+        <View style={st.modalOverlay}>
+          <View style={st.modalBox}>
+            <Text style={st.modalTitulo}>Inserir Coordenadas</Text>
+            <Text style={st.modalDesc}>
+              Cole as coordenadas obtidas do Google Maps ou outro aplicativo de mapas.
+            </Text>
 
-          {pinTemp && (
-            <View style={st.mapaPinInfo}>
-              <Ionicons name="location" size={14} color="#3a7d44" />
-              <Text style={st.mapaPinText}>
-                {pinTemp.lat.toFixed(6)}, {pinTemp.lon.toFixed(6)}
-              </Text>
+            <Text style={st.modalLabel}>Latitude</Text>
+            <TextInput
+              style={st.modalInput}
+              placeholder="-23.550520"
+              placeholderTextColor="#bbb"
+              value={latStr}
+              onChangeText={setLatStr}
+              keyboardType="numbers-and-punctuation"
+              autoCapitalize="none"
+            />
+
+            <Text style={st.modalLabel}>Longitude</Text>
+            <TextInput
+              style={st.modalInput}
+              placeholder="-46.633308"
+              placeholderTextColor="#bbb"
+              value={lonStr}
+              onChangeText={setLonStr}
+              keyboardType="numbers-and-punctuation"
+              autoCapitalize="none"
+            />
+
+            <View style={st.modalBtns}>
+              <TouchableOpacity style={st.modalBtnCancelar} onPress={() => setModalManualVisivel(false)}>
+                <Text style={st.modalBtnCancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={st.modalBtnConfirmar} onPress={confirmarManual}>
+                <Text style={st.modalBtnConfirmarText}>Confirmar</Text>
+              </TouchableOpacity>
             </View>
-          )}
-
-          <WebView
-            ref={webViewRef}
-            source={{ html: HTML_MAPA(config.latitude, config.longitude) }}
-            onMessage={handleMensagemMapa}
-            style={{ flex: 1 }}
-            javaScriptEnabled
-            domStorageEnabled
-            geolocationEnabled
-            startInLoadingState
-            renderLoading={() => (
-              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#f7f8fa" }}>
-                <ActivityIndicator size="large" color="#3a7d44" />
-                <Text style={{ marginTop: 10, color: "#888", fontSize: 13 }}>Carregando mapa...</Text>
-              </View>
-            )}
-          />
-
-          {/* Botão GPS dentro do mapa */}
-          <TouchableOpacity style={st.mapaGpsBtn} onPress={obterLocalizacaoAtual} disabled={obtendoLoc} activeOpacity={0.8}>
-            {obtendoLoc ? <ActivityIndicator size="small" color="#3a7d44" /> : <Ionicons name="navigate" size={20} color="#3a7d44" />}
-          </TouchableOpacity>
-        </SafeAreaView>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -409,19 +297,38 @@ const st = StyleSheet.create({
   statusTitulo: { fontSize: 14, fontWeight: "700" },
   statusDescricao: { fontSize: 12, color: "#666", marginTop: 2, lineHeight: 17 },
 
-  btnMapa: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
-    backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 16,
-    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
+  opcaoCard: {
+    borderRadius: 14, borderWidth: 1.5, borderColor: "#E8E8F0",
+    backgroundColor: "#fff", padding: 14, gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
   },
-  btnMapaText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  opcaoHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  opcaoIcone: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  opcaoTitulo: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
+  opcaoDesc: { fontSize: 12, color: "#888", marginTop: 2 },
 
   btnGPS: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    backgroundColor: "#f0fdf4", borderRadius: 12, paddingVertical: 13,
-    borderWidth: 1.5, borderColor: "#86efac",
+    backgroundColor: "#3a7d44", borderRadius: 12, paddingVertical: 13,
   },
-  btnGPSText: { fontSize: 14, fontWeight: "600", color: "#3a7d44" },
+  btnGPSText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+
+  btnManual: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    backgroundColor: "#eff6ff", borderRadius: 12, paddingVertical: 13,
+    borderWidth: 1.5, borderColor: "#bfdbfe",
+  },
+  btnManualText: { fontSize: 14, fontWeight: "700", color: "#3b82f6" },
+
+  dicaMapsCard: {
+    flexDirection: "row", gap: 8, alignItems: "flex-start",
+    backgroundColor: "#f9fafb", borderRadius: 10, padding: 10,
+  },
+  dicaMapsText: { flex: 1, fontSize: 11, color: "#666", lineHeight: 16 },
+
+  separador: { flexDirection: "row", alignItems: "center", gap: 10 },
+  separadorLinha: { flex: 1, height: 1, backgroundColor: "#E8E8F0" },
+  separadorTexto: { fontSize: 13, color: "#aaa", fontWeight: "600" },
 
   inputGrupo: { gap: 6 },
   inputLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e" },
@@ -434,13 +341,6 @@ const st = StyleSheet.create({
   input: { flex: 1, fontSize: 15, color: "#1a1a2e", padding: 0 },
   inputHint: { fontSize: 11, color: "#aaa", marginTop: 2 },
 
-  dicaCard: {
-    flexDirection: "row", gap: 8, alignItems: "flex-start",
-    backgroundColor: "#f0fdf4", borderRadius: 12, padding: 12,
-    borderWidth: 1, borderColor: "#bbf7d0",
-  },
-  dicaText: { flex: 1, fontSize: 12, color: "#3a7d44", lineHeight: 17 },
-
   btnSalvar: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
     backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 15,
@@ -448,28 +348,34 @@ const st = StyleSheet.create({
   },
   btnSalvarText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 
-  // Modal do mapa
-  mapaHeader: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    backgroundColor: "#fff", paddingHorizontal: 12, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: "#F0F0F0",
+  // Modal manual
+  modalOverlay: {
+    flex: 1, backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
   },
-  mapaCloseBtn: { width: 38, height: 38, alignItems: "center", justifyContent: "center" },
-  mapaHeaderTitulo: { fontSize: 15, fontWeight: "700", color: "#1a1a2e" },
-  mapaConfirmarBtn: {
-    backgroundColor: "#3a7d44", borderRadius: 10,
-    paddingHorizontal: 16, paddingVertical: 8,
+  modalBox: {
+    backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: 24, paddingBottom: 36, gap: 10,
   },
-  mapaConfirmarText: { fontSize: 14, fontWeight: "700", color: "#fff" },
-  mapaPinInfo: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#e8f5ea", paddingHorizontal: 14, paddingVertical: 7,
+  modalTitulo: { fontSize: 18, fontWeight: "700", color: "#1a1a2e" },
+  modalDesc: { fontSize: 13, color: "#666", lineHeight: 18, marginBottom: 4 },
+  modalLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginTop: 4 },
+  modalInput: {
+    backgroundColor: "#F7F8FA", borderRadius: 12,
+    borderWidth: 1.5, borderColor: "#E8E8F0",
+    paddingHorizontal: 14, paddingVertical: 12,
+    fontSize: 15, color: "#1a1a2e",
   },
-  mapaPinText: { fontSize: 12, color: "#2d6a4f", fontWeight: "600" },
-  mapaGpsBtn: {
-    position: "absolute", right: 16, bottom: 32,
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: "#fff", alignItems: "center", justifyContent: "center",
-    shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 8, elevation: 6,
+  modalBtns: { flexDirection: "row", gap: 10, marginTop: 8 },
+  modalBtnCancelar: {
+    flex: 1, borderRadius: 12, paddingVertical: 13,
+    borderWidth: 1.5, borderColor: "#E8E8F0",
+    alignItems: "center",
   },
+  modalBtnCancelarText: { fontSize: 14, fontWeight: "700", color: "#888" },
+  modalBtnConfirmar: {
+    flex: 1, borderRadius: 12, paddingVertical: 13,
+    backgroundColor: "#3a7d44", alignItems: "center",
+  },
+  modalBtnConfirmarText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });
