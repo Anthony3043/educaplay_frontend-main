@@ -54,8 +54,8 @@ export default function CodigoSupervisaoScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={s.flex}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-          {/* Área superior */}
-          <View style={[s.topArea, { paddingBottom: 16 }]}>
+          {/* Área superior — fundo unificado com iconSection */}
+          <View style={[s.topArea, { paddingBottom: 0, backgroundColor: "#f0faf2" }]}>
             <Image source={require("@/assets/images/design_foil.png")} style={s.foilImage} resizeMode="cover" />
             <View style={[s.logoRow, { zIndex: 1 }]}>
               <Image source={require("@/assets/images/logo_icon.png")} style={s.logoImage} resizeMode="contain" />
