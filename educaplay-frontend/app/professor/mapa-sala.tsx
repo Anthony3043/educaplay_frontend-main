@@ -165,50 +165,55 @@ export default function MapaSalaScreen() {
         return `<div class="row">${cells}${empties}</div>`;
       }).join("");
 
-      const html = [
-        `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>`,
-        `*{box-sizing:border-box;margin:0;padding:0}`,
-        `body{font-family:Arial,sans-serif;padding:24px;background:#fff;color:#1a1a2e}`,
-        `.header{border-bottom:2px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px}`,
-        `.inst{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}`,
-        `h1{font-size:20px;font-weight:800;color:#0f172a}`,
-        `.sub{font-size:11px;color:#64748b;margin-top:3px}`,
-        `.stats{display:flex;gap:12px;margin-bottom:16px;align-items:center}`,
-        `.stat{text-align:center;background:#f8fafc;border-radius:8px;padding:8px 14px;border:1px solid #e2e8f0}`,
-        `.stat-num{font-size:20px;font-weight:800;color:#0f172a}.stat-num.occ{color:#3a7d44}`,
-        `.stat-lbl{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px}`,
-        `.bar-wrap{flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}`,
-        `.bar-fill{height:8px;background:#3a7d44;border-radius:4px;width:${pct}%}`,
-        `.board{background:#1a1a2e;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:3px;margin-bottom:14px;width:65%;margin-left:auto;margin-right:auto}`,
-        `.grid{display:flex;flex-direction:column;gap:6px}`,
-        `.row{display:flex;gap:6px;justify-content:center}`,
-        `.seat{border-radius:8px;padding:6px 4px;width:${seatW}px;text-align:center;border:1.5px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px}`,
-        `.occ{background:#e8f5ea;border-color:#86efac}.vago{background:#f8fafc}.invisible{border:none;background:transparent}`,
-        `.num{font-size:9px;font-weight:700;color:#aaa;margin-bottom:3px}.occ .num{color:#2d6a4f}`,
-        `.name{font-size:9.5px;font-weight:700;color:#1a1a2e;line-height:1.2}.dash{font-size:13px;color:#ccc}`,
-        `.footer{margin-top:18px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center}`,
-        `</style></head><body>`,
-        `<div class="header">`,
-        instituicao ? `<div class="inst">${instituicao}</div>` : "",
-        `<h1>${tituloSala}</h1>`,
-        `<div class="sub">Mapa de Carteiras &nbsp;&middot;&nbsp; ${dataStr}</div>`,
-        `</div>`,
-        `<div class="stats">`,
-        `<div class="stat"><div class="stat-num occ">${ocupadas}</div><div class="stat-lbl">Ocupadas</div></div>`,
-        `<div class="stat"><div class="stat-num">${total - ocupadas}</div><div class="stat-lbl">Vagas</div></div>`,
-        `<div class="stat"><div class="stat-num">${total}</div><div class="stat-lbl">Total</div></div>`,
-        `<div class="bar-wrap"><div class="bar-fill"></div></div>`,
-        `</div>`,
-        `<div class="board">QUADRO</div>`,
-        `<div class="grid">${seatRows}</div>`,
-        `<div class="footer">EducaPlay &middot; Mapa gerado em ${dataStr}</div>`,
-        `</body></html>`,
-      ].join("");
+      const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;padding:20px;background:#fff;color:#1a1a2e}
+.header{border-bottom:2px solid #e2e8f0;padding-bottom:10px;margin-bottom:14px}
+.inst{font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:4px}
+h1{font-size:18px;font-weight:bold;color:#0f172a}
+.sub{font-size:11px;color:#64748b;margin-top:2px}
+table.stats{width:100%;border-collapse:collapse;margin-bottom:14px}
+table.stats td{text-align:center;padding:8px;background:#f8fafc;border:1px solid #e2e8f0}
+.stat-num{font-size:20px;font-weight:bold;color:#0f172a}
+.stat-num.occ{color:#3a7d44}
+.stat-lbl{font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase}
+.bar-bg{background:#e2e8f0;border-radius:4px;height:6px;margin-bottom:14px}
+.bar-fg{background:#3a7d44;border-radius:4px;height:6px;width:${pct}%}
+.board{background:#1a1a2e;color:#fff;text-align:center;padding:7px;border-radius:6px;font-size:10px;font-weight:bold;letter-spacing:3px;margin-bottom:12px;width:60%;margin-left:auto;margin-right:auto}
+.grid{margin:0 auto}
+.row{display:table;width:100%;margin-bottom:5px}
+.seat{display:table-cell;border-radius:6px;padding:4px 2px;text-align:center;border:1px solid #e2e8f0;width:${seatW}px;min-height:46px;vertical-align:middle}
+.occ{background:#e8f5ea;border-color:#86efac}
+.vago{background:#f8fafc}
+.invisible{border:none;background:transparent}
+.num{font-size:9px;font-weight:bold;color:#aaa;display:block;margin-bottom:2px}
+.occ .num{color:#2d6a4f}
+.name{font-size:9px;font-weight:bold;color:#1a1a2e;display:block}
+.dash{font-size:12px;color:#ccc;display:block}
+.footer{margin-top:16px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center}
+</style></head><body>
+<div class="header">
+${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
+<h1>${tituloSala}</h1>
+<div class="sub">Mapa de Carteiras - ${dataStr}</div>
+</div>
+<table class="stats"><tr>
+<td><div class="stat-num occ">${ocupadas}</div><div class="stat-lbl">Ocupadas</div></td>
+<td><div class="stat-num">${total - ocupadas}</div><div class="stat-lbl">Vagas</div></td>
+<td><div class="stat-num">${total}</div><div class="stat-lbl">Total</div></td>
+</tr></table>
+<div class="bar-bg"><div class="bar-fg"></div></div>
+<div class="board">QUADRO</div>
+<div class="grid">${seatRows}</div>
+<div class="footer">EducaPlay - Mapa gerado em ${dataStr}</div>
+</body></html>`;
 
-      const resultado = await Print.printToFileAsync({ html });
-      if (!resultado?.uri) throw new Error("O dispositivo nao gerou o arquivo PDF.");
-      const canShare = await Sharing.isAvailableAsync();
-      if (!canShare) throw new Error("Compartilhamento nao disponivel neste dispositivo.");
+      const resultado = await Print.printToFileAsync({ html, base64: false }).catch((e: any) => {
+        throw new Error(`printToFileAsync: ${e?.message || String(e)}`);
+      });
+      if (!resultado?.uri) throw new Error("printToFileAsync retornou sem uri.");
       await Sharing.shareAsync(resultado.uri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
     } catch (err: any) {
       setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: err?.message || "Nao foi possivel gerar o PDF." });
