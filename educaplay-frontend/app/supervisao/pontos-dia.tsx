@@ -2,7 +2,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   ScrollView,
   StatusBar,
@@ -45,7 +44,7 @@ export default function PontosDiaScreen() {
       const res = await api.get("/ponto/resumo-dia", { params: { diaSemana: dia } });
       setItens(res.data);
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar os dados.");
+      setFeedback({ visivel: true, tipo: "erro", mensagem: "Não foi possível carregar os dados." });
     } finally {
       setCarregando(false);
     }
@@ -74,31 +73,35 @@ export default function PontosDiaScreen() {
 
   return (
     <SafeAreaView style={st.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
       <View style={st.header}>
-        <TouchableOpacity style={st.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
+        <TouchableOpacity style={st.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={st.headerTitle}>Pontos do Dia</Text>
-        <View style={{ width: 40 }} />
+        <View style={st.headerBadge}>
+          <Ionicons name="finger-print-outline" size={20} color="rgba(255,255,255,0.85)" />
+        </View>
       </View>
 
       {/* Seletor de dia */}
       <View style={st.diasBox}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.diasScroll}>
-          {DIAS.map((dia) => (
-            <TouchableOpacity
-              key={dia}
-              style={[st.diaChip, diaSelecionado === dia && st.diaChipAtivo]}
-              onPress={() => carregarDia(dia)}
-              activeOpacity={0.75}
-            >
-              <Text style={[st.diaChipText, diaSelecionado === dia && st.diaChipTextAtivo]}>
-                {dia}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {DIAS.map((dia) => {
+            const ativo = diaSelecionado === dia;
+            return (
+              <TouchableOpacity
+                key={dia}
+                style={[st.diaChip, ativo && st.diaChipAtivo]}
+                onPress={() => carregarDia(dia)}
+                activeOpacity={0.75}
+              >
+                <Text style={[st.diaAbrev, ativo && { color: "#fff" }]}>{dia.slice(0, 3).toUpperCase()}</Text>
+                <Text style={[st.diaChipText, ativo && st.diaChipTextAtivo]}>{dia}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </View>
 
@@ -120,31 +123,45 @@ export default function PontosDiaScreen() {
         <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
 
           {/* Resumo */}
-          <View style={st.resumoRow}>
-            <View style={[st.resumoCard, { borderColor: "#86efac", backgroundColor: "#e8f5ea" }]}>
-              <Text style={[st.resumoNum, { color: "#3a7d44" }]}>{bateram.length}</Text>
-              <Text style={[st.resumoLabel, { color: "#3a7d44" }]}>Bateram ponto</Text>
+          <View style={st.resumoCard}>
+            <View style={st.resumoRow}>
+              <View style={st.resumoItem}>
+                <Text style={[st.resumoNum, { color: "#3a7d44" }]}>{bateram.length}</Text>
+                <Text style={st.resumoLabel}>Bateram</Text>
+              </View>
+              <View style={st.resumoSep} />
+              <View style={st.resumoItem}>
+                <Text style={[st.resumoNum, { color: "#ef4444" }]}>{naoBateram.length}</Text>
+                <Text style={st.resumoLabel}>Não bateram</Text>
+              </View>
+              <View style={st.resumoSep} />
+              <View style={st.resumoItem}>
+                <Text style={[st.resumoNum, { color: "#374151" }]}>{itens.length}</Text>
+                <Text style={st.resumoLabel}>Total</Text>
+              </View>
             </View>
-            <View style={[st.resumoCard, { borderColor: "#fca5a5", backgroundColor: "#fef2f2" }]}>
-              <Text style={[st.resumoNum, { color: "#ef4444" }]}>{naoBateram.length}</Text>
-              <Text style={[st.resumoLabel, { color: "#ef4444" }]}>Não bateram</Text>
-            </View>
-            <View style={[st.resumoCard, { borderColor: "#d1d5db", backgroundColor: "#f9fafb" }]}>
-              <Text style={[st.resumoNum, { color: "#6b7280" }]}>{itens.length}</Text>
-              <Text style={[st.resumoLabel, { color: "#6b7280" }]}>Total de aulas</Text>
-            </View>
+            {itens.length > 0 && (
+              <View style={st.progressBarBg}>
+                <View style={[st.progressBarFg, { width: `${Math.round((bateram.length / itens.length) * 100)}%` as any }]} />
+              </View>
+            )}
+            <Text style={st.resumoPct}>
+              {itens.length > 0 ? `${Math.round((bateram.length / itens.length) * 100)}% de presença` : "Sem dados"}
+            </Text>
           </View>
 
           {/* Não bateram */}
           {naoBateram.length > 0 && (
             <>
               <View style={st.secaoHeader}>
-                <View style={[st.secaoDot, { backgroundColor: "#ef4444" }]} />
-                <Text style={[st.secaoTitulo, { color: "#ef4444" }]}>Não bateram ponto</Text>
+                <View style={[st.secaoAccent, { backgroundColor: "#ef4444" }]} />
+                <Text style={[st.secaoTitulo, { color: "#ef4444" }]}>Falta de ponto</Text>
+                <View style={st.secaoBadge}><Text style={st.secaoBadgeText}>{naoBateram.length}</Text></View>
               </View>
               {naoBateram.map((item) => (
                 <View key={item.aulaId} style={[st.card, st.cardErro]}>
-                  <View style={st.cardInfo}>
+                  <View style={[st.cardBarLeft, { backgroundColor: "#ef4444" }]} />
+                  <View style={{ flex: 1, padding: 12 }}>
                     <View style={st.cardTop}>
                       <View style={[st.horaBadge, { backgroundColor: "#fef2f2" }]}>
                         <Text style={[st.horaText, { color: "#ef4444" }]}>{item.timeStart}</Text>
@@ -156,28 +173,23 @@ export default function PontosDiaScreen() {
                         {item.sala && (
                           <View style={st.cardSalaRow}>
                             <Ionicons name="business-outline" size={11} color="#aaa" />
-                            <Text style={st.cardSala} numberOfLines={1}>
-                              {item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}
-                            </Text>
+                            <Text style={st.cardSala} numberOfLines={1}>{item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}</Text>
                           </View>
                         )}
                       </View>
                     </View>
+                    <TouchableOpacity
+                      style={[st.btnNotificar, notificando === item.aulaId && { opacity: 0.6 }]}
+                      onPress={() => handleNotificar(item)}
+                      disabled={notificando === item.aulaId}
+                      activeOpacity={0.8}
+                    >
+                      {notificando === item.aulaId
+                        ? <ActivityIndicator size="small" color="#fff" />
+                        : <><Ionicons name="send-outline" size={13} color="#fff" /><Text style={st.btnNotificarText}>Notificar professor</Text></>
+                      }
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity
-                    style={[st.btnNotificar, notificando === item.aulaId && { opacity: 0.6 }]}
-                    onPress={() => handleNotificar(item)}
-                    disabled={notificando === item.aulaId}
-                    activeOpacity={0.8}
-                  >
-                    {notificando === item.aulaId
-                      ? <ActivityIndicator size="small" color="#fff" />
-                      : <>
-                          <Ionicons name="notifications-outline" size={14} color="#fff" />
-                          <Text style={st.btnNotificarText}>Notificar</Text>
-                        </>
-                    }
-                  </TouchableOpacity>
                 </View>
               ))}
             </>
@@ -187,12 +199,14 @@ export default function PontosDiaScreen() {
           {bateram.length > 0 && (
             <>
               <View style={st.secaoHeader}>
-                <View style={[st.secaoDot, { backgroundColor: "#3a7d44" }]} />
-                <Text style={[st.secaoTitulo, { color: "#3a7d44" }]}>Bateram ponto</Text>
+                <View style={[st.secaoAccent, { backgroundColor: "#3a7d44" }]} />
+                <Text style={[st.secaoTitulo, { color: "#3a7d44" }]}>Presença confirmada</Text>
+                <View style={[st.secaoBadge, { backgroundColor: "#e8f5ea" }]}><Text style={[st.secaoBadgeText, { color: "#3a7d44" }]}>{bateram.length}</Text></View>
               </View>
               {bateram.map((item) => (
                 <View key={item.aulaId} style={[st.card, st.cardOk]}>
-                  <View style={st.cardTop}>
+                  <View style={[st.cardBarLeft, { backgroundColor: "#3a7d44" }]} />
+                  <View style={{ flex: 1, padding: 12, flexDirection: "row", alignItems: "center" }}>
                     <View style={[st.horaBadge, { backgroundColor: "#e8f5ea" }]}>
                       <Text style={[st.horaText, { color: "#3a7d44" }]}>{item.timeStart}</Text>
                       <Text style={[st.horaEndText, { color: "#86efac" }]}>{item.timeEnd}</Text>
@@ -203,17 +217,13 @@ export default function PontosDiaScreen() {
                       {item.sala && (
                         <View style={st.cardSalaRow}>
                           <Ionicons name="business-outline" size={11} color="#aaa" />
-                          <Text style={st.cardSala} numberOfLines={1}>
-                            {item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}
-                          </Text>
+                          <Text style={st.cardSala} numberOfLines={1}>{item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}</Text>
                         </View>
                       )}
                     </View>
                     <View style={st.okBadge}>
-                      <Ionicons name="checkmark-circle" size={14} color="#3a7d44" />
-                      {item.pontoTimestamp && (
-                        <Text style={st.okHora}>{formatarHora(item.pontoTimestamp)}</Text>
-                      )}
+                      <View style={st.okCheck}><Ionicons name="checkmark" size={12} color="#fff" /></View>
+                      {item.pontoTimestamp && <Text style={st.okHora}>{formatarHora(item.pontoTimestamp)}</Text>}
                     </View>
                   </View>
                 </View>
@@ -251,69 +261,97 @@ export default function PontosDiaScreen() {
 }
 
 const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#F4F6FA" },
   header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: "#F0F0F0",
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#3a7d44",
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
   },
-  backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a2e" },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
+  },
+  headerTitle: { flex: 1, fontSize: 20, fontWeight: "800", color: "#fff", textAlign: "center" },
+  headerBadge: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center", justifyContent: "center",
+  },
 
-  diasBox: { borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
-  diasScroll: { paddingHorizontal: 16, paddingVertical: 10, gap: 8 },
+  diasBox: { backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  diasScroll: { paddingHorizontal: 14, paddingVertical: 10, gap: 8 },
   diaChip: {
-    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: "#F0F0F0", borderWidth: 1.5, borderColor: "transparent",
+    alignItems: "center", paddingHorizontal: 14, paddingVertical: 8,
+    borderRadius: 14, backgroundColor: "#F8F9FA",
+    borderWidth: 1.5, borderColor: "#F1F5F9", gap: 2,
   },
-  diaChipAtivo: { backgroundColor: "#e8f5ea", borderColor: "#3a7d44" },
-  diaChipText: { fontSize: 13, fontWeight: "600", color: "#666" },
-  diaChipTextAtivo: { color: "#3a7d44" },
+  diaChipAtivo: {
+    backgroundColor: "#3a7d44", borderColor: "#3a7d44",
+    shadowColor: "#3a7d44", shadowOpacity: 0.3, elevation: 4,
+  },
+  diaAbrev: { fontSize: 10, fontWeight: "800", color: "#9CA3AF", letterSpacing: 0.5 },
+  diaChipText: { fontSize: 12, fontWeight: "700", color: "#374151" },
+  diaChipTextAtivo: { color: "#fff" },
 
-  vazio: { flex: 1, alignItems: "center", justifyContent: "center", gap: 10, paddingHorizontal: 32 },
-  vazioTitulo: { fontSize: 16, fontWeight: "700", color: "#bbb" },
-  vazioSub: { fontSize: 13, color: "#ccc", textAlign: "center" },
+  vazio: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, paddingHorizontal: 32 },
+  vazioTitulo: { fontSize: 17, fontWeight: "700", color: "#9CA3AF" },
+  vazioSub: { fontSize: 13, color: "#D1D5DB", textAlign: "center", lineHeight: 19 },
 
-  scroll: { padding: 16, gap: 8, paddingBottom: 40 },
+  scroll: { padding: 16, gap: 10, paddingBottom: 40 },
 
-  resumoRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  // Resumo unificado
   resumoCard: {
-    flex: 1, alignItems: "center", borderRadius: 14, padding: 12,
-    borderWidth: 1.5, gap: 2,
+    backgroundColor: "#fff", borderRadius: 20, padding: 16,
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+    borderWidth: 1, borderColor: "#F1F5F9",
   },
-  resumoNum: { fontSize: 22, fontWeight: "800" },
-  resumoLabel: { fontSize: 11, fontWeight: "600", textAlign: "center" },
+  resumoRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  resumoItem: { flex: 1, alignItems: "center" },
+  resumoSep: { width: 1, height: 32, backgroundColor: "#F1F5F9" },
+  resumoNum: { fontSize: 26, fontWeight: "800", lineHeight: 30 },
+  resumoLabel: { fontSize: 11, fontWeight: "600", color: "#9CA3AF", marginTop: 2 },
+  progressBarBg: { height: 6, backgroundColor: "#F1F5F9", borderRadius: 3, overflow: "hidden" },
+  progressBarFg: { height: 6, backgroundColor: "#3a7d44", borderRadius: 3 },
+  resumoPct: { fontSize: 11, color: "#9CA3AF", fontWeight: "600", marginTop: 6, textAlign: "center" },
 
-  secaoHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8, marginBottom: 4 },
-  secaoDot: { width: 10, height: 10, borderRadius: 5 },
-  secaoTitulo: { fontSize: 14, fontWeight: "700" },
+  secaoHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 6 },
+  secaoAccent: { width: 4, height: 18, borderRadius: 2 },
+  secaoTitulo: { fontSize: 14, fontWeight: "800", flex: 1 },
+  secaoBadge: { backgroundColor: "#fef2f2", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
+  secaoBadgeText: { fontSize: 12, fontWeight: "700", color: "#ef4444" },
 
   card: {
-    borderRadius: 14, padding: 14, borderWidth: 1.5, gap: 10,
-    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    borderRadius: 16, borderWidth: 1.5, overflow: "hidden",
+    flexDirection: "row",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
+  cardBarLeft: { width: 5, alignSelf: "stretch" },
   cardErro: { backgroundColor: "#fffafa", borderColor: "#fca5a5" },
   cardOk: { backgroundColor: "#f9fffe", borderColor: "#bbf7d0" },
   cardInfo: { gap: 8 },
-  cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginBottom: 10 },
   horaBadge: {
     alignItems: "center", borderRadius: 10, paddingVertical: 8,
     paddingHorizontal: 6, minWidth: 52, gap: 2,
   },
   horaText: { fontSize: 13, fontWeight: "800" },
   horaEndText: { fontSize: 10, fontWeight: "600" },
-  cardSubject: { fontSize: 14, fontWeight: "700", color: "#1a1a2e", marginBottom: 2 },
-  cardProfessor: { fontSize: 12, color: "#555", fontWeight: "600" },
+  cardSubject: { fontSize: 14, fontWeight: "700", color: "#111827", marginBottom: 2 },
+  cardProfessor: { fontSize: 12, color: "#374151", fontWeight: "600" },
   cardSalaRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
-  cardSala: { fontSize: 11, color: "#aaa", flex: 1 },
-  okBadge: { alignItems: "center", gap: 3 },
-  okHora: { fontSize: 10, color: "#3a7d44", fontWeight: "600" },
+  cardSala: { fontSize: 11, color: "#9CA3AF", flex: 1 },
+  okBadge: { alignItems: "center", gap: 4 },
+  okCheck: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center" },
+  okHora: { fontSize: 10, color: "#3a7d44", fontWeight: "700" },
 
   btnNotificar: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    backgroundColor: "#ef4444", borderRadius: 10, paddingVertical: 9,
+    backgroundColor: "#ef4444", borderRadius: 10, paddingVertical: 10,
+    shadowColor: "#ef4444", shadowOpacity: 0.25, shadowRadius: 6, elevation: 3,
   },
-  btnNotificarText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  btnNotificarText: { fontSize: 12, fontWeight: "700", color: "#fff" },
 
   // Modal feedback
   fbOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },

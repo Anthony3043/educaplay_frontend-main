@@ -55,14 +55,14 @@ export default function CronogramasScreen() {
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Cronogramas</Text>
-        <View style={{ width: 40 }} />
+        <View style={{ width: 42 }} />
       </View>
 
       {carregando ? (
@@ -74,47 +74,53 @@ export default function CronogramasScreen() {
 
             {salas.length === 0 ? (
               <View style={cs.empty}>
-                <Ionicons name="business-outline" size={52} color="#ccc" />
+                <View style={cs.emptyIconWrap}>
+                  <Ionicons name="business-outline" size={36} color="#3a7d44" />
+                </View>
                 <Text style={cs.emptyTitle}>Nenhuma sala cadastrada</Text>
-                <Text style={cs.emptyHint}>
-                  Cadastre salas na seção "Salas" para criar cronogramas por sala.
-                </Text>
+                <Text style={cs.emptyHint}>Cadastre salas em "Salas" para criar cronogramas por turma.</Text>
               </View>
             ) : (
-              <View style={cs.grid}>
-                {salas.map((sala) => (
-                  <TouchableOpacity
-                    key={sala.id}
-                    style={cs.card}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/supervisao/CronogramaSala",
-                        params: {
-                          salaId: sala.id,
-                          salaNome: sala.nome,
-                          salaTurma: sala.turma ?? "",
-                        },
-                      })
-                    }
-                    activeOpacity={0.8}
-                  >
-                    <View style={cs.cardIcon}>
-                      <Ionicons name="business-outline" size={28} color="#3a7d44" />
-                    </View>
-                    <Text style={cs.cardNome} numberOfLines={2}>{sala.nome}</Text>
-                    {sala.turma ? (
-                      <Text style={cs.cardTurma} numberOfLines={1}>{sala.turma}</Text>
-                    ) : null}
-                    {sala.capacidade ? (
-                      <View style={cs.cardCap}>
-                        <Ionicons name="people-outline" size={11} color="#aaa" />
-                        <Text style={cs.cardCapText}>{sala.capacidade}</Text>
-                      </View>
-                    ) : null}
-                    <Ionicons name="chevron-forward" size={16} color="#ccc" style={{ marginTop: 6 }} />
-                  </TouchableOpacity>
-                ))}
-              </View>
+              <>
+                <View style={cs.gridHeader}>
+                  <Text style={cs.gridCount}>{salas.length} sala{salas.length > 1 ? "s" : ""}</Text>
+                  <Text style={cs.gridSub}>Selecione para ver o cronograma</Text>
+                </View>
+                <View style={cs.grid}>
+                  {salas.map((sala, idx) => {
+                    const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2","#d97706","#059669"];
+                    const cor = CORES[idx % CORES.length];
+                    const inicial = sala.nome.trim()[0]?.toUpperCase() ?? "S";
+                    return (
+                      <TouchableOpacity
+                        key={sala.id}
+                        style={cs.card}
+                        onPress={() => router.push({ pathname: "/supervisao/CronogramaSala", params: { salaId: sala.id, salaNome: sala.nome, salaTurma: sala.turma ?? "" } })}
+                        activeOpacity={0.78}
+                      >
+                        <Ionicons name="business-outline" size={80} color={cor + "0E"} style={{ position: "absolute", top: -10, right: -10 }} />
+                        <View style={[cs.cardAccent, { backgroundColor: cor }]} />
+                        <View style={[cs.cardBadge, { backgroundColor: cor + "18", borderColor: cor + "35" }]}>
+                          <Text style={[cs.cardBadgeText, { color: cor }]}>{inicial}</Text>
+                        </View>
+                        <View style={cs.cardBody}>
+                          <Text style={cs.cardNome} numberOfLines={1}>{sala.nome}</Text>
+                          {sala.turma ? <View style={[cs.turmaPill, { backgroundColor: cor + "15" }]}><Text style={[cs.cardTurma, { color: cor }]}>{sala.turma}</Text></View> : null}
+                          {sala.capacidade ? (
+                            <View style={cs.cardCap}>
+                              <Ionicons name="people-outline" size={11} color="#9CA3AF" />
+                              <Text style={cs.cardCapText}>{sala.capacidade} carteiras</Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        <View style={[cs.cardArrow, { backgroundColor: cor }]}>
+                          <Ionicons name="arrow-forward" size={14} color="#fff" />
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </>
             )}
           </View>
         </ScrollView>
@@ -141,41 +147,35 @@ export default function CronogramasScreen() {
 }
 
 const cs = StyleSheet.create({
-  empty: { alignItems: "center", paddingVertical: 48, gap: 10 },
-  emptyTitle: { fontSize: 16, fontWeight: "700", color: "#aaa", textAlign: "center" },
-  emptyHint: { fontSize: 13, color: "#ccc", textAlign: "center", paddingHorizontal: 20, lineHeight: 20 },
+  empty: { alignItems: "center", paddingVertical: 48, gap: 12 },
+  emptyIconWrap: { width: 80, height: 80, borderRadius: 24, backgroundColor: "#E8F5EA", alignItems: "center", justifyContent: "center", marginBottom: 4, borderWidth: 1.5, borderColor: "#BBF7D0" },
+  emptyTitle: { fontSize: 17, fontWeight: "700", color: "#6B7280", textAlign: "center" },
+  emptyHint: { fontSize: 13, color: "#9CA3AF", textAlign: "center", paddingHorizontal: 24, lineHeight: 20 },
 
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
+  gridHeader: { marginBottom: 14 },
+  gridCount: { fontSize: 22, fontWeight: "800", color: "#111827" },
+  gridSub: { fontSize: 13, color: "#9CA3AF", marginTop: 2 },
+
+  grid: { gap: 12 },
   card: {
-    width: "47%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    alignItems: "center",
-    borderWidth: 1.5,
-    borderColor: "#E8F5EA",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    gap: 4,
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#fff", borderRadius: 20, overflow: "hidden",
+    paddingVertical: 16, paddingRight: 14, paddingLeft: 0,
+    gap: 0, borderWidth: 1, borderColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 12, elevation: 4,
   },
-  cardIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    backgroundColor: "#E8F5EA",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 6,
+  cardAccent: { width: 5, alignSelf: "stretch", marginRight: 14 },
+  cardBadge: {
+    width: 50, height: 50, borderRadius: 14,
+    alignItems: "center", justifyContent: "center",
+    marginRight: 14, borderWidth: 1.5,
   },
-  cardNome: { fontSize: 14, fontWeight: "800", color: "#1a1a2e", textAlign: "center" },
-  cardTurma: { fontSize: 12, color: "#3a7d44", fontWeight: "600", textAlign: "center" },
-  cardCap: { flexDirection: "row", alignItems: "center", gap: 3 },
-  cardCapText: { fontSize: 11, color: "#aaa" },
+  cardBadgeText: { fontSize: 22, fontWeight: "800" },
+  cardBody: { flex: 1, gap: 4 },
+  cardNome: { fontSize: 16, fontWeight: "800", color: "#111827" },
+  turmaPill: { alignSelf: "flex-start", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 },
+  cardTurma: { fontSize: 11, fontWeight: "700" },
+  cardCap: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+  cardCapText: { fontSize: 11, color: "#9CA3AF" },
+  cardArrow: { width: 30, height: 30, borderRadius: 8, alignItems: "center", justifyContent: "center", marginLeft: 8 },
 });

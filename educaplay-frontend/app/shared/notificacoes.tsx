@@ -247,8 +247,9 @@ export default function NotificacoesScreen() {
                 <View style={st.acoesRow}>
                   <TouchableOpacity style={st.acaoBtnSec} onPress={marcarTodasLidas} activeOpacity={0.75}>
                     <Ionicons name="checkmark-done-outline" size={14} color="#3a7d44" />
-                    <Text style={st.acaoTextSec}>Marcar todas como lidas</Text>
+                    <Text style={st.acaoTextSec}>Marcar como lidas</Text>
                   </TouchableOpacity>
+                  <View style={st.acaoSep} />
                   <TouchableOpacity style={st.acaoBtnDanger} onPress={limparTodas} activeOpacity={0.75}>
                     <Ionicons name="trash-outline" size={14} color="#ef4444" />
                     <Text style={st.acaoTextDanger}>Limpar tudo</Text>
@@ -259,13 +260,13 @@ export default function NotificacoesScreen() {
               {notifs.length === 0 ? (
                 <View style={st.empty}>
                   <View style={st.emptyIconWrap}>
-                    <Ionicons name="notifications-off-outline" size={36} color="#aaa" />
+                    <Ionicons name="notifications-off-outline" size={38} color="#3a7d44" />
                   </View>
                   <Text style={st.emptyTitle}>Tudo em dia!</Text>
-                  <Text style={st.emptySub}>Você não tem nenhuma notificação no momento.</Text>
+                  <Text style={st.emptySub}>Nenhuma notificação no momento.</Text>
                 </View>
               ) : (
-                notifs.map((notif) => (
+                notifs.map((notif, idx) => (
                   <TouchableOpacity
                     key={notif.id}
                     style={[st.card, !notif.lida && st.cardUnread]}
@@ -273,20 +274,23 @@ export default function NotificacoesScreen() {
                     activeOpacity={0.78}
                   >
                     {!notif.lida && <View style={st.cardAccent} />}
-                    <View style={st.cardIconWrap}>
-                      <Text style={{ fontSize: 22 }}>{notif.icon}</Text>
+                    <View style={[st.cardIconWrap, !notif.lida && { backgroundColor: "#F0FDF4" }]}>
+                      <Text style={{ fontSize: 20 }}>{notif.icon}</Text>
                     </View>
-                    <View style={{ flex: 1, gap: 3 }}>
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
                         <Text style={[st.cardTitulo, !notif.lida && st.cardTituloUnread]} numberOfLines={1}>
                           {notif.titulo}
                         </Text>
                         <Text style={st.cardTempo}>{formatarTempo(notif.createdAt)}</Text>
                       </View>
-                      <Text style={st.cardMensagem} numberOfLines={3}>{notif.mensagem}</Text>
+                      <Text style={st.cardMensagem} numberOfLines={2}>{notif.mensagem}</Text>
+                      {!notif.lida && (
+                        <View style={st.unreadDot} />
+                      )}
                     </View>
                     <TouchableOpacity onPress={() => deletar(notif.id)} style={st.deleteBtn} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-                      <Ionicons name="close" size={15} color="#ccc" />
+                      <Ionicons name="close-outline" size={18} color="#D1D5DB" />
                     </TouchableOpacity>
                   </TouchableOpacity>
                 ))
@@ -304,6 +308,7 @@ export default function NotificacoesScreen() {
 
             {PREFS_ITEMS.map((item) => (
               <View key={item.id} style={st.prefCard}>
+                <View style={[st.prefAccentBar, { backgroundColor: item.cor }]} />
                 <View style={[st.prefIconWrap, { backgroundColor: item.bg }]}>
                   <Ionicons name={item.ionicon} size={20} color={item.cor} />
                 </View>
@@ -314,8 +319,8 @@ export default function NotificacoesScreen() {
                 <Switch
                   value={prefs[item.id] ?? false}
                   onValueChange={(val) => salvarPref(item.id, val)}
-                  trackColor={{ false: "#e5e7eb", true: item.cor + "55" }}
-                  thumbColor={prefs[item.id] ? item.cor : "#bbb"}
+                  trackColor={{ false: "#e5e7eb", true: item.cor + "70" }}
+                  thumbColor={prefs[item.id] ? item.cor : "#D1D5DB"}
                 />
               </View>
             ))}
@@ -419,76 +424,78 @@ const st = StyleSheet.create({
   scroll: { padding: 16, gap: 10, paddingBottom: 40 },
 
   acoesRow: {
-    flexDirection: "row", justifyContent: "space-between",
-    backgroundColor: "#fff", borderRadius: 12, padding: 12,
-    borderWidth: 1, borderColor: "#EFEFEF",
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10,
+    borderWidth: 1, borderColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
   },
-  acaoBtnSec: { flexDirection: "row", alignItems: "center", gap: 5 },
-  acaoTextSec: { fontSize: 12, fontWeight: "600", color: "#3a7d44" },
-  acaoBtnDanger: { flexDirection: "row", alignItems: "center", gap: 5 },
-  acaoTextDanger: { fontSize: 12, fontWeight: "600", color: "#ef4444" },
+  acaoBtnSec: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 },
+  acaoTextSec: { fontSize: 12, fontWeight: "700", color: "#3a7d44" },
+  acaoSep: { width: 1, height: 18, backgroundColor: "#F1F5F9", marginHorizontal: 4 },
+  acaoBtnDanger: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5 },
+  acaoTextDanger: { fontSize: 12, fontWeight: "700", color: "#ef4444" },
 
   card: {
     flexDirection: "row", alignItems: "flex-start",
-    backgroundColor: "#fff", borderRadius: 16,
-    padding: 14, gap: 12,
-    borderWidth: 1, borderColor: "#EFEFEF",
-    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    backgroundColor: "#fff", borderRadius: 18,
+    paddingVertical: 14, paddingRight: 12, paddingLeft: 0,
+    gap: 12, borderWidth: 1, borderColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
     overflow: "hidden",
   },
-  cardUnread: {
-    backgroundColor: "#fff",
-    borderColor: "#bbf7d0",
-    shadowOpacity: 0.08,
-    elevation: 4,
-  },
+  cardUnread: { borderColor: "#BBF7D0", shadowOpacity: 0.1, elevation: 4 },
   cardAccent: {
-    position: "absolute", left: 0, top: 0, bottom: 0,
-    width: 4, backgroundColor: "#3a7d44", borderTopLeftRadius: 16, borderBottomLeftRadius: 16,
+    width: 5, alignSelf: "stretch",
+    backgroundColor: "#3a7d44", borderTopLeftRadius: 18, borderBottomLeftRadius: 18,
+    marginRight: 10,
   },
   cardIconWrap: {
-    width: 44, height: 44, borderRadius: 12,
-    backgroundColor: "#F4F6FA", alignItems: "center", justifyContent: "center",
+    width: 46, height: 46, borderRadius: 14,
+    backgroundColor: "#F8F9FA", alignItems: "center", justifyContent: "center",
   },
-  cardTitulo: { fontSize: 13, fontWeight: "600", color: "#666", flex: 1, marginRight: 8 },
-  cardTituloUnread: { color: "#1a1a2e", fontWeight: "700" },
-  cardMensagem: { fontSize: 12, color: "#888", lineHeight: 17 },
-  cardTempo: { fontSize: 11, color: "#bbb", fontWeight: "500", flexShrink: 0 },
-  deleteBtn: { paddingTop: 2 },
+  cardTitulo: { fontSize: 13, fontWeight: "600", color: "#6B7280", flex: 1, marginRight: 8 },
+  cardTituloUnread: { color: "#111827", fontWeight: "800" },
+  cardMensagem: { fontSize: 12, color: "#9CA3AF", lineHeight: 17 },
+  cardTempo: { fontSize: 11, color: "#D1D5DB", fontWeight: "600", flexShrink: 0 },
+  deleteBtn: { paddingTop: 2, paddingLeft: 4 },
+  unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#3a7d44", marginTop: 6 },
 
   empty: { alignItems: "center", paddingVertical: 60, gap: 12 },
   emptyIconWrap: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: "#F0F0F0", alignItems: "center", justifyContent: "center",
+    width: 84, height: 84, borderRadius: 24,
+    backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center",
+    borderWidth: 1.5, borderColor: "#BBF7D0",
   },
-  emptyTitle: { fontSize: 17, fontWeight: "700", color: "#555" },
-  emptySub: { fontSize: 13, color: "#aaa", textAlign: "center", lineHeight: 19 },
+  emptyTitle: { fontSize: 18, fontWeight: "800", color: "#374151" },
+  emptySub: { fontSize: 13, color: "#9CA3AF", textAlign: "center", lineHeight: 19 },
 
   prefsHeader: {
     flexDirection: "row", alignItems: "flex-start", gap: 8,
-    backgroundColor: "#fff", borderRadius: 12, padding: 12,
-    borderWidth: 1, borderColor: "#EFEFEF",
+    backgroundColor: "#F8F9FA", borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: "#F1F5F9",
   },
-  prefsHeaderText: { flex: 1, fontSize: 12, color: "#888", lineHeight: 17 },
+  prefsHeaderText: { flex: 1, fontSize: 12, color: "#6B7280", lineHeight: 17 },
 
   prefCard: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    backgroundColor: "#fff", borderRadius: 16, padding: 14,
-    borderWidth: 1, borderColor: "#EFEFEF",
-    shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#fff", borderRadius: 18,
+    paddingVertical: 14, paddingRight: 14, paddingLeft: 0,
+    gap: 12, borderWidth: 1, borderColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    overflow: "hidden",
   },
+  prefAccentBar: { width: 5, alignSelf: "stretch", borderTopLeftRadius: 18, borderBottomLeftRadius: 18, marginRight: 10 },
   prefIconWrap: {
-    width: 44, height: 44, borderRadius: 12,
+    width: 44, height: 44, borderRadius: 13,
     alignItems: "center", justifyContent: "center",
   },
-  prefTitle: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
-  prefSubtitle: { fontSize: 12, color: "#888", lineHeight: 16 },
+  prefTitle: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  prefSubtitle: { fontSize: 12, color: "#6B7280", lineHeight: 16 },
 
   prefsRodape: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 4,
+    flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4,
   },
-  prefsRodapeText: { fontSize: 11, color: "#bbb" },
+  prefsRodapeText: { fontSize: 11, color: "#D1D5DB" },
 
   // Modal limpar tudo
   mlOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },

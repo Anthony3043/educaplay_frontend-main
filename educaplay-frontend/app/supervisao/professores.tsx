@@ -376,40 +376,45 @@ export default function ProfessoresScreen() {
             </View>
           ) : (
             <>
-              {ativos.map((prof) => (
-                <TouchableOpacity
-                  key={prof.id}
-                  style={s.professorCard}
-                  onPress={() => abrirModal(prof)}
-                  activeOpacity={0.75}
-                >
-                  <View style={s.professorAvatar}>
-                    {prof.foto ? (
-                      <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 22 }} resizeMode="cover" />
-                    ) : (
-                      <Ionicons name="person-circle-outline" size={48} color="#bbb" />
-                    )}
-                  </View>
-                  <View style={s.professorInfo}>
-                    <Text style={s.professorNome}>{prof.nome}</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                      <Ionicons name="person-outline" size={12} color="#7a7f9a" />
-                      <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
+              {ativos.map((prof, idx) => {
+                const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2","#d97706","#059669"];
+                const cor = prof.foto ? "#3a7d44" : CORES[idx % CORES.length];
+                const inicial = prof.nome.trim()[0]?.toUpperCase() ?? "P";
+                return (
+                  <TouchableOpacity
+                    key={prof.id}
+                    style={pp.card}
+                    onPress={() => abrirModal(prof)}
+                    activeOpacity={0.75}
+                  >
+                    <Ionicons name="person-outline" size={64} color={cor + "0D"} style={{ position: "absolute", top: -8, right: -4 }} />
+                    <View style={[pp.cardAccent, { backgroundColor: cor }]} />
+                    <View style={pp.avatarWrap}>
+                      {prof.foto ? (
+                        <Image source={{ uri: prof.foto }} style={pp.avatarImg} resizeMode="cover" />
+                      ) : (
+                        <View style={[pp.avatarInitialWrap, { backgroundColor: cor }]}>
+                          <Text style={pp.avatarInitial}>{inicial}</Text>
+                        </View>
+                      )}
+                      <View style={pp.statusDot} />
                     </View>
-                    {(prof.materias ?? []).length > 0 && (
-                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
-                        {(prof.materias ?? []).map((m, i) => (
-                          <View key={i} style={pc.chip}>
-                            <Ionicons name="book-outline" size={10} color="#3a7d44" />
-                            <Text style={pc.chipText}>{m}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color="#ccc" />
-                </TouchableOpacity>
-              ))}
+                    <View style={pp.info}>
+                      <Text style={pp.nome} numberOfLines={1}>{prof.nome}</Text>
+                      {(prof.materias ?? []).length > 0 ? (
+                        <Text style={pp.materias} numberOfLines={1}>
+                          {(prof.materias ?? []).join(" · ")}
+                        </Text>
+                      ) : (
+                        <Text style={pp.semMaterias}>Sem matérias atribuídas</Text>
+                      )}
+                    </View>
+                    <View style={[pp.chevron, { backgroundColor: cor + "18" }]}>
+                      <Ionicons name="chevron-forward" size={14} color={cor} />
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
 
               {mostrarInativos && inativos.length > 0 && (
                 <>
@@ -820,6 +825,27 @@ function BloqueioRow({ b }: { b: Bloqueio }) {
     </View>
   );
 }
+
+const pp = StyleSheet.create({
+  card: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#fff", borderRadius: 20, overflow: "hidden",
+    marginBottom: 10, paddingVertical: 14, paddingRight: 14, paddingLeft: 0,
+    borderWidth: 1, borderColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+  },
+  cardAccent: { width: 5, alignSelf: "stretch", marginRight: 12 },
+  avatarWrap: { position: "relative", marginRight: 12 },
+  avatarImg: { width: 48, height: 48, borderRadius: 14 },
+  avatarInitialWrap: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  avatarInitial: { fontSize: 20, fontWeight: "800", color: "#fff" },
+  statusDot: { position: "absolute", bottom: 1, right: 1, width: 10, height: 10, borderRadius: 5, backgroundColor: "#22C55E", borderWidth: 2, borderColor: "#fff" },
+  info: { flex: 1, gap: 3 },
+  nome: { fontSize: 15, fontWeight: "800", color: "#111827" },
+  materias: { fontSize: 12, color: "#6B7280", fontWeight: "500" },
+  semMaterias: { fontSize: 11, color: "#D1D5DB", fontStyle: "italic" },
+  chevron: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center", marginLeft: 8 },
+});
 
 const conf = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },

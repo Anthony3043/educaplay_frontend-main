@@ -140,41 +140,60 @@ export default function PerfilScreen() {
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {/* Avatar */}
-        <View style={s.perfilCard}>
-          <TouchableOpacity style={s.fotoContainer} onPress={(isProfessor || isEditing) && !isLoading ? pickImage : undefined} activeOpacity={(isProfessor || isEditing) ? 0.7 : 1}>
-            {fotoExibir ? (
-              <Image source={{ uri: fotoExibir }} style={s.foto} resizeMode="cover" />
-            ) : (
-              <View style={[s.foto, { backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center" }]}>
-                <Ionicons name="person-circle-outline" size={48} color="#bbb" />
+        {/* Hero card do perfil */}
+        <View style={pf.heroCard}>
+          {/* Fundo verde */}
+          <View style={pf.heroBg}>
+            <View style={pf.heroDeco1} />
+            <View style={pf.heroDeco2} />
+            <View style={pf.heroBadgeRow}>
+              <View style={pf.heroBadge}>
+                <Ionicons name={isProfessor ? "school-outline" : "ribbon-outline"} size={12} color="rgba(255,255,255,0.9)" />
+                <Text style={pf.heroBadgeText}>{isProfessor ? "Professor" : "Supervisão"}</Text>
               </View>
-            )}
-            {(isProfessor || isEditing) && (
-              <View style={s.fotoOverlay}>
-                {isLoading && isProfessor
-                  ? <ActivityIndicator size="small" color="#fff" />
-                  : <Ionicons name="camera-outline" size={28} color="#fff" />}
-              </View>
-            )}
-          </TouchableOpacity>
-          <Text style={s.perfilNome}>{nome}</Text>
-          <Text style={s.perfilCargo}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel}</Text>
-          {isProfessor && (
-            <Text style={pf.fotoDica}>Toque na foto para alterá-la</Text>
-          )}
-
-          {/* Chips de matérias no card de perfil (somente professor) */}
-          {isProfessor && (usuario?.materias ?? []).length > 0 && (
-            <View style={pf.chipsRow}>
-              {(usuario?.materias ?? []).map((m, idx) => (
-                <View key={idx} style={pf.chip}>
-                  <Ionicons name="book-outline" size={11} color="#2d6a4f" />
-                  <Text style={pf.chipText}>{m}</Text>
-                </View>
-              ))}
             </View>
-          )}
+          </View>
+
+          {/* Avatar flutuando */}
+          <View style={pf.avatarWrap}>
+            <TouchableOpacity
+              style={pf.avatarRing}
+              onPress={(isProfessor || isEditing) && !isLoading ? pickImage : undefined}
+              activeOpacity={(isProfessor || isEditing) ? 0.8 : 1}
+            >
+              {fotoExibir ? (
+                <Image source={{ uri: fotoExibir }} style={pf.avatarImg} resizeMode="cover" />
+              ) : (
+                <View style={pf.avatarPlaceholder}>
+                  <Text style={pf.avatarInitial}>{nome.trim()[0]?.toUpperCase() ?? "?"}</Text>
+                </View>
+              )}
+              {(isProfessor || isEditing) && (
+                <View style={pf.cameraOverlay}>
+                  {isLoading && isProfessor
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : <Ionicons name="camera-outline" size={18} color="#fff" />}
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Info */}
+          <View style={pf.heroInfo}>
+            <Text style={pf.heroNome}>{nome}</Text>
+            {usuario?.email ? <Text style={pf.heroEmail}>{usuario.email}</Text> : null}
+            {isProfessor && (usuario?.materias ?? []).length > 0 && (
+              <View style={pf.chipsRow}>
+                {(usuario?.materias ?? []).map((m, idx) => (
+                  <View key={idx} style={pf.chip}>
+                    <Ionicons name="book-outline" size={10} color="#2d6a4f" />
+                    <Text style={pf.chipText}>{m}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+            {isProfessor && <Text style={pf.fotoDica}>Toque na foto para alterá-la</Text>}
+          </View>
         </View>
 
         {/* Informações pessoais */}
@@ -320,50 +339,66 @@ const inf = StyleSheet.create({
 });
 
 const pf = StyleSheet.create({
-  chipsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginTop: 8,
+  // Hero
+  heroCard: {
+    marginHorizontal: 0, marginBottom: 8,
+    backgroundColor: "#fff",
+    shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 14, elevation: 4,
   },
+  heroBg: {
+    backgroundColor: "#3a7d44", height: 110,
+    overflow: "hidden", paddingHorizontal: 20, paddingTop: 16,
+  },
+  heroDeco1: {
+    position: "absolute", width: 140, height: 140, borderRadius: 70,
+    backgroundColor: "rgba(255,255,255,0.06)", top: -60, right: 40,
+  },
+  heroDeco2: {
+    position: "absolute", width: 80, height: 80, borderRadius: 40,
+    backgroundColor: "rgba(255,255,255,0.05)", bottom: -30, left: -20,
+  },
+  heroBadgeRow: { flexDirection: "row" },
+  heroBadge: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  heroBadgeText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.9)" },
+  avatarWrap: { alignItems: "center", marginTop: -44 },
+  avatarRing: {
+    width: 88, height: 88, borderRadius: 44,
+    borderWidth: 4, borderColor: "#fff",
+    shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 10, elevation: 6,
+    overflow: "hidden",
+  },
+  avatarImg: { width: 80, height: 80 },
+  avatarPlaceholder: {
+    width: 80, height: 80,
+    backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center",
+  },
+  avatarInitial: { fontSize: 32, fontWeight: "800", color: "#fff" },
+  cameraOverlay: {
+    position: "absolute", bottom: 0, left: 0, right: 0, height: 28,
+    backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center",
+  },
+  heroInfo: { alignItems: "center", paddingHorizontal: 20, paddingBottom: 20, paddingTop: 10, gap: 4 },
+  heroNome: { fontSize: 20, fontWeight: "800", color: "#111827" },
+  heroEmail: { fontSize: 13, color: "#6B7280" },
+
+  // Chips
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 8, justifyContent: "center" },
   chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: "#e8f5ea",
-    borderRadius: 20,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: "#52b788",
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "#e8f5ea", borderRadius: 20,
+    paddingHorizontal: 11, paddingVertical: 6,
+    borderWidth: 1, borderColor: "#52b788",
   },
-  chipText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#2d6a4f",
-  },
-  addRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 8,
-  },
+  chipText: { fontSize: 13, fontWeight: "600", color: "#2d6a4f" },
+  addRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   addBtn: {
-    backgroundColor: "#3a7d44",
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#3a7d44", borderRadius: 10,
+    padding: 12, alignItems: "center", justifyContent: "center",
   },
-  hint: {
-    fontSize: 11,
-    color: "#aaa",
-    marginTop: 6,
-  },
-  fotoDica: {
-    fontSize: 11,
-    color: "#3a7d44",
-    marginTop: 4,
-    fontWeight: "600",
-  },
+  hint: { fontSize: 11, color: "#aaa", marginTop: 6 },
+  fotoDica: { fontSize: 11, color: "rgba(58,125,68,0.7)", fontWeight: "600", marginTop: 4 },
 });
