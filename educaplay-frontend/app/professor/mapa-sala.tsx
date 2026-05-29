@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -124,6 +123,20 @@ export default function MapaSalaScreen() {
     }
   };
 
+  const cardWidth = React.useMemo(() => {
+    const padding = 32;
+    const gaps = (colunas - 1) * 8;
+    return Math.floor((width - padding - gaps) / colunas);
+  }, [width, colunas]);
+
+  const linhas = React.useMemo(() => {
+    const rows: Assento[][] = [];
+    for (let i = 0; i < assentos.length; i += colunas) {
+      rows.push(assentos.slice(i, i + colunas));
+    }
+    return rows;
+  }, [assentos, colunas]);
+
   const gerarPDF = async () => {
     if (!salaSelecionada) return;
     setExportando(true);
@@ -149,73 +162,54 @@ export default function MapaSalaScreen() {
         return `<div class="row">${cells}${empties}</div>`;
       }).join("");
 
-      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;padding:24px;background:#fff;color:#1a1a2e}
-.header{border-bottom:2px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px}
-.inst{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
-h1{font-size:20px;font-weight:800;color:#0f172a}
-.sub{font-size:11px;color:#64748b;margin-top:3px}
-.stats{display:flex;gap:12px;margin-bottom:16px;align-items:center}
-.stat{text-align:center;background:#f8fafc;border-radius:8px;padding:8px 14px;border:1px solid #e2e8f0}
-.stat-num{font-size:20px;font-weight:800;color:#0f172a}.stat-num.occ{color:#3a7d44}
-.stat-lbl{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
-.bar-wrap{flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}
-.bar-fill{height:8px;background:#3a7d44;border-radius:4px;width:${pct}%}
-.board{background:#1a1a2e;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:3px;margin-bottom:14px;width:65%;margin-left:auto;margin-right:auto}
-.grid{display:flex;flex-direction:column;gap:6px}
-.row{display:flex;gap:6px;justify-content:center}
-.seat{border-radius:8px;padding:6px 4px;width:${seatW}px;text-align:center;border:1.5px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px}
-.occ{background:#e8f5ea;border-color:#86efac}.vago{background:#f8fafc}.invisible{border:none;background:transparent}
-.num{font-size:9px;font-weight:700;color:#aaa;margin-bottom:3px}.occ .num{color:#2d6a4f}
-.name{font-size:9.5px;font-weight:700;color:#1a1a2e;line-height:1.2}.dash{font-size:13px;color:#ccc}
-.footer{margin-top:18px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center}
-</style></head><body>
-<div class="header">
-  ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
-  <h1>${tituloSala}</h1>
-  <div class="sub">Mapa de Carteiras &nbsp;·&nbsp; ${dataStr}</div>
-</div>
-<div class="stats">
-  <div class="stat"><div class="stat-num occ">${ocupadas}</div><div class="stat-lbl">Ocupadas</div></div>
-  <div class="stat"><div class="stat-num">${total - ocupadas}</div><div class="stat-lbl">Vagas</div></div>
-  <div class="stat"><div class="stat-num">${total}</div><div class="stat-lbl">Total</div></div>
-  <div class="bar-wrap"><div class="bar-fill"></div></div>
-</div>
-<div class="board">QUADRO</div>
-<div class="grid">${seatRows}</div>
-<div class="footer">EducaPlay · Mapa gerado em ${dataStr}</div>
-</body></html>`;
+      const html = [
+        `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>`,
+        `*{box-sizing:border-box;margin:0;padding:0}`,
+        `body{font-family:Arial,sans-serif;padding:24px;background:#fff;color:#1a1a2e}`,
+        `.header{border-bottom:2px solid #e2e8f0;padding-bottom:12px;margin-bottom:16px}`,
+        `.inst{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}`,
+        `h1{font-size:20px;font-weight:800;color:#0f172a}`,
+        `.sub{font-size:11px;color:#64748b;margin-top:3px}`,
+        `.stats{display:flex;gap:12px;margin-bottom:16px;align-items:center}`,
+        `.stat{text-align:center;background:#f8fafc;border-radius:8px;padding:8px 14px;border:1px solid #e2e8f0}`,
+        `.stat-num{font-size:20px;font-weight:800;color:#0f172a}.stat-num.occ{color:#3a7d44}`,
+        `.stat-lbl{font-size:9px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px}`,
+        `.bar-wrap{flex:1;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden}`,
+        `.bar-fill{height:8px;background:#3a7d44;border-radius:4px;width:${pct}%}`,
+        `.board{background:#1a1a2e;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:10px;font-weight:800;letter-spacing:3px;margin-bottom:14px;width:65%;margin-left:auto;margin-right:auto}`,
+        `.grid{display:flex;flex-direction:column;gap:6px}`,
+        `.row{display:flex;gap:6px;justify-content:center}`,
+        `.seat{border-radius:8px;padding:6px 4px;width:${seatW}px;text-align:center;border:1.5px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px}`,
+        `.occ{background:#e8f5ea;border-color:#86efac}.vago{background:#f8fafc}.invisible{border:none;background:transparent}`,
+        `.num{font-size:9px;font-weight:700;color:#aaa;margin-bottom:3px}.occ .num{color:#2d6a4f}`,
+        `.name{font-size:9.5px;font-weight:700;color:#1a1a2e;line-height:1.2}.dash{font-size:13px;color:#ccc}`,
+        `.footer{margin-top:18px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;color:#94a3b8;text-align:center}`,
+        `</style></head><body>`,
+        `<div class="header">`,
+        instituicao ? `<div class="inst">${instituicao}</div>` : "",
+        `<h1>${tituloSala}</h1>`,
+        `<div class="sub">Mapa de Carteiras &nbsp;&middot;&nbsp; ${dataStr}</div>`,
+        `</div>`,
+        `<div class="stats">`,
+        `<div class="stat"><div class="stat-num occ">${ocupadas}</div><div class="stat-lbl">Ocupadas</div></div>`,
+        `<div class="stat"><div class="stat-num">${total - ocupadas}</div><div class="stat-lbl">Vagas</div></div>`,
+        `<div class="stat"><div class="stat-num">${total}</div><div class="stat-lbl">Total</div></div>`,
+        `<div class="bar-wrap"><div class="bar-fill"></div></div>`,
+        `</div>`,
+        `<div class="board">QUADRO</div>`,
+        `<div class="grid">${seatRows}</div>`,
+        `<div class="footer">EducaPlay &middot; Mapa gerado em ${dataStr}</div>`,
+        `</body></html>`,
+      ].join("");
 
       const { uri } = await Print.printToFileAsync({ html, base64: false });
-
-      const dataNome = dataStr.replace(/\//g, "-");
-      const nomeArquivo = `mapa_sala_${dataNome}.pdf`;
-      const destUri = (FileSystem.cacheDirectory ?? "") + nomeArquivo;
-      await FileSystem.copyAsync({ from: uri, to: destUri });
-
-      await Sharing.shareAsync(destUri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
-    } catch {
-      setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: "Não foi possível gerar o PDF." });
+      await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
+    } catch (err: any) {
+      setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: err?.message || "Não foi possível gerar o PDF." });
     } finally {
       setExportando(false);
     }
   };
-
-  const cardWidth = React.useMemo(() => {
-    const padding = 32;
-    const gaps = (colunas - 1) * 8;
-    return Math.floor((width - padding - gaps) / colunas);
-  }, [width, colunas]);
-
-  const linhas = React.useMemo(() => {
-    const rows: Assento[][] = [];
-    for (let i = 0; i < assentos.length; i += colunas) {
-      rows.push(assentos.slice(i, i + colunas));
-    }
-    return rows;
-  }, [assentos, colunas]);
 
   // --- Tela de lista de salas ---
   if (!salaSelecionada) {
