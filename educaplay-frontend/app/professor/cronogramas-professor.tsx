@@ -299,123 +299,140 @@ export default function CronogramasProfessorScreen() {
             </View>
           </View>
 
-          {/* Seletor de dia */}
+          {/* Seletor de dia — calendário horizontal */}
           <View style={s.section}>
             <View style={pv.secHeader}>
               <Ionicons name="calendar-outline" size={16} color="#3a7d44" />
-              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>Dia da semana</Text>
+              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>Selecione o dia</Text>
             </View>
-            <View style={pv.diasRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={cr.diasScroll}
+            >
               {DIAS_SEMANA.map((dia) => {
-                const temAula = minhasAulas.some(a => a.turno === selectedTurno && a.diaSemana === dia);
+                const count = minhasAulas.filter(a => a.turno === selectedTurno && a.diaSemana === dia).length;
                 const ativo = selectedDia === dia;
+                const cor = TURNO_COLORS[selectedTurno];
                 return (
                   <TouchableOpacity
                     key={dia}
-                    style={[pv.diaChip, ativo && pv.diaChipActive]}
+                    style={[cr.diaBtn, ativo && { backgroundColor: cor, borderColor: cor, shadowColor: cor, shadowOpacity: 0.35, elevation: 6 }]}
                     onPress={() => setSelectedDia(ativo ? null : dia)}
-                    activeOpacity={0.7}
+                    activeOpacity={0.75}
                   >
-                    <Text style={[pv.diaChipText, ativo && pv.diaChipTextActive]}>
-                      {dia.slice(0, 3)}
-                    </Text>
-                    {temAula && <View style={[pv.diaDot, ativo && pv.diaDotActive]} />}
+                    <Text style={[cr.diaNome, ativo && { color: "#fff" }]}>{dia.slice(0, 3).toUpperCase()}</Text>
+                    {count > 0 ? (
+                      <View style={[cr.diaBadge, { backgroundColor: ativo ? "rgba(255,255,255,0.25)" : cor + "20" }]}>
+                        <Text style={[cr.diaBadgeText, { color: ativo ? "#fff" : cor }]}>{count}</Text>
+                      </View>
+                    ) : (
+                      <View style={cr.diaVazioLine} />
+                    )}
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
           </View>
 
-          {/* Grade de horários */}
-          <View style={s.section}>
-            <View style={pv.secHeader}>
-              <Ionicons name="list-outline" size={16} color="#3a7d44" />
-              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>
-                {selectedDia
-                  ? `${selectedDia} · ${TURNOS.find(t => t.id === selectedTurno)?.label}`
-                  : "Horários"}
-              </Text>
-            </View>
-
-            {!selectedDia ? (
-              <View style={pv.promptBox}>
-                <View style={pv.promptIcon}>
-                  <Ionicons name="calendar-outline" size={32} color="#3a7d44" />
-                </View>
-                <Text style={pv.promptTitle}>Selecione um dia acima</Text>
-                <Text style={pv.promptSub}>Seus horários aparecerão aqui</Text>
+          {/* Grade de horários — timeline */}
+          {!selectedDia ? (
+            <View style={cr.promptWrap}>
+              <View style={cr.promptIconWrap}>
+                <Ionicons name="calendar-outline" size={36} color="#3a7d44" />
               </View>
-            ) : (
-              <View style={{ gap: 10 }}>
-                {slotEntries.map(({ slot, aula }) =>
-                  aula ? (
-                    <View key={slot.start} style={pv.aulaCard}>
-                      <View style={[pv.aulaAccent, { backgroundColor: TURNO_COLORS[selectedTurno] }]} />
-                      <TouchableOpacity
-                        style={pv.aulaTopRow}
-                        onPress={() => handleAulaPress(aula)}
-                        activeOpacity={0.82}
-                      >
-                        <View style={[pv.aulaTimeBox, { backgroundColor: TURNO_COLORS[selectedTurno] + "18" }]}>
-                          <Text style={[pv.aulaTime, { color: TURNO_COLORS[selectedTurno] }]}>{slot.start}</Text>
-                          <View style={[pv.aulaTimeSep, { backgroundColor: TURNO_COLORS[selectedTurno] + "40" }]} />
-                          <Text style={[pv.aulaTimeEnd, { color: TURNO_COLORS[selectedTurno] }]}>{slot.end}</Text>
+              <Text style={cr.promptTitle}>Selecione um dia acima</Text>
+              <Text style={cr.promptSub}>Seus horários e aulas aparecem aqui</Text>
+            </View>
+          ) : (
+            <View style={cr.timelineWrap}>
+              {/* Cabeçalho da grade */}
+              <View style={cr.gradeHeader}>
+                <View style={[cr.gradeHeaderDot, { backgroundColor: TURNO_COLORS[selectedTurno] }]} />
+                <Text style={cr.gradeHeaderTitle}>{selectedDia}</Text>
+                <View style={[cr.gradePill, { backgroundColor: TURNO_COLORS[selectedTurno] + "18", borderColor: TURNO_COLORS[selectedTurno] + "40" }]}>
+                  <Text style={[cr.gradePillText, { color: TURNO_COLORS[selectedTurno] }]}>
+                    {TURNOS.find(t => t.id === selectedTurno)?.label}
+                  </Text>
+                </View>
+              </View>
+
+              {slotEntries.map(({ slot, aula }, idx) => {
+                const isLast = idx === slotEntries.length - 1;
+                const cor = TURNO_COLORS[selectedTurno];
+                return aula ? (
+                  <View key={slot.start} style={cr.slotRow}>
+                    {/* Timeline */}
+                    <View style={cr.timelineCol}>
+                      <View style={[cr.timelineDot, { backgroundColor: cor }]} />
+                      {!isLast && <View style={[cr.timelineLine, { backgroundColor: cor + "30" }]} />}
+                    </View>
+
+                    {/* Card da aula */}
+                    <View style={[cr.aulaCard, { borderLeftColor: cor }]}>
+                      {/* Linha de tempo */}
+                      <TouchableOpacity style={cr.aulaCardTop} onPress={() => handleAulaPress(aula)} activeOpacity={0.82}>
+                        <View style={cr.aulaTimeCol}>
+                          <Text style={[cr.aulaHoraStart, { color: cor }]}>{slot.start}</Text>
+                          <Text style={cr.aulaHoraEnd}>{slot.end}</Text>
                         </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={pv.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
+                        <View style={cr.aulaInfoCol}>
+                          <Text style={cr.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
                           {aula.salaNome && (
-                            <View style={pv.aulaDetail}>
-                              <Ionicons name="business-outline" size={11} color="#aaa" />
-                              <Text style={pv.aulaDetailText} numberOfLines={1}>
+                            <View style={cr.aulaMetaRow}>
+                              <Ionicons name="business-outline" size={11} color="#9CA3AF" />
+                              <Text style={cr.aulaMetaText} numberOfLines={1}>
                                 {aula.salaNome}{aula.salaTurma ? ` · ${aula.salaTurma}` : ""}
                               </Text>
                             </View>
                           )}
                         </View>
-                        <Ionicons name="chevron-forward" size={16} color="#ddd" />
+                        <Ionicons name="chevron-forward" size={15} color="#D1D5DB" />
                       </TouchableOpacity>
 
-                      <View style={pv.aulaDivider} />
-
-                      <View style={pv.aulaFooter}>
-                        {pontosBatidos[aula.id] ? (
-                          <View style={pt.pontoBatido}>
-                            <Ionicons name="checkmark-circle" size={16} color="#3a7d44" />
-                            <Text style={pt.pontoBatidoText}>Ponto registrado</Text>
+                      {/* Ponto */}
+                      <View style={cr.pontoDivider} />
+                      {pontosBatidos[aula.id] ? (
+                        <View style={cr.pontoBatido}>
+                          <View style={cr.pontoBatidoIconWrap}>
+                            <Ionicons name="checkmark" size={12} color="#fff" />
                           </View>
-                        ) : (
-                          <TouchableOpacity
-                            style={[pt.btnPonto, batendoPonto === aula.id && { opacity: 0.65 }]}
-                            onPress={() => handleBaterPonto(aula)}
-                            disabled={batendoPonto === aula.id}
-                            activeOpacity={0.8}
-                          >
-                            {batendoPonto === aula.id ? (
-                              <ActivityIndicator size="small" color="#fff" />
-                            ) : (
-                              <>
-                                <Ionicons name="finger-print-outline" size={15} color="#fff" />
-                                <Text style={pt.btnPontoText}>Bater Ponto</Text>
-                              </>
-                            )}
-                          </TouchableOpacity>
-                        )}
-                      </View>
+                          <Text style={cr.pontoBatidoText}>Presença confirmada</Text>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={[cr.btnPonto, batendoPonto === aula.id && { opacity: 0.6 }]}
+                          onPress={() => handleBaterPonto(aula)}
+                          disabled={batendoPonto === aula.id}
+                          activeOpacity={0.82}
+                        >
+                          {batendoPonto === aula.id ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                          ) : (
+                            <>
+                              <Ionicons name="finger-print-outline" size={16} color="#fff" />
+                              <Text style={cr.btnPontoText}>Bater Ponto</Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      )}
                     </View>
-                  ) : (
-                    <View key={slot.start} style={pv.vagoCard}>
-                      <View style={pv.vagoTimeBox}>
-                        <Text style={pv.vagoTime}>{slot.start}</Text>
-                        <Text style={pv.vagoTimeEnd}>{slot.end}</Text>
-                      </View>
-                      <Text style={pv.vagoText}>Horário vago</Text>
-                      <Ionicons name="remove-outline" size={16} color="#ddd" />
+                  </View>
+                ) : (
+                  <View key={slot.start} style={cr.slotRow}>
+                    <View style={cr.timelineCol}>
+                      <View style={cr.vagoTimelineDot} />
+                      {!isLast && <View style={cr.timelineLineVago} />}
                     </View>
-                  )
-                )}
-              </View>
-            )}
-          </View>
+                    <View style={cr.vagoContent}>
+                      <Text style={cr.vagoHora}>{slot.start}</Text>
+                      <View style={cr.vagoDash} />
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </ScrollView>
       )}
 
@@ -528,123 +545,138 @@ const rs = StyleSheet.create({
 const pv = StyleSheet.create({
   secHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
   turnoCard: {
-    flex: 1,
-    backgroundColor: "#F8F9FA",
-    borderRadius: 18,
-    paddingTop: 20,
-    paddingBottom: 14,
-    paddingHorizontal: 10,
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 2,
-    borderColor: "transparent",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    flex: 1, backgroundColor: "#F8F9FA", borderRadius: 18,
+    paddingTop: 20, paddingBottom: 14, paddingHorizontal: 10,
+    alignItems: "center", gap: 6, borderWidth: 2, borderColor: "transparent",
+    overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 8, elevation: 2,
   },
-  turnoGhostIcon: {
-    position: "absolute",
-    top: -16,
-    right: -16,
-  },
+  turnoGhostIcon: { position: "absolute", top: -16, right: -16 },
   turnoGlint: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 36,
+    position: "absolute", bottom: 0, left: 0, right: 0, height: 36,
     backgroundColor: "rgba(255,255,255,0.55)",
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
+    borderBottomLeftRadius: 18, borderBottomRightRadius: 18,
   },
-  turnoDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 2,
-  },
+  turnoDot: { width: 6, height: 6, borderRadius: 3, marginTop: 2 },
   turnoIconWrap: {
     width: 44, height: 44, borderRadius: 13,
-    alignItems: "center", justifyContent: "center",
-    marginBottom: 6,
+    alignItems: "center", justifyContent: "center", marginBottom: 6,
   },
-  diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  diaChip: {
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    backgroundColor: "#F0F0F0", borderWidth: 1.5, borderColor: "transparent",
-    alignItems: "center",
-    shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
-  },
-  diaChipActive: {
-    backgroundColor: "#e8f5ea", borderColor: "#3a7d44",
-    shadowColor: "#3a7d44", shadowOpacity: 0.18, shadowRadius: 6, elevation: 3,
-  },
-  diaChipText: { fontSize: 13, fontWeight: "600", color: "#666" },
-  diaChipTextActive: { color: "#3a7d44" },
-  diaDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#bbb", marginTop: 4 },
-  diaDotActive: { backgroundColor: "#3a7d44" },
-  promptBox: { alignItems: "center", paddingVertical: 36, gap: 10 },
-  promptIcon: {
-    width: 68, height: 68, borderRadius: 20,
-    backgroundColor: "#e8f5ea", alignItems: "center", justifyContent: "center",
-  },
-  promptTitle: { fontSize: 16, fontWeight: "700", color: "#aaa" },
-  promptSub: { fontSize: 13, color: "#ccc" },
-  aulaCard: {
-    backgroundColor: "#fff", borderRadius: 18,
-    elevation: 3, shadowColor: "#000", shadowOpacity: 0.08,
-    shadowRadius: 10, shadowOffset: { width: 0, height: 3 },
-    overflow: "hidden",
-  },
-  aulaAccent: {
-    position: "absolute", left: 0, top: 0, bottom: 0, width: 5,
-    borderTopLeftRadius: 18, borderBottomLeftRadius: 18,
-  },
-  aulaTopRow: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    paddingLeft: 18, paddingRight: 14, paddingVertical: 14,
-  },
-  aulaTimeBox: {
-    alignItems: "center", width: 50, borderRadius: 10,
-    paddingVertical: 8, paddingHorizontal: 4, gap: 2,
-  },
-  aulaTime: { fontSize: 13, fontWeight: "800" },
-  aulaTimeSep: { height: 1, width: 32 },
-  aulaTimeEnd: { fontSize: 10, fontWeight: "600" },
-  aulaSubject: { fontSize: 14, fontWeight: "700", color: "#1a1a2e", marginBottom: 4 },
-  aulaDetail: { flexDirection: "row", alignItems: "center", gap: 4 },
-  aulaDetailText: { fontSize: 11, color: "#888", flex: 1 },
-  aulaDivider: { height: 1, backgroundColor: "#F0F0F0", marginLeft: 18 },
-  aulaFooter: {
-    paddingHorizontal: 14, paddingVertical: 10,
-    flexDirection: "row", justifyContent: "flex-end",
-  },
-  vagoCard: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: "#FAFAFA", borderRadius: 14, padding: 14,
-    borderWidth: 1.5, borderColor: "#EBEBEB", borderStyle: "dashed", gap: 12,
-  },
-  vagoTimeBox: { alignItems: "center", width: 50, gap: 2 },
-  vagoTime: { fontSize: 13, fontWeight: "700", color: "#ccc" },
-  vagoTimeEnd: { fontSize: 10, color: "#ddd" },
-  vagoText: { fontSize: 13, fontWeight: "600", color: "#ccc", fontStyle: "italic", flex: 1 },
 });
 
 const pt = StyleSheet.create({
-  btnPonto: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#3a7d44", borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 8,
+  btnPonto: {},
+  btnPontoText: {},
+  pontoBatido: {},
+  pontoBatidoText: {},
+});
+
+const cr = StyleSheet.create({
+  // Seletor de dia
+  diasScroll: { paddingBottom: 4, paddingRight: 4 },
+  diaBtn: {
+    alignItems: "center", paddingHorizontal: 16, paddingVertical: 10,
+    borderRadius: 16, backgroundColor: "#F8F9FA",
+    borderWidth: 1.5, borderColor: "#F0F0F0",
+    marginRight: 8, gap: 6, minWidth: 58,
+    shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
   },
-  btnPontoText: { fontSize: 12, fontWeight: "700", color: "#fff" },
+  diaNome: { fontSize: 12, fontWeight: "800", color: "#6B7280", letterSpacing: 0.5 },
+  diaBadge: {
+    borderRadius: 10, paddingHorizontal: 7, paddingVertical: 2,
+    minWidth: 20, alignItems: "center",
+  },
+  diaBadgeText: { fontSize: 11, fontWeight: "800" },
+  diaVazioLine: { width: 16, height: 2, backgroundColor: "#E5E7EB", borderRadius: 1 },
+
+  // Empty state
+  promptWrap: {
+    alignItems: "center", paddingVertical: 44, gap: 10,
+    marginHorizontal: 16,
+  },
+  promptIconWrap: {
+    width: 76, height: 76, borderRadius: 24,
+    backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center",
+    marginBottom: 6, borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  promptTitle: { fontSize: 17, fontWeight: "700", color: "#374151" },
+  promptSub: { fontSize: 13, color: "#9CA3AF", textAlign: "center" },
+
+  // Timeline
+  timelineWrap: { marginHorizontal: 16, marginBottom: 16 },
+  gradeHeader: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    marginBottom: 20,
+  },
+  gradeHeaderDot: { width: 10, height: 10, borderRadius: 5 },
+  gradeHeaderTitle: { fontSize: 18, fontWeight: "800", color: "#111827", flex: 1 },
+  gradePill: {
+    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1.5,
+  },
+  gradePillText: { fontSize: 12, fontWeight: "700" },
+
+  slotRow: { flexDirection: "row", marginBottom: 4 },
+  timelineCol: { width: 28, alignItems: "center", paddingTop: 4 },
+  timelineDot: { width: 12, height: 12, borderRadius: 6, zIndex: 2 },
+  timelineLine: { flex: 1, width: 2, marginTop: 4, minHeight: 32 },
+  vagoTimelineDot: {
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: "#E5E7EB", borderWidth: 1.5, borderColor: "#D1D5DB",
+    zIndex: 2,
+  },
+  timelineLineVago: { flex: 1, width: 1, marginTop: 4, minHeight: 24, backgroundColor: "#F1F5F9" },
+
+  // Aula card
+  aulaCard: {
+    flex: 1, backgroundColor: "#fff", borderRadius: 16,
+    borderLeftWidth: 4, marginBottom: 12,
+    shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 10, elevation: 3,
+    overflow: "hidden",
+  },
+  aulaCardTop: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingHorizontal: 14, paddingTop: 14, paddingBottom: 12,
+  },
+  aulaTimeCol: { alignItems: "flex-end", minWidth: 44 },
+  aulaHoraStart: { fontSize: 14, fontWeight: "800", lineHeight: 16 },
+  aulaHoraEnd: { fontSize: 10, fontWeight: "600", color: "#9CA3AF", marginTop: 2 },
+  aulaInfoCol: { flex: 1 },
+  aulaSubject: { fontSize: 15, fontWeight: "700", color: "#111827", marginBottom: 4, lineHeight: 20 },
+  aulaMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  aulaMetaText: { fontSize: 11, color: "#9CA3AF", flex: 1 },
+
+  pontoDivider: { height: 1, backgroundColor: "#F9FAFB", marginHorizontal: 14 },
+
+  // Ponto batido
   pontoBatido: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#e8f5ea", borderRadius: 10,
-    paddingHorizontal: 12, paddingVertical: 8,
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 14, paddingVertical: 10,
+  },
+  pontoBatidoIconWrap: {
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center",
   },
   pontoBatidoText: { fontSize: 12, fontWeight: "600", color: "#3a7d44" },
+
+  // Botão bater ponto
+  btnPonto: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    backgroundColor: "#3a7d44", margin: 10, borderRadius: 12,
+    paddingVertical: 11,
+    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
+  },
+  btnPontoText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+
+  // Slot vago
+  vagoContent: {
+    flex: 1, flexDirection: "row", alignItems: "center", gap: 12,
+    paddingLeft: 4, paddingVertical: 8, marginBottom: 4,
+  },
+  vagoHora: { fontSize: 12, fontWeight: "600", color: "#D1D5DB", width: 38 },
+  vagoDash: {
+    flex: 1, height: 1, backgroundColor: "#F1F5F9",
+    borderRadius: 1, marginRight: 8,
+  },
 });
 
 const erroLoc = StyleSheet.create({
