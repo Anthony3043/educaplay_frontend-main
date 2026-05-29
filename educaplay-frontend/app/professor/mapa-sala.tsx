@@ -141,11 +141,14 @@ export default function MapaSalaScreen() {
     if (!salaSelecionada) return;
     setExportando(true);
     try {
-      const tituloSala = salaSelecionada.turma
+      const esc = (s: string) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+      const tituloSala = esc(salaSelecionada.turma
         ? `${salaSelecionada.nome} — ${salaSelecionada.turma}`
-        : salaSelecionada.nome;
+        : salaSelecionada.nome);
       const dataStr = new Date().toLocaleDateString("pt-BR");
-      const instituicao = (usuario as any)?.instituicao || "";
+      const instituicao = esc((usuario as any)?.instituicao || "");
       const ocupadas = assentos.filter(a => a.nome).length;
       const total = assentos.length;
       const pct = total > 0 ? Math.round((ocupadas / total) * 100) : 0;
@@ -154,8 +157,8 @@ export default function MapaSalaScreen() {
       const seatRows = linhas.map(linha => {
         const cells = linha.map(a =>
           a.nome
-            ? `<div class="seat occ"><span class="num">${a.numero}</span><span class="name">${a.nome}</span></div>`
-            : `<div class="seat vago"><span class="num">${a.numero}</span><span class="dash">—</span></div>`
+            ? `<div class="seat occ"><span class="num">${a.numero}</span><span class="name">${esc(a.nome)}</span></div>`
+            : `<div class="seat vago"><span class="num">${a.numero}</span><span class="dash">-</span></div>`
         ).join("");
         const empties = Array.from({ length: colunas - linha.length })
           .map(() => `<div class="seat invisible"></div>`).join("");
@@ -202,10 +205,13 @@ export default function MapaSalaScreen() {
         `</body></html>`,
       ].join("");
 
-      const { uri } = await Print.printToFileAsync({ html, base64: false });
-      await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
+      const resultado = await Print.printToFileAsync({ html });
+      if (!resultado?.uri) throw new Error("O dispositivo nao gerou o arquivo PDF.");
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) throw new Error("Compartilhamento nao disponivel neste dispositivo.");
+      await Sharing.shareAsync(resultado.uri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
     } catch (err: any) {
-      setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: err?.message || "Não foi possível gerar o PDF." });
+      setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: err?.message || "Nao foi possivel gerar o PDF." });
     } finally {
       setExportando(false);
     }
