@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -92,6 +91,12 @@ export default function ProfessoresScreen() {
   const [tituloConfirmacao, setTituloConfirmacao] = useState("");
   const confirmarAcao = React.useRef<() => void>(() => {});
 
+  // Modal de feedback (erros / avisos / sucesso simples)
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
+
   const abrirEditarMaterias = useCallback(() => {
     setMateriasEditadas(profSelecionado?.materias ?? []);
     setMateriaEditInput("");
@@ -121,11 +126,11 @@ export default function ProfessoresScreen() {
     const trimmed = materiaEditInput.trim();
     if (!trimmed) return;
     if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(trimmed)) {
-      Alert.alert("Matéria inválida", "O nome da matéria deve conter apenas letras.");
+      showInfo("Matéria inválida", "O nome da matéria deve conter apenas letras.", "aviso");
       return;
     }
     if (trimmed.length < 2) {
-      Alert.alert("Matéria inválida", "O nome da matéria deve ter pelo menos 2 letras.");
+      showInfo("Matéria inválida", "O nome da matéria deve ter pelo menos 2 letras.", "aviso");
       return;
     }
     if (materiasEditadas.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
@@ -163,7 +168,7 @@ export default function ProfessoresScreen() {
         setProfSelecionado((prev) => prev ? { ...prev, materias: res.data.materias } : prev);
         setModalEditarMaterias(false);
       } catch {
-        Alert.alert("Erro", "Não foi possível salvar as matérias. Tente novamente.");
+        showInfo("Erro", "Não foi possível salvar as matérias. Tente novamente.", "erro");
       } finally {
         setSalvando(false);
       }
@@ -182,11 +187,11 @@ export default function ProfessoresScreen() {
     const trimmed = materiaInput.trim();
     if (!trimmed) return;
     if (!/^[a-zA-ZÀ-ÿ\s]+$/.test(trimmed)) {
-      Alert.alert("Matéria inválida", "O nome da matéria deve conter apenas letras.");
+      showInfo("Matéria inválida", "O nome da matéria deve conter apenas letras.", "aviso");
       return;
     }
     if (trimmed.length < 2) {
-      Alert.alert("Matéria inválida", "O nome da matéria deve ter pelo menos 2 letras.");
+      showInfo("Matéria inválida", "O nome da matéria deve ter pelo menos 2 letras.", "aviso");
       return;
     }
     if (novasMaterias.some((m) => m.toLowerCase() === trimmed.toLowerCase())) {
@@ -202,11 +207,11 @@ export default function ProfessoresScreen() {
 
   const handleCadastrarProfessor = useCallback(async () => {
     if (!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()) {
-      Alert.alert("Atenção", "Preencha nome, e-mail e senha.");
+      showInfo("Atenção", "Preencha nome, e-mail e senha.", "aviso");
       return;
     }
     if (novaSenha.length < 6) {
-      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
+      showInfo("Atenção", "A senha deve ter pelo menos 6 caracteres.", "aviso");
       return;
     }
     setCadastrando(true);
@@ -223,9 +228,9 @@ export default function ProfessoresScreen() {
       setModalSucessoVisivel(true);
     } catch (err: any) {
       if (err?.response?.status === 409) {
-        Alert.alert("E-mail já cadastrado", "Este e-mail já está em uso. Use outro.");
+        showInfo("E-mail já cadastrado", "Este e-mail já está em uso. Use outro.", "aviso");
       } else {
-        Alert.alert("Erro", err?.response?.data?.error || "Não foi possível cadastrar o professor.");
+        showInfo("Erro", err?.response?.data?.error || "Não foi possível cadastrar o professor.", "erro");
       }
     } finally {
       setCadastrando(false);
@@ -235,7 +240,7 @@ export default function ProfessoresScreen() {
   useEffect(() => {
     api.get("/professores")
       .then((res) => setProfessores(res.data))
-      .catch(() => Alert.alert("Erro", "Não foi possível carregar os professores."))
+      .catch(() => showInfo("Erro", "Não foi possível carregar os professores.", "erro"))
       .finally(() => setCarregando(false));
   }, []);
 
@@ -269,9 +274,9 @@ export default function ProfessoresScreen() {
       );
       setProfSelecionado((prev) => prev ? { ...prev, ativo: false } : prev);
       setModalDesativarVisivel(false);
-      Alert.alert("Professor desativado", `${profSelecionado.nome} foi desativado. O acesso dele ao app foi bloqueado.`);
+      showInfo("Professor desativado", `${profSelecionado.nome} foi desativado. O acesso dele ao app foi bloqueado.`, "aviso");
     } catch {
-      Alert.alert("Erro", "Não foi possível desativar o professor. Tente novamente.");
+      showInfo("Erro", "Não foi possível desativar o professor. Tente novamente.", "erro");
     } finally {
       setDesativando(false);
     }
@@ -287,9 +292,9 @@ export default function ProfessoresScreen() {
       );
       setProfSelecionado((prev) => prev ? { ...prev, ativo: true } : prev);
       setModalReativarVisivel(false);
-      Alert.alert("Professor reativado", `${profSelecionado.nome} pode acessar o app novamente.`);
+      showInfo("Professor reativado", `${profSelecionado.nome} pode acessar o app novamente.`, "sucesso");
     } catch {
-      Alert.alert("Erro", "Não foi possível reativar o professor. Tente novamente.");
+      showInfo("Erro", "Não foi possível reativar o professor. Tente novamente.", "erro");
     } finally {
       setReativando(false);
     }
@@ -305,7 +310,7 @@ export default function ProfessoresScreen() {
       );
       setProfSelecionado((prev) => prev ? { ...prev, podeEditarMapaSala: valor } : prev);
     } catch {
-      Alert.alert("Erro", "Não foi possível atualizar a permissão.");
+      showInfo("Erro", "Não foi possível atualizar a permissão.", "erro");
     } finally {
       setAtualizandoPermissao(false);
     }
@@ -324,11 +329,11 @@ export default function ProfessoresScreen() {
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Professores</Text>
         <TouchableOpacity style={cad.headerBtn} onPress={abrirModalCadastro} activeOpacity={0.8}>
@@ -770,6 +775,34 @@ export default function ProfessoresScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Modal de feedback (erros / avisos / sucesso) */}
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, {
+              backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED",
+            }]}>
+              <Ionicons
+                name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"}
+                size={32}
+                color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"}
+              />
+            </View>
+            <Text style={[inf.titulo, {
+              color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316",
+            }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity
+              style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}
+              onPress={() => setModalInfo(p => ({ ...p, visivel: false }))}
+              activeOpacity={0.85}
+            >
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -856,7 +889,7 @@ const li = StyleSheet.create({
 });
 
 const cad = StyleSheet.create({
-  headerBtn: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#3a7d44", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
+  headerBtn: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: "rgba(255,255,255,0.4)" },
   headerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
   sheet: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: "85%", paddingTop: 12 },
@@ -879,6 +912,16 @@ const cad = StyleSheet.create({
 const pc = StyleSheet.create({
   chip: { flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "#e8f5ea", borderRadius: 8, paddingHorizontal: 7, paddingVertical: 3 },
   chipText: { fontSize: 11, color: "#3a7d44", fontWeight: "600" },
+});
+
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });
 
 const m = StyleSheet.create({
