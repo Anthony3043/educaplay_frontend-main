@@ -686,52 +686,95 @@ export default function ProfessoresScreen() {
 
       {/* Modal de edição de matérias */}
       <Modal visible={modalEditarMaterias} animationType="slide" transparent onRequestClose={fecharEditarMaterias}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "padding"}>
-          <View style={cad.overlay}>
-            <View style={[cad.sheet, { height: "75%" }]}>
-              <View style={m.handle} />
-              <View style={cad.sheetHeader}>
-                <View>
-                  <Text style={cad.sheetTitle}>Editar Matérias</Text>
-                  <Text style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{profSelecionado?.nome}</Text>
+        <View style={em.overlay}>
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <View style={em.sheet}>
+              <View style={em.handle} />
+
+              {/* Header */}
+              <View style={em.header}>
+                <View style={em.headerIcon}>
+                  <Ionicons name="book-outline" size={20} color="#3a7d44" />
                 </View>
-                <TouchableOpacity onPress={fecharEditarMaterias} style={m.closeBtn} activeOpacity={0.7}>
-                  <Ionicons name="close" size={22} color="#1a1a2e" />
+                <View style={{ flex: 1 }}>
+                  <Text style={em.headerTitle}>Editar Matérias</Text>
+                  <Text style={em.headerSub}>{profSelecionado?.nome}</Text>
+                </View>
+                <TouchableOpacity onPress={fecharEditarMaterias} style={em.closeBtn} activeOpacity={0.7}>
+                  <Ionicons name="close" size={18} color="#6B7280" />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={{ flex: 1 }} contentContainerStyle={cad.sheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                {materiasEditadas.length > 0 ? (
-                  <View style={cad.chipsRow}>
+
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={em.scroll}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Estado vazio */}
+                {materiasEditadas.length === 0 && (
+                  <View style={em.emptyWrap}>
+                    <Ionicons name="book-outline" size={28} color="#D1D5DB" />
+                    <Text style={em.emptyText}>Nenhuma matéria adicionada</Text>
+                  </View>
+                )}
+
+                {/* Chips de matérias */}
+                {materiasEditadas.length > 0 && (
+                  <View style={em.chipsWrap}>
                     {materiasEditadas.map((mat, idx) => (
-                      <View key={idx} style={pc.chip}>
-                        <Ionicons name="book-outline" size={10} color="#3a7d44" />
-                        <Text style={pc.chipText}>{mat}</Text>
-                        <TouchableOpacity onPress={() => removerMateriaEdit(idx)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                          <Ionicons name="close" size={13} color="#2d6a4f" />
+                      <View key={idx} style={em.chip}>
+                        <Ionicons name="book-outline" size={12} color="#3a7d44" />
+                        <Text style={em.chipText}>{mat}</Text>
+                        <TouchableOpacity
+                          onPress={() => removerMateriaEdit(idx)}
+                          style={em.chipRemove}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="close" size={14} color="#ef4444" />
                         </TouchableOpacity>
                       </View>
                     ))}
                   </View>
-                ) : (
-                  <Text style={{ fontSize: 13, color: "#aaa", marginBottom: 12 }}>Nenhuma matéria adicionada.</Text>
                 )}
-                <View style={cad.addRow}>
-                  <View style={[cad.inputRow, { flex: 1, marginBottom: 0 }]}>
-                    <Ionicons name="book-outline" size={18} color="#888" style={cad.inputIcon} />
-                    <TextInput style={[cad.textInput, { flex: 1 }]} placeholder="Ex: Matemática, Português..." placeholderTextColor="#bbb" value={materiaEditInput} onChangeText={setMateriaEditInput} autoCapitalize="words" onSubmitEditing={adicionarMateriaEdit} returnKeyType="done" />
+
+                {/* Campo adicionar */}
+                <View style={em.addSection}>
+                  <Text style={em.addLabel}>Adicionar matéria</Text>
+                  <View style={em.addRow}>
+                    <TextInput
+                      style={em.addInput}
+                      placeholder="Ex: Matemática, Física..."
+                      placeholderTextColor="#9CA3AF"
+                      value={materiaEditInput}
+                      onChangeText={setMateriaEditInput}
+                      autoCapitalize="words"
+                      onSubmitEditing={adicionarMateriaEdit}
+                      returnKeyType="done"
+                    />
+                    <TouchableOpacity style={em.addBtn} onPress={adicionarMateriaEdit} activeOpacity={0.8}>
+                      <Ionicons name="add" size={20} color="#fff" />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity style={cad.addBtn} onPress={adicionarMateriaEdit} activeOpacity={0.8}>
-                    <Ionicons name="add" size={20} color="#fff" />
-                  </TouchableOpacity>
+                  <Text style={em.addHint}>Toque em + ou "concluir" no teclado para adicionar</Text>
                 </View>
-                <Text style={cad.materiaHint}>Toque no X para remover. Toque + para adicionar.</Text>
-                <TouchableOpacity style={[cad.confirmarBtn, salvando && { opacity: 0.7 }]} onPress={handleSalvarMaterias} activeOpacity={0.85} disabled={salvando}>
-                  {salvando ? <ActivityIndicator color="#fff" /> : <Text style={cad.confirmarBtnText}>Salvar Matérias</Text>}
+
+                <TouchableOpacity
+                  style={[em.salvarBtn, salvando && { opacity: 0.65 }]}
+                  onPress={handleSalvarMaterias}
+                  activeOpacity={0.85}
+                  disabled={salvando}
+                >
+                  {salvando
+                    ? <ActivityIndicator color="#fff" />
+                    : <><Ionicons name="checkmark-outline" size={18} color="#fff" /><Text style={em.salvarBtnText}>Salvar Matérias</Text></>
+                  }
                 </TouchableOpacity>
               </ScrollView>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Modal confirmação geral */}
@@ -896,6 +939,59 @@ const pp = StyleSheet.create({
   materias: { fontSize: 12, color: "#6B7280", fontWeight: "500" },
   semMaterias: { fontSize: 11, color: "#D1D5DB", fontStyle: "italic" },
   chevron: { width: 28, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center", marginLeft: 8 },
+});
+
+const em = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.6)", justifyContent: "flex-end" },
+  sheet: {
+    backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    maxHeight: "82%", paddingTop: 12,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  headerIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#BBF7D0" },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
+  headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E5E7EB" },
+  scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
+
+  emptyWrap: { alignItems: "center", paddingVertical: 24, gap: 8 },
+  emptyText: { fontSize: 14, color: "#9CA3AF", fontWeight: "600" },
+
+  chipsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 24 },
+  chip: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "#F0FDF4", borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 8,
+    borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  chipText: { fontSize: 13, fontWeight: "700", color: "#166534" },
+  chipRemove: {
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: "#FEF2F2", alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "#FECACA",
+  },
+
+  addSection: { gap: 8, marginBottom: 20 },
+  addLabel: { fontSize: 13, fontWeight: "700", color: "#374151" },
+  addRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  addInput: {
+    flex: 1, backgroundColor: "#F9FAFB", borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB",
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: "#111827",
+  },
+  addBtn: {
+    width: 46, height: 46, borderRadius: 14, backgroundColor: "#3a7d44",
+    alignItems: "center", justifyContent: "center",
+    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 6, elevation: 3,
+  },
+  addHint: { fontSize: 11, color: "#9CA3AF" },
+
+  salvarBtn: {
+    backgroundColor: "#3a7d44", borderRadius: 16, paddingVertical: 15,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
+  },
+  salvarBtnText: { fontSize: 15, fontWeight: "800", color: "#fff" },
 });
 
 const conf = StyleSheet.create({
