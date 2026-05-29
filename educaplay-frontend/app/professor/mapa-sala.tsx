@@ -210,11 +210,14 @@ ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
 <div class="footer">EducaPlay - Mapa gerado em ${dataStr}</div>
 </body></html>`;
 
-      const resultado = await Print.printToFileAsync({ html, base64: false }).catch((e: any) => {
-        throw new Error(`printToFileAsync: ${e?.message || String(e)}`);
-      });
-      if (!resultado?.uri) throw new Error("printToFileAsync retornou sem uri.");
-      await Sharing.shareAsync(resultado.uri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
+      const resultado = await Print.printToFileAsync({ html, base64: false }).catch(() => null);
+
+      if (resultado?.uri) {
+        await Sharing.shareAsync(resultado.uri, { mimeType: "application/pdf", dialogTitle: "Exportar Mapa de Sala" });
+      } else {
+        // Fallback: abre dialogo de impressao do sistema (permite "Salvar como PDF")
+        await Print.printAsync({ html });
+      }
     } catch (err: any) {
       setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: err?.message || "Nao foi possivel gerar o PDF." });
     } finally {
