@@ -6,11 +6,12 @@
 
 import { styles as s } from "@/styles/CheckEmailstyles";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
+  Modal,
   ScrollView,
   StatusBar,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View,
@@ -28,6 +29,10 @@ export default function CheckEmailScreen() {
   const [podeReenviar, setPodeReenviar] = useState(false);
   const [reenviando, setReenviando] = useState(false);
   const [reenvios, setReenvios] = useState(0);
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
 
   // Countdown para habilitar reenvio
   useEffect(() => {
@@ -55,16 +60,16 @@ export default function CheckEmailScreen() {
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 404) {
-        Alert.alert('Erro', 'E-mail não encontrado. Volte e tente com outro e-mail.');
+        showInfo("Erro", "E-mail não encontrado. Volte e tente com outro e-mail.", "erro");
       } else if (
         !err?.response ||
         err?.code === 'ECONNABORTED' ||
         err?.message?.includes('timeout') ||
         err?.message?.includes('Network')
       ) {
-        Alert.alert('Tempo esgotado', 'O servidor demorou para responder. Aguarde alguns segundos e tente novamente.');
+        showInfo("Tempo esgotado", "O servidor demorou para responder. Aguarde alguns segundos e tente novamente.", "aviso");
       } else {
-        Alert.alert('Erro', 'Não foi possível reenviar o e-mail. Tente novamente.');
+        showInfo("Erro", "Não foi possível reenviar o e-mail. Tente novamente.", "erro");
       }
     } finally {
       setReenviando(false);
@@ -187,6 +192,31 @@ export default function CheckEmailScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"} />
+            </View>
+            <Text style={[inf.titulo, { color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});

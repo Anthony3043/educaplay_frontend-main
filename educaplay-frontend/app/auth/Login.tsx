@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert, BackHandler, Image, KeyboardAvoidingView, Platform, ScrollView,
-  StatusBar, Text, TextInput, TouchableOpacity, View, ActivityIndicator,
+  ActivityIndicator, BackHandler, Image, KeyboardAvoidingView, Modal, Platform, ScrollView,
+  StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +17,10 @@ export default function LoginScreen() {
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [lembrarMe, setLembrarMe] = useState(true);
   const [carregando, setCarregando] = useState(false);
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
 
   // Botão voltar do Android → sai do app (Login é a tela inicial)
   useEffect(() => {
@@ -29,7 +33,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !senha.trim()) {
-      Alert.alert("Atenção", "Preencha e-mail e senha.");
+      showInfo("Atenção", "Preencha e-mail e senha.", "aviso");
       return;
     }
     setCarregando(true);
@@ -41,7 +45,7 @@ export default function LoginScreen() {
         router.replace("/supervisao/home");
       }
     } catch (err) {
-      Alert.alert("Erro", (err as any)?.response?.data?.error || "Credenciais inválidas.");
+      showInfo("Erro", (err as any)?.response?.data?.error || "Credenciais inválidas.", "erro");
     } finally {
       setCarregando(false);
     }
@@ -118,6 +122,31 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"} />
+            </View>
+            <Text style={[inf.titulo, { color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});

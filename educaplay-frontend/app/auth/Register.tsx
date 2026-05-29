@@ -1,7 +1,7 @@
 import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
-  ActivityIndicator, Alert, Image, KeyboardAvoidingView,
+  ActivityIndicator, Image, KeyboardAvoidingView, Modal,
   Platform, ScrollView, StatusBar, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from "react-native";
@@ -26,6 +26,10 @@ export default function RegisterScreen() {
   const [carregando, setCarregando] = useState(false);
   const [erroEmail, setErroEmail] = useState("");
   const [erroNome, setErroNome] = useState("");
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
 
   const submitting = useRef(false);
 
@@ -48,15 +52,15 @@ export default function RegisterScreen() {
       return;
     }
     if (!senha) {
-      Alert.alert("Atenção", "Preencha todos os campos obrigatórios.");
+      showInfo("Atenção", "Preencha todos os campos obrigatórios.", "aviso");
       return;
     }
     if (senha !== confirmarSenha) {
-      Alert.alert("Atenção", "As senhas não coincidem.");
+      showInfo("Atenção", "As senhas não coincidem.", "aviso");
       return;
     }
     if (senha.length < 6) {
-      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
+      showInfo("Atenção", "A senha deve ter pelo menos 6 caracteres.", "aviso");
       return;
     }
     submitting.current = true;
@@ -77,9 +81,9 @@ export default function RegisterScreen() {
       if (status === 409) {
         setErroEmail("Este e-mail já está cadastrado. Use outro ou faça login.");
       } else if (status === 403) {
-        Alert.alert("Código inválido", "O código de supervisão informado está incorreto.");
+        showInfo("Código inválido", "O código de supervisão informado está incorreto.", "erro");
       } else {
-        Alert.alert("Erro no cadastro", backendMsg || err?.message || "Erro ao criar conta. Tente novamente.");
+        showInfo("Erro no cadastro", backendMsg || err?.message || "Erro ao criar conta. Tente novamente.", "erro");
       }
     } finally {
       setCarregando(false);
@@ -248,9 +252,34 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"} />
+            </View>
+            <Text style={[inf.titulo, { color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});
 
 const reg = StyleSheet.create({
   erro: {
