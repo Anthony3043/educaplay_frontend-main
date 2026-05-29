@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -99,6 +100,7 @@ export default function NotificacoesScreen() {
   const [notifs, setNotifs] = useState<Notificacao[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [prefs, setPrefs] = useState<Record<string, boolean>>(PREFS_DEFAULT);
+  const [modalLimpar, setModalLimpar] = useState(false);
 
   useEffect(() => {
     carregar();
@@ -165,20 +167,15 @@ export default function NotificacoesScreen() {
     } catch {}
   };
 
-  const limparTodas = () =>
-    Alert.alert("Limpar notificações", "Deseja remover todas as notificações?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Limpar tudo",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await api.delete("/notificacoes");
-            setNotifs([]);
-          } catch {}
-        },
-      },
-    ]);
+  const limparTodas = () => setModalLimpar(true);
+
+  const confirmarLimpar = async () => {
+    setModalLimpar(false);
+    try {
+      await api.delete("/notificacoes");
+      setNotifs([]);
+    } catch {}
+  };
 
   return (
     <SafeAreaView style={st.container}>
@@ -327,6 +324,28 @@ export default function NotificacoesScreen() {
           </>
         )}
       </ScrollView>
+
+      {/* Modal limpar tudo */}
+      <Modal visible={modalLimpar} transparent animationType="fade" onRequestClose={() => setModalLimpar(false)}>
+        <View style={st.mlOverlay}>
+          <View style={st.mlBox}>
+            <View style={st.mlIconWrap}>
+              <Ionicons name="trash-outline" size={30} color="#ef4444" />
+            </View>
+            <Text style={st.mlTitulo}>Limpar notificações</Text>
+            <Text style={st.mlSub}>Todas as notificações serão removidas permanentemente.</Text>
+            <View style={st.mlBtns}>
+              <TouchableOpacity style={st.mlCancelar} onPress={() => setModalLimpar(false)} activeOpacity={0.8}>
+                <Text style={st.mlCancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={st.mlConfirmar} onPress={confirmarLimpar} activeOpacity={0.85}>
+                <Ionicons name="trash-outline" size={15} color="#fff" />
+                <Text style={st.mlConfirmarText}>Limpar tudo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -429,4 +448,16 @@ const st = StyleSheet.create({
     paddingHorizontal: 4,
   },
   prefsRodapeText: { fontSize: 11, color: "#bbb" },
+
+  // Modal limpar tudo
+  mlOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  mlBox: { width: "100%", backgroundColor: "#fff", borderRadius: 22, padding: 26, alignItems: "center", gap: 8 },
+  mlIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: "#fef2f2", alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  mlTitulo: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", textAlign: "center" },
+  mlSub: { fontSize: 13, color: "#888", textAlign: "center", lineHeight: 19, marginBottom: 4 },
+  mlBtns: { flexDirection: "row", gap: 10, width: "100%", marginTop: 8 },
+  mlCancelar: { flex: 1, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#E0E0E0", alignItems: "center" },
+  mlCancelarText: { fontSize: 14, fontWeight: "600", color: "#555" },
+  mlConfirmar: { flex: 1, paddingVertical: 13, borderRadius: 14, backgroundColor: "#ef4444", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  mlConfirmarText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });

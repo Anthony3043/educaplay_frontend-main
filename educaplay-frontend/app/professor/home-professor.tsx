@@ -35,15 +35,15 @@ const MENU_ITEMS = [
   {
     id: "disponibilidade",
     ionicon: "calendar-outline" as const,
-    iconBg: "#e8f5ea",
+    color: "#2d9e4f",
     title: "Minha Agenda",
     subtitle: "Informe seus horários\ndisponíveis",
     route: "/professor/indisponibilidade",
   },
   {
     id: "cronogramas",
-    ionicon: "calendar-outline" as const,
-    iconBg: "#e8f0fe",
+    ionicon: "school-outline" as const,
+    color: "#4361ee",
     title: "Cronogramas",
     subtitle: "Veja as aulas\natribuídas a você",
     route: "/professor/cronogramas-professor",
@@ -51,7 +51,7 @@ const MENU_ITEMS = [
   {
     id: "mapa-sala",
     ionicon: "grid-outline" as const,
-    iconBg: "#fef9c3",
+    color: "#f4831f",
     title: "Mapa de Sala",
     subtitle: "Visualize o mapa\nde carteiras",
     route: "/professor/mapa-sala",
@@ -206,19 +206,20 @@ export default function HomeProfessorScreen() {
             {MENU_ITEMS.map((item) => (
               <TouchableOpacity
                 key={item.id}
-                style={s.menuCard}
+                style={[s.menuCard, { backgroundColor: item.color, shadowColor: item.color }]}
                 onPress={() => router.push(item.route as any)}
-                activeOpacity={0.8}
+                activeOpacity={0.82}
               >
-                <View style={[s.menuCardTop, { backgroundColor: item.iconBg }]}>
+                <View style={s.menuCardTop}>
                   <View style={s.menuCardIcon}>
-                    <Ionicons name={item.ionicon} size={30} color="#1a1a2e" />
+                    <Ionicons name={item.ionicon} size={28} color="#fff" />
                   </View>
                 </View>
                 <View style={s.menuCardBody}>
                   <Text style={s.menuCardTitle}>{item.title}</Text>
                   <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
                 </View>
+                <Ionicons name="chevron-forward" size={13} color="rgba(255,255,255,0.45)" style={s.menuCardArrow} />
               </TouchableOpacity>
             ))}
           </ScrollView>

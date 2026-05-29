@@ -33,11 +33,11 @@ const DICAS = [
 ];
 
 const MENU_ITEMS = [
-  { id: "cronogramas", ionicon: "calendar-outline" as const, iconBg: "#e8f5ea", title: "Cronogramas", subtitle: "Crie e gerencie\nos horários", route: "/supervisao/cronogramas" },
-  { id: "professores", ionicon: "people-outline" as const, iconBg: "#e8f0fe", title: "Professores", subtitle: "Cadastre e visualize\nos professores", route: "/supervisao/professores" },
-  { id: "salas", ionicon: "grid-outline" as const, iconBg: "#fff3e0", title: "Salas", subtitle: "Cadastre e gerencie\nas salas da escola", route: "/supervisao/salas" },
-  { id: "config-escola", ionicon: "location-outline" as const, iconBg: "#fef9c3", title: "Local da Escola", subtitle: "Configure o GPS\npara bater ponto", route: "/supervisao/configuracao-escola" },
-  { id: "pontos-dia", ionicon: "finger-print-outline" as const, iconBg: "#fce7f3", title: "Pontos do Dia", subtitle: "Veja quem bateu\nou não o ponto", route: "/supervisao/pontos-dia" },
+  { id: "cronogramas", ionicon: "calendar-outline" as const, color: "#2d9e4f", title: "Cronogramas", subtitle: "Crie e gerencie\nos horários", route: "/supervisao/cronogramas" },
+  { id: "professores", ionicon: "people-outline" as const, color: "#4361ee", title: "Professores", subtitle: "Cadastre e visualize\nos professores", route: "/supervisao/professores" },
+  { id: "salas", ionicon: "grid-outline" as const, color: "#f4831f", title: "Salas", subtitle: "Cadastre e gerencie\nas salas da escola", route: "/supervisao/salas" },
+  { id: "config-escola", ionicon: "location-outline" as const, color: "#e63946", title: "Local da Escola", subtitle: "Configure o GPS\npara bater ponto", route: "/supervisao/configuracao-escola" },
+  { id: "pontos-dia", ionicon: "finger-print-outline" as const, color: "#7b2d8b", title: "Pontos do Dia", subtitle: "Veja quem bateu\nou não o ponto", route: "/supervisao/pontos-dia" },
 ];
 
 const TABS = [
@@ -184,16 +184,22 @@ export default function HomeScreen() {
             contentContainerStyle={[s.menuGrid, { paddingLeft: 18 }]}
           >
             {MENU_ITEMS.map((item) => (
-              <TouchableOpacity key={item.id} style={s.menuCard} onPress={() => router.push(item.route as any)} activeOpacity={0.8}>
-                <View style={[s.menuCardTop, { backgroundColor: item.iconBg }]}>
+              <TouchableOpacity
+                key={item.id}
+                style={[s.menuCard, { backgroundColor: item.color, shadowColor: item.color }]}
+                onPress={() => router.push(item.route as any)}
+                activeOpacity={0.82}
+              >
+                <View style={s.menuCardTop}>
                   <View style={s.menuCardIcon}>
-                    <Ionicons name={item.ionicon} size={30} color="#1a1a2e" />
+                    <Ionicons name={item.ionicon} size={28} color="#fff" />
                   </View>
                 </View>
                 <View style={s.menuCardBody}>
                   <Text style={s.menuCardTitle}>{item.title}</Text>
                   <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
                 </View>
+                <Ionicons name="chevron-forward" size={13} color="rgba(255,255,255,0.45)" style={s.menuCardArrow} />
               </TouchableOpacity>
             ))}
           </ScrollView>

@@ -61,8 +61,23 @@ export default function PerfilScreen() {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       if (asset.base64) {
-        setFotoPreview(`data:image/jpeg;base64,${asset.base64}`);
+        const fotoData = `data:image/jpeg;base64,${asset.base64}`;
+        setFotoPreview(fotoData);
+        if (isProfessor) await salvarFoto(fotoData);
       }
+    }
+  };
+
+  const salvarFoto = async (fotoData: string) => {
+    setIsLoading(true);
+    try {
+      const res = await api.put("/auth/perfil", { foto: fotoData });
+      atualizarUsuario(res.data);
+      setFotoPreview(null);
+    } catch {
+      Alert.alert("Erro", "Não foi possível atualizar a foto.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,18 +123,22 @@ export default function PerfilScreen() {
           <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Meu Perfil</Text>
-        <TouchableOpacity onPress={() => setIsEditing(!isEditing)} activeOpacity={0.7}>
-          {isEditing
-            ? <Ionicons name="close" size={20} color="#1a1a2e" />
-            : <Ionicons name="pencil-outline" size={20} color="#1a1a2e" />}
-        </TouchableOpacity>
+        {isProfessor ? (
+          <View style={{ width: 40 }} />
+        ) : (
+          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} activeOpacity={0.7} style={{ width: 40, alignItems: "flex-end" }}>
+            {isEditing
+              ? <Ionicons name="close" size={20} color="#1a1a2e" />
+              : <Ionicons name="pencil-outline" size={20} color="#1a1a2e" />}
+          </TouchableOpacity>
+        )}
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Avatar */}
         <View style={s.perfilCard}>
-          <TouchableOpacity style={s.fotoContainer} onPress={isEditing ? pickImage : undefined} activeOpacity={isEditing ? 0.7 : 1}>
+          <TouchableOpacity style={s.fotoContainer} onPress={(isProfessor || isEditing) && !isLoading ? pickImage : undefined} activeOpacity={(isProfessor || isEditing) ? 0.7 : 1}>
             {fotoExibir ? (
               <Image source={{ uri: fotoExibir }} style={s.foto} resizeMode="cover" />
             ) : (
@@ -127,10 +146,19 @@ export default function PerfilScreen() {
                 <Ionicons name="person-circle-outline" size={48} color="#bbb" />
               </View>
             )}
-            {isEditing && <View style={s.fotoOverlay}><Ionicons name="camera-outline" size={28} color="#fff" /></View>}
+            {(isProfessor || isEditing) && (
+              <View style={s.fotoOverlay}>
+                {isLoading && isProfessor
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Ionicons name="camera-outline" size={28} color="#fff" />}
+              </View>
+            )}
           </TouchableOpacity>
           <Text style={s.perfilNome}>{nome}</Text>
           <Text style={s.perfilCargo}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel}</Text>
+          {isProfessor && (
+            <Text style={pf.fotoDica}>Toque na foto para alterá-la</Text>
+          )}
 
           {/* Chips de matérias no card de perfil (somente professor) */}
           {isProfessor && (usuario?.materias ?? []).length > 0 && (
@@ -150,7 +178,7 @@ export default function PerfilScreen() {
           <Text style={s.sectionTitle}>Informações Pessoais</Text>
           <View style={s.infoGroup}>
             <Text style={s.label}>Nome Completo</Text>
-            {isEditing
+            {isEditing && !isProfessor
               ? <TextInput style={s.input} value={nome} onChangeText={setNome} placeholder="Digite seu nome" placeholderTextColor="#bbb" />
               : <Text style={s.infoValue}>{nome}</Text>}
           </View>
@@ -165,7 +193,7 @@ export default function PerfilScreen() {
           <Text style={s.sectionTitle}>Informações Profissionais</Text>
           <View style={s.infoGroup}>
             <Text style={s.label}>Escola</Text>
-            {isEditing
+            {isEditing && !isProfessor
               ? <TextInput style={s.input} value={escola} onChangeText={setEscola} placeholder="Nome da escola" placeholderTextColor="#bbb" />
               : <Text style={s.infoValue}>{escola || "—"}</Text>}
           </View>
@@ -234,7 +262,7 @@ export default function PerfilScreen() {
           </View>
         )}
 
-        {isEditing && (
+        {isEditing && !isProfessor && (
           <TouchableOpacity
             style={[s.btnSalvar, isLoading && s.btnSalvarLoading]}
             onPress={handleSave}
@@ -302,5 +330,11 @@ const pf = StyleSheet.create({
     fontSize: 11,
     color: "#aaa",
     marginTop: 6,
+  },
+  fotoDica: {
+    fontSize: 11,
+    color: "#3a7d44",
+    marginTop: 4,
+    fontWeight: "600",
   },
 });

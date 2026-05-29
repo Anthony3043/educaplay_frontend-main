@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -29,8 +30,24 @@ const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 const formatarHorario = (texto: string) => {
   const digitos = texto.replace(/\D/g, "").slice(0, 4);
-  if (digitos.length <= 2) return digitos;
-  return `${digitos.slice(0, 2)}:${digitos.slice(2)}`;
+  if (digitos.length <= 1) return digitos;
+  if (digitos.length === 2) {
+    // Se a hora for inválida (ex: "70"), insere zero antes: "0" + "7" + ":" + "0"
+    if (parseInt(digitos, 10) > 23) return `0${digitos[0]}:${digitos[1]}`;
+    return digitos;
+  }
+  const hh = digitos.slice(0, 2);
+  const mm = digitos.slice(2);
+  if (parseInt(hh, 10) > 23) return `0${hh[0]}:${hh[1]}${mm}`;
+  return `${hh}:${mm}`;
+};
+
+const finalizarHorario = (valor: string, setter: (v: string) => void) => {
+  const digitos = valor.replace(/\D/g, "");
+  if (!digitos) return;
+  const h = digitos.slice(0, 2).padStart(2, "0");
+  const m = digitos.slice(2, 4).padEnd(2, "0");
+  setter(`${h}:${m}`);
 };
 
 export default function IndisponibilidadeScreen() {
@@ -42,6 +59,7 @@ export default function IndisponibilidadeScreen() {
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
   const [descricao, setDescricao] = useState("");
+  const [modalDeletar, setModalDeletar] = useState<{ visivel: boolean; id: string | null }>({ visivel: false, id: null });
 
   const carregar = useCallback(async () => {
     try {
@@ -89,21 +107,19 @@ export default function IndisponibilidadeScreen() {
   };
 
   const handleDeletar = (id: string) => {
-    Alert.alert("Remover bloqueio", "Deseja remover este horário de indisponibilidade?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Remover",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await api.delete(`/bloqueios/${id}`);
-            setBloqueios((prev) => prev.filter((b) => b.id !== id));
-          } catch {
-            Alert.alert("Erro", "Não foi possível remover.");
-          }
-        },
-      },
-    ]);
+    setModalDeletar({ visivel: true, id });
+  };
+
+  const confirmarDeletar = async () => {
+    const id = modalDeletar.id;
+    setModalDeletar({ visivel: false, id: null });
+    if (!id) return;
+    try {
+      await api.delete(`/bloqueios/${id}`);
+      setBloqueios((prev) => prev.filter((b) => b.id !== id));
+    } catch {
+      Alert.alert("Erro", "Não foi possível remover.");
+    }
   };
 
   // Agrupa bloqueios por dia
@@ -168,6 +184,7 @@ export default function IndisponibilidadeScreen() {
                   style={s.input}
                   value={timeStart}
                   onChangeText={(t) => setTimeStart(formatarHorario(t))}
+                  onBlur={() => finalizarHorario(timeStart, setTimeStart)}
                   placeholder="07:00"
                   placeholderTextColor="#AAAAAA"
                   keyboardType="numeric"
@@ -183,6 +200,7 @@ export default function IndisponibilidadeScreen() {
                   style={s.input}
                   value={timeEnd}
                   onChangeText={(t) => setTimeEnd(formatarHorario(t))}
+                  onBlur={() => finalizarHorario(timeEnd, setTimeEnd)}
                   placeholder="09:00"
                   placeholderTextColor="#AAAAAA"
                   keyboardType="numeric"
@@ -255,6 +273,28 @@ export default function IndisponibilidadeScreen() {
         </ScrollView>
       )}
       </KeyboardAvoidingView>
+
+      {/* Modal confirmar exclusão */}
+      <Modal visible={modalDeletar.visivel} transparent animationType="fade" onRequestClose={() => setModalDeletar({ visivel: false, id: null })}>
+        <View style={s.mdOverlay}>
+          <View style={s.mdBox}>
+            <View style={s.mdIconWrap}>
+              <Ionicons name="trash-outline" size={30} color="#ef4444" />
+            </View>
+            <Text style={s.mdTitulo}>Remover bloqueio</Text>
+            <Text style={s.mdSub}>Deseja remover este horário de indisponibilidade?</Text>
+            <View style={s.mdBtns}>
+              <TouchableOpacity style={s.mdCancelar} onPress={() => setModalDeletar({ visivel: false, id: null })} activeOpacity={0.8}>
+                <Text style={s.mdCancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.mdRemover} onPress={confirmarDeletar} activeOpacity={0.85}>
+                <Ionicons name="trash-outline" size={15} color="#fff" />
+                <Text style={s.mdRemoverText}>Remover</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -339,4 +379,16 @@ const s = StyleSheet.create({
   bloqueioHorario: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
   bloqueioDesc: { fontSize: 12, color: "#666", marginTop: 2 },
   deleteBtn: { padding: 6 },
+
+  // Modal deletar
+  mdOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  mdBox: { width: "100%", backgroundColor: "#fff", borderRadius: 22, padding: 26, alignItems: "center", gap: 8 },
+  mdIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: "#fef2f2", alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  mdTitulo: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", textAlign: "center" },
+  mdSub: { fontSize: 13, color: "#888", textAlign: "center", lineHeight: 19, marginBottom: 4 },
+  mdBtns: { flexDirection: "row", gap: 10, width: "100%", marginTop: 8 },
+  mdCancelar: { flex: 1, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#E0E0E0", alignItems: "center" },
+  mdCancelarText: { fontSize: 14, fontWeight: "600", color: "#555" },
+  mdRemover: { flex: 1, paddingVertical: 13, borderRadius: 14, backgroundColor: "#ef4444", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  mdRemoverText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });

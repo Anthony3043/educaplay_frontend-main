@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -27,12 +28,15 @@ type ItemResumo = {
 
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
+type ModalFeedback = { visivel: boolean; tipo: "sucesso" | "erro"; mensagem: string };
+
 export default function PontosDiaScreen() {
   const router = useRouter();
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [itens, setItens] = useState<ItemResumo[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [notificando, setNotificando] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<ModalFeedback>({ visivel: false, tipo: "sucesso", mensagem: "" });
 
   const carregarDia = async (dia: string) => {
     setDiaSelecionado(dia);
@@ -52,9 +56,9 @@ export default function PontosDiaScreen() {
     setNotificando(item.aulaId);
     try {
       await api.post("/ponto/notificar-falta", { aulaId: item.aulaId, diaSemana: diaSelecionado });
-      Alert.alert("Notificação enviada", `${item.professor.nome} foi notificado sobre a falta de ponto.`);
+      setFeedback({ visivel: true, tipo: "sucesso", mensagem: `${item.professor.nome} foi notificado sobre a falta de ponto.` });
     } catch {
-      Alert.alert("Erro", "Não foi possível enviar a notificação.");
+      setFeedback({ visivel: true, tipo: "erro", mensagem: "Não foi possível enviar a notificação. Tente novamente." });
     } finally {
       setNotificando(null);
     }
@@ -218,6 +222,30 @@ export default function PontosDiaScreen() {
           )}
         </ScrollView>
       )}
+
+      {/* Modal de feedback */}
+      <Modal visible={feedback.visivel} transparent animationType="fade" onRequestClose={() => setFeedback((f) => ({ ...f, visivel: false }))}>
+        <View style={st.fbOverlay}>
+          <View style={st.fbBox}>
+            <View style={[st.fbIconWrap, { backgroundColor: feedback.tipo === "sucesso" ? "#e8f5ea" : "#fef2f2" }]}>
+              <Ionicons
+                name={feedback.tipo === "sucesso" ? "checkmark-circle" : "alert-circle"}
+                size={32}
+                color={feedback.tipo === "sucesso" ? "#3a7d44" : "#ef4444"}
+              />
+            </View>
+            <Text style={st.fbTitulo}>{feedback.tipo === "sucesso" ? "Notificação enviada" : "Erro"}</Text>
+            <Text style={st.fbMensagem}>{feedback.mensagem}</Text>
+            <TouchableOpacity
+              style={[st.fbBtn, { backgroundColor: feedback.tipo === "sucesso" ? "#3a7d44" : "#ef4444" }]}
+              onPress={() => setFeedback((f) => ({ ...f, visivel: false }))}
+              activeOpacity={0.85}
+            >
+              <Text style={st.fbBtnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -286,4 +314,13 @@ const st = StyleSheet.create({
     backgroundColor: "#ef4444", borderRadius: 10, paddingVertical: 9,
   },
   btnNotificarText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+
+  // Modal feedback
+  fbOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  fbBox: { width: "100%", backgroundColor: "#fff", borderRadius: 22, padding: 28, alignItems: "center", gap: 10 },
+  fbIconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  fbTitulo: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", textAlign: "center" },
+  fbMensagem: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 20 },
+  fbBtn: { marginTop: 8, width: "100%", paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+  fbBtnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });

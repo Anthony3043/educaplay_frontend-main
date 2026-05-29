@@ -31,7 +31,9 @@ export default function MapaSalaScreen() {
   const [carregandoSalas, setCarregandoSalas] = useState(true);
   const [salaSelecionada, setSalaSelecionada] = useState<Sala | null>(null);
   const [assentos, setAssentos] = useState<Assento[]>([]);
+  const [assentosOriginal, setAssentosOriginal] = useState<Assento[]>([]);
   const [colunas, setColunas] = useState(5);
+  const [colunasOriginal, setColunasOriginal] = useState(5);
   const [carregandoMapa, setCarregandoMapa] = useState(false);
   const [salvando, setSalvando] = useState(false);
 
@@ -56,8 +58,12 @@ export default function MapaSalaScreen() {
     setCarregandoMapa(true);
     try {
       const res = await api.get(`/salas/${sala.id}/mapa`);
-      setAssentos(res.data.assentos as Assento[]);
-      setColunas(res.data.colunas ?? 5);
+      const lista = res.data.assentos as Assento[];
+      const cols = res.data.colunas ?? 5;
+      setAssentos(lista);
+      setAssentosOriginal(lista);
+      setColunas(cols);
+      setColunasOriginal(cols);
     } catch {
       Alert.alert("Erro", "Não foi possível carregar o mapa da sala.");
     } finally {
@@ -68,7 +74,9 @@ export default function MapaSalaScreen() {
   const voltarParaLista = () => {
     setSalaSelecionada(null);
     setAssentos([]);
+    setAssentosOriginal([]);
     setColunas(5);
+    setColunasOriginal(5);
   };
 
   const abrirEdicaoAssento = (assento: Assento) => {
@@ -78,9 +86,9 @@ export default function MapaSalaScreen() {
     setModalAssento(true);
   };
 
-  const salvarNomeAssento = () => {
+  const salvarNomeAssento = (nomeOverride?: string | null) => {
     if (!assentoEditando) return;
-    const nome = nomeInput.trim() || null;
+    const nome = nomeOverride !== undefined ? nomeOverride : (nomeInput.trim() || null);
     setAssentos((prev) =>
       prev.map((a) => a.id === assentoEditando.id ? { ...a, nome } : a)
     );
@@ -89,15 +97,25 @@ export default function MapaSalaScreen() {
     setNomeInput("");
   };
 
+  const [feedbackMapa, setFeedbackMapa] = useState<{ visivel: boolean; tipo: "sucesso" | "erro"; mensagem: string }>({ visivel: false, tipo: "sucesso", mensagem: "" });
+
+  const isDirty = React.useMemo(() => {
+    if (colunas !== colunasOriginal) return true;
+    if (assentos.length !== assentosOriginal.length) return true;
+    return assentos.some((a, i) => a.nome !== assentosOriginal[i]?.nome);
+  }, [assentos, assentosOriginal, colunas, colunasOriginal]);
+
   const salvarMapa = async () => {
-    if (!salaSelecionada) return;
+    if (!salaSelecionada || !isDirty) return;
     setSalvando(true);
     try {
       await api.put(`/salas/${salaSelecionada.id}/mapa`, { assentos, colunas });
-      Alert.alert("Salvo", "Mapa de sala atualizado com sucesso!");
+      setAssentosOriginal(assentos);
+      setColunasOriginal(colunas);
+      setFeedbackMapa({ visivel: true, tipo: "sucesso", mensagem: "Mapa de sala atualizado com sucesso!" });
     } catch (err: any) {
       const msg = err?.response?.data?.error;
-      Alert.alert("Erro", msg || "Não foi possível salvar o mapa.");
+      setFeedbackMapa({ visivel: true, tipo: "erro", mensagem: msg || "Não foi possível salvar o mapa." });
     } finally {
       setSalvando(false);
     }
@@ -179,7 +197,7 @@ export default function MapaSalaScreen() {
           {salaSelecionada.turma ? <Text style={{ fontSize: 11, color: "#888" }}>{salaSelecionada.turma}</Text> : null}
         </View>
         {podeEditar ? (
-          <TouchableOpacity style={st.salvarBtn} onPress={salvarMapa} disabled={salvando} activeOpacity={0.8}>
+          <TouchableOpacity style={[st.salvarBtn, !isDirty && st.salvarBtnInativo]} onPress={salvarMapa} disabled={salvando || !isDirty} activeOpacity={0.8}>
             {salvando ? <ActivityIndicator size="small" color="#fff" /> : <Text style={st.salvarBtnText}>Salvar</Text>}
           </TouchableOpacity>
         ) : (
@@ -273,6 +291,30 @@ export default function MapaSalaScreen() {
         </ScrollView>
       )}
 
+      {/* Modal feedback salvar */}
+      <Modal visible={feedbackMapa.visivel} transparent animationType="fade" onRequestClose={() => setFeedbackMapa((f) => ({ ...f, visivel: false }))}>
+        <View style={me.fbOverlay}>
+          <View style={me.fbBox}>
+            <View style={[me.fbIconWrap, { backgroundColor: feedbackMapa.tipo === "sucesso" ? "#e8f5ea" : "#fef2f2" }]}>
+              <Ionicons
+                name={feedbackMapa.tipo === "sucesso" ? "checkmark-circle" : "alert-circle"}
+                size={32}
+                color={feedbackMapa.tipo === "sucesso" ? "#3a7d44" : "#ef4444"}
+              />
+            </View>
+            <Text style={me.fbTitulo}>{feedbackMapa.tipo === "sucesso" ? "Mapa salvo!" : "Erro ao salvar"}</Text>
+            <Text style={me.fbMensagem}>{feedbackMapa.mensagem}</Text>
+            <TouchableOpacity
+              style={[me.fbBtn, { backgroundColor: feedbackMapa.tipo === "sucesso" ? "#3a7d44" : "#ef4444" }]}
+              onPress={() => setFeedbackMapa((f) => ({ ...f, visivel: false }))}
+              activeOpacity={0.85}
+            >
+              <Text style={me.fbBtnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de edição de assento */}
       <Modal visible={modalAssento} transparent animationType="fade" onRequestClose={() => setModalAssento(false)}>
         <View style={me.overlay}>
@@ -284,7 +326,7 @@ export default function MapaSalaScreen() {
               placeholder="Nome do aluno (deixe vazio para vaga)"
               placeholderTextColor="#bbb"
               value={nomeInput}
-              onChangeText={setNomeInput}
+              onChangeText={(t) => setNomeInput(t.replace(/(^|\s)\S/g, (c) => c.toUpperCase()))}
               autoCapitalize="words"
               autoFocus
             />
@@ -297,8 +339,8 @@ export default function MapaSalaScreen() {
               </TouchableOpacity>
             </View>
             {assentoEditando?.nome ? (
-              <TouchableOpacity style={me.limparBtn} onPress={() => { setNomeInput(""); salvarNomeAssento(); }} activeOpacity={0.8}>
-                <Ionicons name="trash-outline" size={14} color="#ef4444" />
+              <TouchableOpacity style={me.limparBtn} onPress={() => salvarNomeAssento(null)} activeOpacity={0.8}>
+                <Ionicons name="trash-outline" size={15} color="#ef4444" />
                 <Text style={me.limparText}>Remover aluno desta carteira</Text>
               </TouchableOpacity>
             ) : null}
@@ -322,6 +364,7 @@ const st = StyleSheet.create({
     backgroundColor: "#3a7d44", borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 8, minWidth: 60, alignItems: "center",
   },
+  salvarBtnInativo: { backgroundColor: "#c8d6c9" },
   salvarBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
   sectionLabel: { fontSize: 13, color: "#888", marginBottom: 4 },
   empty: { alignItems: "center", paddingVertical: 48, gap: 10 },
@@ -398,6 +441,19 @@ const me = StyleSheet.create({
   cancelarText: { fontSize: 14, fontWeight: "600", color: "#555" },
   confirmarBtn: { flex: 1, paddingVertical: 13, borderRadius: 12, backgroundColor: "#3a7d44", alignItems: "center" },
   confirmarText: { fontSize: 14, fontWeight: "700", color: "#fff" },
-  limparBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 12 },
-  limparText: { fontSize: 13, color: "#ef4444" },
+  limparBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    marginTop: 12, backgroundColor: "#fef2f2", borderRadius: 12,
+    paddingVertical: 12, borderWidth: 1.5, borderColor: "#fca5a5",
+  },
+  limparText: { fontSize: 13, fontWeight: "700", color: "#ef4444" },
+
+  // Modal feedback
+  fbOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  fbBox: { width: "100%", backgroundColor: "#fff", borderRadius: 22, padding: 28, alignItems: "center", gap: 10 },
+  fbIconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  fbTitulo: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", textAlign: "center" },
+  fbMensagem: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 20 },
+  fbBtn: { marginTop: 8, width: "100%", paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+  fbBtnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });
