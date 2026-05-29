@@ -63,6 +63,15 @@ const TURNO_COLORS: Record<TurnoId, string> = {
 
 const DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
+const DIAS_JS: Record<number, string> = {
+  1: "Segunda", 2: "Terça", 3: "Quarta", 4: "Quinta", 5: "Sexta", 6: "Sábado",
+};
+const getDiaSemanaAtual = (): string | null => DIAS_JS[new Date().getDay()] ?? null;
+const getHoraAtual = (): string => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+};
+
 const TABS = [
   { id: "home",          ionicon: "home-outline" as const,    label: "Home" },
   { id: "cronograma",    ionicon: "calendar-outline" as const, label: "Cronograma" },
@@ -84,6 +93,13 @@ export default function CronogramasProfessorScreen() {
   const [batendoPonto, setBatendoPonto]   = useState<string | null>(null);
   const [pontosBatidos, setPontosBatidos] = useState<Record<string, boolean>>({});
   const [modalPontoErro, setModalPontoErro] = useState<{ distancia: number; raio: number } | null>(null);
+  const [modalTempoErro, setModalTempoErro] = useState<{
+    tipo: "dia_errado" | "muito_cedo" | "muito_tarde";
+    diaSemana: string | null;
+    horaStart: string;
+    horaEnd: string;
+    horaAtual?: string;
+  } | null>(null);
   const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
   const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
     setModalInfo({ visivel: true, titulo, mensagem, tipo });
@@ -175,6 +191,43 @@ export default function CronogramasProfessorScreen() {
 
   const handleBaterPonto = async (aula: AulaProfessor) => {
     if (!selectedDia) return;
+
+    // ── 1. Validar dia da semana ──────────────────────────────
+    const diaAtual = getDiaSemanaAtual();
+    if (selectedDia !== diaAtual) {
+      setModalTempoErro({
+        tipo: "dia_errado",
+        diaSemana: aula.diaSemana,
+        horaStart: aula.timeStart,
+        horaEnd: aula.timeEnd,
+      });
+      return;
+    }
+
+    // ── 2. Validar horário da aula ────────────────────────────
+    const horaAtual = getHoraAtual();
+    if (horaAtual < aula.timeStart) {
+      setModalTempoErro({
+        tipo: "muito_cedo",
+        diaSemana: aula.diaSemana,
+        horaStart: aula.timeStart,
+        horaEnd: aula.timeEnd,
+        horaAtual,
+      });
+      return;
+    }
+    if (horaAtual >= aula.timeEnd) {
+      setModalTempoErro({
+        tipo: "muito_tarde",
+        diaSemana: aula.diaSemana,
+        horaStart: aula.timeStart,
+        horaEnd: aula.timeEnd,
+        horaAtual,
+      });
+      return;
+    }
+
+    // ── 3. Validar GPS ────────────────────────────────────────
     setBatendoPonto(aula.id);
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -465,20 +518,121 @@ export default function CronogramasProfessorScreen() {
         </View>
       </Modal>
 
+      {/* Modal de restrição de horário / dia */}
+      <Modal visible={!!modalTempoErro} transparent animationType="fade" onRequestClose={() => setModalTempoErro(null)}>
+        <View style={tm.overlay}>
+          <View style={tm.box}>
+            {/* Ícone */}
+            <View style={tm.iconRing}>
+              <View style={tm.iconCircle}>
+                <Ionicons
+                  name={modalTempoErro?.tipo === "dia_errado" ? "calendar-outline" : "time-outline"}
+                  size={32}
+                  color="#f97316"
+                />
+              </View>
+            </View>
+
+            {/* Título */}
+            <Text style={tm.titulo}>
+              {modalTempoErro?.tipo === "dia_errado"
+                ? "Dia incorreto"
+                : modalTempoErro?.tipo === "muito_cedo"
+                ? "Muito cedo!"
+                : "Aula encerrada"}
+            </Text>
+
+            {/* Descrição */}
+            <Text style={tm.descricao}>
+              {modalTempoErro?.tipo === "dia_errado"
+                ? `Esta aula acontece na ${modalTempoErro.diaSemana}. Você só pode bater o ponto no dia correto da aula.`
+                : modalTempoErro?.tipo === "muito_cedo"
+                ? `A aula ainda não começou. O ponto só pode ser registrado a partir das ${modalTempoErro?.horaStart}.`
+                : `Esta aula terminou às ${modalTempoErro?.horaEnd}. O ponto só pode ser batido durante o horário da aula.`}
+            </Text>
+
+            {/* Janela de horário */}
+            {modalTempoErro?.tipo !== "dia_errado" && (
+              <View style={tm.horarioCard}>
+                <View style={tm.horarioItem}>
+                  <Text style={tm.horarioLabel}>Início</Text>
+                  <Text style={tm.horarioValor}>{modalTempoErro?.horaStart}</Text>
+                </View>
+                <View style={tm.horarioSep}>
+                  <View style={tm.horarioLinha} />
+                  <Ionicons name="arrow-forward" size={12} color="#f97316" />
+                  <View style={tm.horarioLinha} />
+                </View>
+                <View style={tm.horarioItem}>
+                  <Text style={tm.horarioLabel}>Fim</Text>
+                  <Text style={tm.horarioValor}>{modalTempoErro?.horaEnd}</Text>
+                </View>
+                {modalTempoErro?.horaAtual && (
+                  <View style={tm.horarioAtualWrap}>
+                    <Ionicons name="time-outline" size={11} color="#9CA3AF" />
+                    <Text style={tm.horarioAtual}>Agora: {modalTempoErro.horaAtual}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+
+            <TouchableOpacity style={tm.btn} onPress={() => setModalTempoErro(null)} activeOpacity={0.85}>
+              <Text style={tm.btnText}>Entendido</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de erro de localização */}
       <Modal visible={!!modalPontoErro} transparent animationType="fade" onRequestClose={() => setModalPontoErro(null)}>
         <View style={erroLoc.overlay}>
           <View style={erroLoc.box}>
-            <View style={erroLoc.iconWrap}>
-              <Ionicons name="location-outline" size={32} color="#ef4444" />
+            {/* Ícone com anéis */}
+            <View style={erroLoc.ringOuter}>
+              <View style={erroLoc.ringInner}>
+                <View style={erroLoc.iconCircle}>
+                  <Ionicons name="location" size={28} color="#fff" />
+                </View>
+              </View>
             </View>
-            <Text style={erroLoc.titulo}>Fora da escola</Text>
-            <Text style={erroLoc.descricao}>
-              Você está a <Text style={erroLoc.destaque}>{modalPontoErro?.distancia}m</Text> da escola.{"\n"}
-              É necessário estar dentro do raio de <Text style={erroLoc.destaque}>{modalPontoErro?.raio}m</Text> para bater o ponto.
+
+            <Text style={erroLoc.titulo}>Você está longe da escola</Text>
+            <Text style={erroLoc.subtitulo}>
+              O ponto só pode ser batido dentro do raio permitido
             </Text>
+
+            {/* Barra de distância */}
+            {modalPontoErro && (
+              <View style={erroLoc.distanciaCard}>
+                <View style={erroLoc.distanciaRow}>
+                  <View style={erroLoc.distanciaItem}>
+                    <Ionicons name="navigate-outline" size={14} color="#ef4444" />
+                    <Text style={erroLoc.distanciaValor}>{modalPontoErro.distancia}m</Text>
+                    <Text style={erroLoc.distanciaLabel}>Você está aqui</Text>
+                  </View>
+                  <View style={erroLoc.distanciaSep} />
+                  <View style={erroLoc.distanciaItem}>
+                    <Ionicons name="radio-outline" size={14} color="#3a7d44" />
+                    <Text style={[erroLoc.distanciaValor, { color: "#3a7d44" }]}>{modalPontoErro.raio}m</Text>
+                    <Text style={erroLoc.distanciaLabel}>Raio permitido</Text>
+                  </View>
+                </View>
+                {/* Barra visual */}
+                <View style={erroLoc.barBg}>
+                  <View style={[erroLoc.barFill, {
+                    width: `${Math.min(100, Math.round((modalPontoErro.raio / modalPontoErro.distancia) * 100))}%` as any,
+                  }]} />
+                  <View style={erroLoc.barRaioMark} />
+                </View>
+                <View style={erroLoc.barLabels}>
+                  <Text style={erroLoc.barLabelEscola}>Escola</Text>
+                  <Text style={[erroLoc.barLabelEscola, { color: "#ef4444" }]}>Você</Text>
+                </View>
+              </View>
+            )}
+
             <TouchableOpacity style={erroLoc.btn} onPress={() => setModalPontoErro(null)} activeOpacity={0.85}>
-              <Text style={erroLoc.btnText}>Entendi</Text>
+              <Text style={erroLoc.btnText}>Entendido</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -679,13 +833,114 @@ const cr = StyleSheet.create({
   },
 });
 
+const tm = StyleSheet.create({
+  overlay: {
+    flex: 1, backgroundColor: "rgba(15,15,20,0.65)",
+    alignItems: "center", justifyContent: "center", paddingHorizontal: 28,
+  },
+  box: {
+    width: "100%", backgroundColor: "#fff", borderRadius: 28,
+    padding: 28, alignItems: "center", gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 24, elevation: 14,
+  },
+  // Ícone com anel duplo
+  iconRing: {
+    width: 88, height: 88, borderRadius: 44,
+    backgroundColor: "#FFF7ED", alignItems: "center", justifyContent: "center",
+    marginBottom: 4,
+    borderWidth: 1.5, borderColor: "#FED7AA",
+  },
+  iconCircle: {
+    width: 62, height: 62, borderRadius: 31,
+    backgroundColor: "#FFEDD5", alignItems: "center", justifyContent: "center",
+  },
+  titulo: { fontSize: 20, fontWeight: "800", color: "#111827", textAlign: "center" },
+  descricao: { fontSize: 14, color: "#6B7280", textAlign: "center", lineHeight: 21 },
+
+  // Card com janela de horário
+  horarioCard: {
+    width: "100%", backgroundColor: "#F9FAFB", borderRadius: 16,
+    padding: 16, borderWidth: 1.5, borderColor: "#E5E7EB",
+    alignItems: "center",
+  },
+  horarioItem: { alignItems: "center", gap: 2 },
+  horarioLabel: { fontSize: 11, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5 },
+  horarioValor: { fontSize: 28, fontWeight: "800", color: "#111827" },
+  horarioSep: { flexDirection: "row", alignItems: "center", gap: 6, marginHorizontal: 16 },
+  horarioLinha: { flex: 1, height: 1, backgroundColor: "#f97316" },
+  horarioAtualWrap: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    marginTop: 10, backgroundColor: "#fff", borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: "#E5E7EB",
+  },
+  horarioAtual: { fontSize: 12, color: "#9CA3AF", fontWeight: "600" },
+
+  btn: {
+    width: "100%", backgroundColor: "#f97316", borderRadius: 16,
+    paddingVertical: 15, alignItems: "center",
+    shadowColor: "#f97316", shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
+  },
+  btnText: { fontSize: 15, fontWeight: "800", color: "#fff" },
+});
+
 const erroLoc = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
-  box: { width: "100%", backgroundColor: "#fff", borderRadius: 20, padding: 24, alignItems: "center" },
-  iconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center", marginBottom: 16 },
-  titulo: { fontSize: 18, fontWeight: "700", color: "#ef4444", marginBottom: 8 },
-  descricao: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 20 },
-  destaque: { fontWeight: "700", color: "#1a1a2e" },
-  btn: { width: "100%", backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 14, alignItems: "center" },
-  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+  overlay: {
+    flex: 1, backgroundColor: "rgba(15,15,20,0.65)",
+    alignItems: "center", justifyContent: "center", paddingHorizontal: 28,
+  },
+  box: {
+    width: "100%", backgroundColor: "#fff", borderRadius: 28,
+    padding: 28, alignItems: "center", gap: 14,
+    shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 24, elevation: 14,
+  },
+  // Ícone com anéis
+  ringOuter: {
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center",
+    marginBottom: 4,
+  },
+  ringInner: {
+    width: 74, height: 74, borderRadius: 37,
+    backgroundColor: "#FECACA", alignItems: "center", justifyContent: "center",
+  },
+  iconCircle: {
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: "#ef4444", alignItems: "center", justifyContent: "center",
+  },
+  titulo: { fontSize: 20, fontWeight: "800", color: "#111827", textAlign: "center" },
+  subtitulo: { fontSize: 13, color: "#6B7280", textAlign: "center", lineHeight: 19 },
+
+  // Card de distância
+  distanciaCard: {
+    width: "100%", backgroundColor: "#F9FAFB", borderRadius: 16,
+    padding: 16, borderWidth: 1.5, borderColor: "#E5E7EB",
+  },
+  distanciaRow: { flexDirection: "row", alignItems: "center", marginBottom: 14 },
+  distanciaItem: { flex: 1, alignItems: "center", gap: 3 },
+  distanciaValor: { fontSize: 24, fontWeight: "800", color: "#ef4444" },
+  distanciaLabel: { fontSize: 11, color: "#9CA3AF", fontWeight: "600" },
+  distanciaSep: { width: 1, height: 40, backgroundColor: "#E5E7EB", marginHorizontal: 8 },
+
+  // Barra visual
+  barBg: {
+    height: 8, backgroundColor: "#E5E7EB", borderRadius: 4,
+    overflow: "hidden", marginBottom: 6, position: "relative",
+  },
+  barFill: {
+    height: 8, backgroundColor: "#3a7d44", borderRadius: 4,
+  },
+  barRaioMark: {
+    position: "absolute", right: 0, top: 0, bottom: 0, width: 2,
+    backgroundColor: "#3a7d44",
+  },
+  barLabels: { flexDirection: "row", justifyContent: "space-between" },
+  barLabelEscola: { fontSize: 10, color: "#9CA3AF", fontWeight: "600" },
+
+  btn: {
+    width: "100%", backgroundColor: "#ef4444", borderRadius: 16,
+    paddingVertical: 15, alignItems: "center",
+    shadowColor: "#ef4444", shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
+  },
+  btnText: { fontSize: 15, fontWeight: "800", color: "#fff" },
 });
