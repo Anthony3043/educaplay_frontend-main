@@ -466,7 +466,7 @@ export default function MapaSalaScreen() {
               <TouchableOpacity style={me.cancelarBtn} onPress={() => setModalAssento(false)} activeOpacity={0.8}>
                 <Text style={me.cancelarText}>Cancelar</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={me.confirmarBtn} onPress={salvarNomeAssento} activeOpacity={0.85}>
+              <TouchableOpacity style={me.confirmarBtn} onPress={() => salvarNomeAssento()} activeOpacity={0.85}>
                 <Text style={me.confirmarText}>Confirmar</Text>
               </TouchableOpacity>
             </View>
