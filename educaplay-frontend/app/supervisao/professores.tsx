@@ -455,54 +455,69 @@ export default function ProfessoresScreen() {
           <View style={m.sheet}>
             <View style={m.handle} />
 
-            <View style={m.sheetHeader}>
-              <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Text style={m.sheetTitle}>{profSelecionado?.nome}</Text>
-                  {profSelecionado && !profSelecionado.ativo && (
-                    <View style={li.badge}>
-                      <Text style={li.badgeText}>Inativo</Text>
-                    </View>
-                  )}
-                </View>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-                  <Ionicons name="person-outline" size={12} color="#7a7f9a" />
-                  <Text style={{ fontSize: 12, color: "#7a7f9a", fontWeight: "600" }}>Professor</Text>
-                </View>
-                {(profSelecionado?.materias ?? []).length > 0 && (
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 5, marginBottom: 2 }}>
-                    {(profSelecionado?.materias ?? []).map((mat, i) => (
-                      <View key={i} style={pc.chip}>
-                        <Ionicons name="book-outline" size={10} color="#3a7d44" />
-                        <Text style={pc.chipText}>{mat}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-                <Text style={m.sheetSubtitle}>Horários de indisponibilidade</Text>
-              </View>
-              <TouchableOpacity onPress={fecharModal} style={m.closeBtn} activeOpacity={0.7}>
-                <Ionicons name="close" size={22} color="#1a1a2e" />
+            {/* Perfil do professor */}
+            <View style={m.profileWrap}>
+              <TouchableOpacity onPress={fecharModal} style={m.closeBtnAbs} activeOpacity={0.7}>
+                <Ionicons name="close" size={18} color="#6B7280" />
               </TouchableOpacity>
+              <View style={[m.profileAvatar, { backgroundColor: profSelecionado?.ativo ? "#3a7d44" : "#9CA3AF" }]}>
+                {profSelecionado?.foto ? (
+                  <Image source={{ uri: profSelecionado.foto }} style={{ width: 72, height: 72, borderRadius: 22 }} resizeMode="cover" />
+                ) : (
+                  <Text style={m.profileAvatarText}>{profSelecionado?.nome?.[0]?.toUpperCase() ?? "P"}</Text>
+                )}
+                <View style={[m.profileDot, { backgroundColor: profSelecionado?.ativo ? "#22C55E" : "#ef4444" }]} />
+              </View>
+              <Text style={m.profileNome}>{profSelecionado?.nome}</Text>
+              <View style={m.profileRoleRow}>
+                <View style={[m.profileRolePill, { backgroundColor: profSelecionado?.ativo ? "#F0FDF4" : "#FEF2F2", borderColor: profSelecionado?.ativo ? "#BBF7D0" : "#FECACA" }]}>
+                  <Ionicons name={profSelecionado?.ativo ? "checkmark-circle-outline" : "ban-outline"} size={12} color={profSelecionado?.ativo ? "#3a7d44" : "#ef4444"} />
+                  <Text style={[m.profileRoleText, { color: profSelecionado?.ativo ? "#3a7d44" : "#ef4444" }]}>
+                    {profSelecionado?.ativo ? "Ativo" : "Inativo"}
+                  </Text>
+                </View>
+              </View>
+              {(profSelecionado?.materias ?? []).length > 0 && (
+                <View style={m.profileMaterias}>
+                  {(profSelecionado?.materias ?? []).map((mat, i) => (
+                    <View key={i} style={pc.chip}>
+                      <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                      <Text style={pc.chipText}>{mat}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
 
             <ScrollView style={m.sheetScroll} contentContainerStyle={m.sheetScrollContent} showsVerticalScrollIndicator={false}>
+              {/* Seção indisponibilidades */}
+              <View style={m.secHeader}>
+                <View style={m.secHeaderDot} />
+                <Text style={m.secHeaderText}>Indisponibilidades</Text>
+                {bloqueios.length > 0 && (
+                  <View style={m.secBadge}><Text style={m.secBadgeText}>{bloqueios.length}</Text></View>
+                )}
+              </View>
+
               {carregandoBloqueios ? (
-                <ActivityIndicator style={{ marginTop: 32 }} size="large" color="#3a7d44" />
+                <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#3a7d44" />
               ) : bloqueios.length === 0 ? (
                 <View style={m.empty}>
-                  <Ionicons name="calendar-outline" size={40} color="#ccc" />
-                  <Text style={m.emptyText}>Nenhum bloqueio cadastrado.</Text>
-                  <Text style={m.emptySubText}>Este professor não tem horários de indisponibilidade registrados.</Text>
+                  <View style={m.emptyIconWrap}>
+                    <Ionicons name="calendar-outline" size={28} color="#3a7d44" />
+                  </View>
+                  <Text style={m.emptyText}>Sem bloqueios</Text>
+                  <Text style={m.emptySubText}>Disponível em todos os horários</Text>
                 </View>
               ) : (
                 <>
                   {DIAS.map((dia) =>
                     bloqueiosPorDia[dia].length === 0 ? null : (
-                      <View key={dia} style={{ marginBottom: 12 }}>
+                      <View key={dia} style={{ marginBottom: 14 }}>
                         <View style={m.diaHeader}>
-                          <Ionicons name="calendar-outline" size={14} color="#3a7d44" />
+                          <View style={m.diaDot} />
                           <Text style={m.diaHeaderText}>{dia}</Text>
+                          <View style={m.diaLine} />
                         </View>
                         {bloqueiosPorDia[dia].map((b) => <BloqueioRow key={b.id} b={b} />)}
                       </View>
@@ -511,8 +526,9 @@ export default function ProfessoresScreen() {
                   {semDia.length > 0 && (
                     <View style={{ marginBottom: 4 }}>
                       <View style={m.diaHeader}>
-                        <Ionicons name="time-outline" size={14} color="#888" />
-                        <Text style={[m.diaHeaderText, { color: "#888" }]}>Sem dia específico</Text>
+                        <View style={[m.diaDot, { backgroundColor: "#9CA3AF" }]} />
+                        <Text style={[m.diaHeaderText, { color: "#9CA3AF" }]}>Sem dia específico</Text>
+                        <View style={[m.diaLine, { backgroundColor: "#F1F5F9" }]} />
                       </View>
                       {semDia.map((b) => <BloqueioRow key={b.id} b={b} />)}
                     </View>
@@ -520,11 +536,14 @@ export default function ProfessoresScreen() {
                 </>
               )}
 
-              {/* Toggle permissão de mapa de sala */}
-              <View style={pm.box}>
+              {/* Permissão mapa de sala */}
+              <View style={m.permCard}>
+                <View style={m.permIconWrap}>
+                  <Ionicons name="grid-outline" size={18} color="#3a7d44" />
+                </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={pm.titulo}>Editar Mapa de Sala</Text>
-                  <Text style={pm.descricao}>Permite ao professor alterar o mapa de carteiras da sala</Text>
+                  <Text style={m.permTitle}>Editar Mapa de Sala</Text>
+                  <Text style={m.permDesc}>Permite alterar o mapa de carteiras</Text>
                 </View>
                 {atualizandoPermissao ? (
                   <ActivityIndicator size="small" color="#3a7d44" />
@@ -539,102 +558,125 @@ export default function ProfessoresScreen() {
               </View>
             </ScrollView>
 
-            {/* Botão editar matérias */}
-            <TouchableOpacity style={m.editarBtn} onPress={abrirEditarMaterias} activeOpacity={0.8}>
-              <Ionicons name="create-outline" size={18} color="#3a7d44" />
-              <Text style={m.editarBtnText}>Editar Matérias</Text>
-            </TouchableOpacity>
-
-            {/* Botão desativar ou reativar */}
-            {profSelecionado?.ativo ? (
-              <TouchableOpacity
-                style={m.excluirBtn}
-                onPress={() => setModalDesativarVisivel(true)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="ban-outline" size={18} color="#f97316" />
-                <Text style={[m.excluirBtnText, { color: "#f97316" }]}>Desativar Professor</Text>
+            {/* Ações */}
+            <View style={m.acoesWrap}>
+              <TouchableOpacity style={m.acaoEditar} onPress={abrirEditarMaterias} activeOpacity={0.8}>
+                <Ionicons name="create-outline" size={17} color="#3a7d44" />
+                <Text style={m.acaoEditarText}>Editar Matérias</Text>
               </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[m.excluirBtn, { borderColor: "#86efac", backgroundColor: "#f0fdf4" }]}
-                onPress={() => setModalReativarVisivel(true)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="checkmark-circle-outline" size={18} color="#3a7d44" />
-                <Text style={[m.excluirBtnText, { color: "#3a7d44" }]}>Reativar Professor</Text>
-              </TouchableOpacity>
-            )}
+              {profSelecionado?.ativo ? (
+                <TouchableOpacity style={m.acaoDesativar} onPress={() => setModalDesativarVisivel(true)} activeOpacity={0.8}>
+                  <Ionicons name="ban-outline" size={17} color="#f97316" />
+                  <Text style={m.acaoDesativarText}>Desativar</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={m.acaoReativar} onPress={() => setModalReativarVisivel(true)} activeOpacity={0.8}>
+                  <Ionicons name="checkmark-circle-outline" size={17} color="#3a7d44" />
+                  <Text style={m.acaoReativarText}>Reativar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
       </Modal>
 
-      {/* Modal de confirmação de cadastro de professor */}
+      {/* Modal de cadastro de professor */}
       <Modal visible={modalCadastroVisivel} animationType="slide" transparent onRequestClose={fecharModalCadastro}>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "padding"}>
           <View style={cad.overlay}>
             <View style={cad.sheet}>
               <View style={m.handle} />
+
+              {/* Header */}
               <View style={cad.sheetHeader}>
-                <Text style={cad.sheetTitle}>Cadastrar Professor</Text>
-                <TouchableOpacity onPress={fecharModalCadastro} style={m.closeBtn} activeOpacity={0.7}>
-                  <Ionicons name="close" size={22} color="#1a1a2e" />
+                <View style={cad.sheetHeaderIcon}>
+                  <Ionicons name="person-add-outline" size={20} color="#3a7d44" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={cad.sheetTitle}>Cadastrar Professor</Text>
+                  <Text style={cad.sheetSubtitle}>Preencha os dados para criar o acesso</Text>
+                </View>
+                <TouchableOpacity onPress={fecharModalCadastro} style={m.closeBtnAbs2} activeOpacity={0.7}>
+                  <Ionicons name="close" size={18} color="#6B7280" />
                 </TouchableOpacity>
               </View>
 
               <ScrollView style={{ flex: 1 }} contentContainerStyle={cad.sheetScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                <View style={cad.inputRow}>
-                  <Ionicons name="person-outline" size={18} color="#888" style={cad.inputIcon} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={cad.inputLabel}>Nome completo *</Text>
-                    <TextInput style={cad.textInput} placeholder="Nome do professor" placeholderTextColor="#bbb" value={novoNome} onChangeText={setNovoNome} autoCapitalize="words" />
+                {/* Campo: Nome */}
+                <View style={cad.fieldWrap}>
+                  <View style={cad.fieldHeader}>
+                    <View style={[cad.fieldIcon, { backgroundColor: "#F0FDF4" }]}>
+                      <Ionicons name="person-outline" size={15} color="#3a7d44" />
+                    </View>
+                    <Text style={cad.fieldLabel}>Nome completo</Text>
+                    <Text style={cad.fieldRequired}>*</Text>
                   </View>
-                </View>
-                <View style={cad.inputRow}>
-                  <Ionicons name="mail-outline" size={18} color="#888" style={cad.inputIcon} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={cad.inputLabel}>E-mail *</Text>
-                    <TextInput style={cad.textInput} placeholder="E-mail do professor" placeholderTextColor="#bbb" value={novoEmail} onChangeText={setNovoEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
-                  </View>
-                </View>
-                <View style={cad.inputRow}>
-                  <Ionicons name="lock-closed-outline" size={18} color="#888" style={cad.inputIcon} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={cad.inputLabel}>Senha *</Text>
-                    <TextInput style={cad.textInput} placeholder="Senha de acesso do professor" placeholderTextColor="#bbb" value={novaSenha} onChangeText={setNovaSenha} secureTextEntry={!novaSenhaVisivel} autoCapitalize="none" />
-                  </View>
-                  <TouchableOpacity onPress={() => setNovaSenhaVisivel(!novaSenhaVisivel)}>
-                    <Ionicons name={novaSenhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" />
-                  </TouchableOpacity>
+                  <TextInput style={cad.fieldInput} placeholder="Nome e sobrenome" placeholderTextColor="#9CA3AF" value={novoNome} onChangeText={setNovoNome} autoCapitalize="words" />
                 </View>
 
-                <Text style={cad.materiaLabel}>Matérias que leciona</Text>
-                {novasMaterias.length > 0 && (
-                  <View style={cad.chipsRow}>
-                    {novasMaterias.map((mat, idx) => (
-                      <View key={idx} style={pc.chip}>
-                        <Ionicons name="book-outline" size={10} color="#3a7d44" />
-                        <Text style={pc.chipText}>{mat}</Text>
-                        <TouchableOpacity onPress={() => removerMateria(idx)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                          <Ionicons name="close" size={13} color="#2d6a4f" />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
+                {/* Campo: E-mail */}
+                <View style={cad.fieldWrap}>
+                  <View style={cad.fieldHeader}>
+                    <View style={[cad.fieldIcon, { backgroundColor: "#EFF6FF" }]}>
+                      <Ionicons name="mail-outline" size={15} color="#3b82f6" />
+                    </View>
+                    <Text style={cad.fieldLabel}>E-mail</Text>
+                    <Text style={cad.fieldRequired}>*</Text>
                   </View>
-                )}
-                <View style={cad.addRow}>
-                  <View style={[cad.inputRow, { flex: 1, marginBottom: 0 }]}>
-                    <Ionicons name="book-outline" size={18} color="#888" style={cad.inputIcon} />
-                    <TextInput style={[cad.textInput, { flex: 1 }]} placeholder="Ex: Matemática, Português..." placeholderTextColor="#bbb" value={materiaInput} onChangeText={setMateriaInput} autoCapitalize="words" onSubmitEditing={adicionarMateria} returnKeyType="done" />
-                  </View>
-                  <TouchableOpacity style={cad.addBtn} onPress={adicionarMateria} activeOpacity={0.8}>
-                    <Ionicons name="add" size={20} color="#fff" />
-                  </TouchableOpacity>
+                  <TextInput style={cad.fieldInput} placeholder="email@escola.com" placeholderTextColor="#9CA3AF" value={novoEmail} onChangeText={setNovoEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
                 </View>
-                <Text style={cad.materiaHint}>Adicione uma de cada vez. Toque + ou pressione "concluir".</Text>
 
-                <TouchableOpacity style={[cad.confirmarBtn, cadastrando && { opacity: 0.7 }]} onPress={handleCadastrarProfessor} activeOpacity={0.85} disabled={cadastrando}>
-                  {cadastrando ? <ActivityIndicator color="#fff" /> : <Text style={cad.confirmarBtnText}>Cadastrar Professor</Text>}
+                {/* Campo: Senha */}
+                <View style={cad.fieldWrap}>
+                  <View style={cad.fieldHeader}>
+                    <View style={[cad.fieldIcon, { backgroundColor: "#FFF7ED" }]}>
+                      <Ionicons name="lock-closed-outline" size={15} color="#f97316" />
+                    </View>
+                    <Text style={cad.fieldLabel}>Senha de acesso</Text>
+                    <Text style={cad.fieldRequired}>*</Text>
+                  </View>
+                  <View style={cad.fieldInputRow}>
+                    <TextInput style={[cad.fieldInput, { flex: 1, marginBottom: 0 }]} placeholder="Mínimo 6 caracteres" placeholderTextColor="#9CA3AF" value={novaSenha} onChangeText={setNovaSenha} secureTextEntry={!novaSenhaVisivel} autoCapitalize="none" />
+                    <TouchableOpacity onPress={() => setNovaSenhaVisivel(!novaSenhaVisivel)} style={cad.senhaEye}>
+                      <Ionicons name={novaSenhaVisivel ? "eye-off-outline" : "eye-outline"} size={18} color="#9CA3AF" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Matérias */}
+                <View style={cad.materiasSection}>
+                  <View style={cad.fieldHeader}>
+                    <View style={[cad.fieldIcon, { backgroundColor: "#F0FDF4" }]}>
+                      <Ionicons name="book-outline" size={15} color="#3a7d44" />
+                    </View>
+                    <Text style={cad.fieldLabel}>Matérias que leciona</Text>
+                    <Text style={cad.fieldOptional}>(opcional)</Text>
+                  </View>
+                  {novasMaterias.length > 0 && (
+                    <View style={cad.chipsRow}>
+                      {novasMaterias.map((mat, idx) => (
+                        <View key={idx} style={pc.chip}>
+                          <Ionicons name="book-outline" size={10} color="#3a7d44" />
+                          <Text style={pc.chipText}>{mat}</Text>
+                          <TouchableOpacity onPress={() => removerMateria(idx)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                            <Ionicons name="close" size={13} color="#2d6a4f" />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  <View style={cad.addRow}>
+                    <TextInput style={cad.addInput} placeholder="Ex: Matemática, Português..." placeholderTextColor="#9CA3AF" value={materiaInput} onChangeText={setMateriaInput} autoCapitalize="words" onSubmitEditing={adicionarMateria} returnKeyType="done" />
+                    <TouchableOpacity style={cad.addBtn} onPress={adicionarMateria} activeOpacity={0.8}>
+                      <Ionicons name="add" size={20} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <TouchableOpacity style={[cad.confirmarBtn, cadastrando && { opacity: 0.65 }]} onPress={handleCadastrarProfessor} activeOpacity={0.85} disabled={cadastrando}>
+                  {cadastrando ? <ActivityIndicator color="#fff" /> : (
+                    <><Ionicons name="person-add-outline" size={18} color="#fff" /><Text style={cad.confirmarBtnText}>Criar Professor</Text></>
+                  )}
                 </TouchableOpacity>
               </ScrollView>
             </View>
@@ -815,12 +857,21 @@ export default function ProfessoresScreen() {
 function BloqueioRow({ b }: { b: Bloqueio }) {
   return (
     <View style={m.bloqueioCard}>
-      <View style={m.bloqueioIconWrap}>
-        <Ionicons name="ban-outline" size={16} color="#ef4444" />
+      <View style={m.bloqueioAccent} />
+      <View style={m.bloqueioTimeBadge}>
+        <Text style={m.bloqueioHoraStart}>{b.timeStart}</Text>
+        <View style={m.bloqueioTimeSep} />
+        <Text style={m.bloqueioHoraEnd}>{b.timeEnd}</Text>
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={m.bloqueioHorario}>{b.timeStart} – {b.timeEnd}</Text>
-        {b.descricao ? <Text style={m.bloqueioDesc}>{b.descricao}</Text> : null}
+      <View style={{ flex: 1, paddingVertical: 2 }}>
+        {b.descricao ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+            <Ionicons name="business-outline" size={11} color="#9CA3AF" />
+            <Text style={m.bloqueioDesc} numberOfLines={1}>{b.descricao}</Text>
+          </View>
+        ) : (
+          <Text style={m.bloqueioSemDesc}>Sem motivo informado</Text>
+        )}
       </View>
     </View>
   );
@@ -917,22 +968,56 @@ const li = StyleSheet.create({
 const cad = StyleSheet.create({
   headerBtn: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: "rgba(255,255,255,0.4)" },
   headerBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: "85%", paddingTop: 12 },
-  sheetHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, marginBottom: 16 },
-  sheetTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a2e" },
-  sheetScroll: { paddingHorizontal: 20, paddingBottom: 40 },
-  inputRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#F7F8FA", borderRadius: 12, borderWidth: 1, borderColor: "#E8E8F0", paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
-  inputIcon: { marginRight: 8 },
-  inputLabel: { fontSize: 11, color: "#888", fontWeight: "600", marginBottom: 2 },
-  textInput: { fontSize: 14, color: "#1a1a2e", padding: 0 },
-  materiaLabel: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 8 },
-  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 8 },
-  addRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-  addBtn: { backgroundColor: "#3a7d44", borderRadius: 10, padding: 12, alignItems: "center", justifyContent: "center" },
-  materiaHint: { fontSize: 11, color: "#aaa", marginBottom: 20 },
-  confirmarBtn: { backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 15, alignItems: "center", marginBottom: 8 },
-  confirmarBtnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+  overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.6)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28, height: "90%", paddingTop: 12 },
+
+  // Header do cadastro
+  sheetHeader: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  sheetHeaderIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#BBF7D0" },
+  sheetTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
+  sheetSubtitle: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+
+  sheetScroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
+
+  // Campos redesenhados
+  fieldWrap: { marginBottom: 16 },
+  fieldHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  fieldIcon: { width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+  fieldLabel: { fontSize: 13, fontWeight: "700", color: "#374151", flex: 1 },
+  fieldRequired: { fontSize: 13, color: "#ef4444", fontWeight: "700" },
+  fieldOptional: { fontSize: 12, color: "#9CA3AF" },
+  fieldInput: {
+    backgroundColor: "#F9FAFB", borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB",
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: "#111827", marginBottom: 0,
+  },
+  fieldInputRow: { flexDirection: "row", alignItems: "center", backgroundColor: "#F9FAFB", borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB" },
+  senhaEye: { paddingHorizontal: 14 },
+
+  // Matérias
+  materiasSection: { marginBottom: 20 },
+  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
+  addRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  addInput: {
+    flex: 1, backgroundColor: "#F9FAFB", borderRadius: 12, borderWidth: 1.5, borderColor: "#E5E7EB",
+    paddingHorizontal: 12, paddingVertical: 11, fontSize: 14, color: "#111827",
+  },
+  addBtn: { backgroundColor: "#3a7d44", borderRadius: 12, width: 44, height: 44, alignItems: "center", justifyContent: "center", shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+
+  confirmarBtn: {
+    backgroundColor: "#3a7d44", borderRadius: 16, paddingVertical: 16,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    shadowColor: "#3a7d44", shadowOpacity: 0.32, shadowRadius: 10, elevation: 5,
+    marginBottom: 8,
+  },
+  confirmarBtnText: { fontSize: 15, fontWeight: "800", color: "#fff" },
+
+  // Aliases antigos (não usados no novo JSX mas podem existir no modal editar)
+  inputRow: {},
+  inputIcon: {},
+  inputLabel: {},
+  textInput: {},
+  materiaLabel: {},
+  materiaHint: {},
 });
 
 const pc = StyleSheet.create({
@@ -951,26 +1036,122 @@ const inf = StyleSheet.create({
 });
 
 const m = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: "80%", paddingTop: 12 },
-  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginBottom: 16 },
-  sheetHeader: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 20, marginBottom: 16 },
-  sheetTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a2e" },
-  sheetSubtitle: { fontSize: 13, color: "#888", marginTop: 2 },
-  closeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: "#F0F0F0", alignItems: "center", justifyContent: "center", marginLeft: 8 },
+  overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.6)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: "#F8F9FA", borderTopLeftRadius: 28, borderTopRightRadius: 28, height: "88%", paddingTop: 12 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 0 },
+
+  // Profile header
+  profileWrap: {
+    alignItems: "center", paddingHorizontal: 20, paddingBottom: 20, paddingTop: 12,
+    backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#F1F5F9",
+    marginBottom: 0,
+  },
+  closeBtnAbs: {
+    position: "absolute", top: 12, right: 16,
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "#E5E7EB",
+  },
+  closeBtnAbs2: {
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "#E5E7EB",
+  },
+  profileAvatar: {
+    width: 76, height: 76, borderRadius: 22,
+    alignItems: "center", justifyContent: "center", marginBottom: 12,
+    shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 8, elevation: 4,
+  },
+  profileAvatarText: { fontSize: 30, fontWeight: "800", color: "#fff" },
+  profileDot: {
+    position: "absolute", bottom: 2, right: 2,
+    width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: "#fff",
+  },
+  profileNome: { fontSize: 20, fontWeight: "800", color: "#111827", textAlign: "center", marginBottom: 6 },
+  profileRoleRow: { flexDirection: "row", gap: 6, marginBottom: 10 },
+  profileRolePill: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1.5,
+  },
+  profileRoleText: { fontSize: 12, fontWeight: "700" },
+  profileMaterias: { flexDirection: "row", flexWrap: "wrap", gap: 5, justifyContent: "center", marginTop: 4 },
+
+  // Scroll
   sheetScroll: { flex: 1, minHeight: 0 },
-  sheetScrollContent: { paddingHorizontal: 20, paddingBottom: 8 },
-  empty: { alignItems: "center", paddingVertical: 32, gap: 10 },
-  emptyText: { fontSize: 15, fontWeight: "600", color: "#999" },
-  emptySubText: { fontSize: 13, color: "#bbb", textAlign: "center" },
-  diaHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8, marginTop: 4 },
-  diaHeaderText: { fontSize: 12, fontWeight: "700", color: "#3a7d44", textTransform: "uppercase", letterSpacing: 0.5 },
-  bloqueioCard: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "#FFF5F5", borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: "#FFE4E4" },
-  bloqueioIconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: "#FFE4E4", alignItems: "center", justifyContent: "center" },
-  bloqueioHorario: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
-  bloqueioDesc: { fontSize: 12, color: "#666", marginTop: 2 },
-  editarBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 20, marginTop: 8, marginBottom: 8, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#b7dfbe", backgroundColor: "#f0faf2" },
-  editarBtnText: { fontSize: 15, fontWeight: "700", color: "#3a7d44" },
-  excluirBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 20, marginBottom: 20, marginTop: 0, paddingVertical: 13, borderRadius: 14, borderWidth: 1.5, borderColor: "#FED7AA", backgroundColor: "#FFF7ED" },
-  excluirBtnText: { fontSize: 15, fontWeight: "700", color: "#f97316" },
+  sheetScrollContent: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 12 },
+
+  // Section header
+  secHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, marginTop: 4 },
+  secHeaderDot: { width: 4, height: 18, borderRadius: 2, backgroundColor: "#3a7d44" },
+  secHeaderText: { fontSize: 14, fontWeight: "800", color: "#111827", flex: 1 },
+  secBadge: { backgroundColor: "#F0FDF4", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: "#BBF7D0" },
+  secBadgeText: { fontSize: 12, fontWeight: "700", color: "#3a7d44" },
+
+  // Empty
+  empty: { alignItems: "center", paddingVertical: 28, gap: 8 },
+  emptyIconWrap: { width: 60, height: 60, borderRadius: 18, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#BBF7D0" },
+  emptyText: { fontSize: 15, fontWeight: "700", color: "#6B7280" },
+  emptySubText: { fontSize: 12, color: "#9CA3AF", textAlign: "center" },
+
+  // Dia header
+  diaHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8, marginTop: 2 },
+  diaDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#3a7d44" },
+  diaHeaderText: { fontSize: 12, fontWeight: "800", color: "#3a7d44", textTransform: "uppercase", letterSpacing: 0.6, flex: 1 },
+  diaLine: { flex: 1, height: 1, backgroundColor: "#DCFCE7" },
+
+  // Bloqueio card
+  bloqueioCard: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#fff", borderRadius: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: "#FEE2E2", overflow: "hidden",
+    shadowColor: "#ef4444", shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
+  },
+  bloqueioAccent: { width: 4, alignSelf: "stretch", backgroundColor: "#ef4444" },
+  bloqueioTimeBadge: {
+    alignItems: "center", paddingVertical: 12, paddingHorizontal: 12,
+    backgroundColor: "#FFF5F5", gap: 2,
+  },
+  bloqueioHoraStart: { fontSize: 14, fontWeight: "800", color: "#1a1a2e" },
+  bloqueioTimeSep: { width: 16, height: 1.5, backgroundColor: "#fca5a5", borderRadius: 1 },
+  bloqueioHoraEnd: { fontSize: 11, fontWeight: "700", color: "#ef4444" },
+  bloqueioDesc: { fontSize: 12, color: "#6B7280", flex: 1 },
+  bloqueioSemDesc: { fontSize: 11, color: "#D1D5DB", fontStyle: "italic" },
+
+  // Permissão card
+  permCard: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#fff", borderRadius: 16, padding: 14,
+    marginTop: 12, borderWidth: 1, borderColor: "#E5E7EB",
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 1,
+  },
+  permIconWrap: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center" },
+  permTitle: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  permDesc: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
+
+  // Ações
+  acoesWrap: { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingBottom: 20, paddingTop: 8, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: "#F1F5F9" },
+  acaoEditar: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    paddingVertical: 13, borderRadius: 14,
+    backgroundColor: "#F0FDF4", borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  acaoEditarText: { fontSize: 14, fontWeight: "700", color: "#3a7d44" },
+  acaoDesativar: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    paddingVertical: 13, borderRadius: 14,
+    backgroundColor: "#FFF7ED", borderWidth: 1.5, borderColor: "#FED7AA",
+  },
+  acaoDesativarText: { fontSize: 14, fontWeight: "700", color: "#f97316" },
+  acaoReativar: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    paddingVertical: 13, borderRadius: 14,
+    backgroundColor: "#F0FDF4", borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  acaoReativarText: { fontSize: 14, fontWeight: "700", color: "#3a7d44" },
+
+  // Aliases para compatibilidade
+  sheetHeader: {},
+  sheetTitle: {},
+  sheetSubtitle: {},
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
 });

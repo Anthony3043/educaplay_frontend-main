@@ -228,38 +228,95 @@ export default function SalasScreen() {
       </Modal>
 
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={fecharModal}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior="padding"
-        >
-          <TouchableOpacity style={s.modalOverlay} activeOpacity={1} onPress={fecharModal}>
-            <TouchableOpacity activeOpacity={1} style={s.modalSheet}>
-              <View style={s.modalHandle} />
-              <Text style={s.modalTitle}>{editando ? "Editar Sala" : "Nova Sala"}</Text>
-              <View>
-                <Text style={s.modalLabel}>Nome da sala *</Text>
-                <TextInput style={[s.modalInput, nomeFocused && s.modalInputFocused]} value={nome} onChangeText={setNome}
-                  placeholder="Ex: Sala 01, Lab. de Ciências..." placeholderTextColor="#AAAAAA"
-                  onFocus={() => setNomeFocused(true)} onBlur={() => setNomeFocused(false)} />
-              </View>
-              <View>
-                <Text style={s.modalLabel}>Turma *</Text>
-                <TextInput style={[s.modalInput, turmaFocused && s.modalInputFocused]} value={turma} onChangeText={setTurma}
-                  placeholder="Ex: 3º A, 2º B, 1º Ano..." placeholderTextColor="#AAAAAA"
-                  onFocus={() => setTurmaFocused(true)} onBlur={() => setTurmaFocused(false)} />
-              </View>
-              <View>
-                <Text style={s.modalLabel}>Capacidade de alunos *</Text>
-                <TextInput style={[s.modalInput, capFocused && s.modalInputFocused]} value={capacidade} onChangeText={setCapacidade}
-                  placeholder="Ex: 35 alunos" placeholderTextColor="#AAAAAA"
-                  onFocus={() => setCapFocused(true)} onBlur={() => setCapFocused(false)} />
-              </View>
-              <View style={s.modalRow}>
-                <TouchableOpacity style={s.modalCancelBtn} onPress={fecharModal}>
-                  <Text style={s.modalCancelText}>Cancelar</Text>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+          <TouchableOpacity style={sm.overlay} activeOpacity={1} onPress={fecharModal}>
+            <TouchableOpacity activeOpacity={1} style={sm.sheet}>
+              <View style={sm.handle} />
+
+              {/* Header */}
+              <View style={sm.header}>
+                <View style={[sm.headerIcon, { backgroundColor: editando ? "#EFF6FF" : "#F0FDF4" }]}>
+                  <Ionicons name={editando ? "pencil-outline" : "add-circle-outline"} size={20} color={editando ? "#3b82f6" : "#3a7d44"} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={sm.headerTitle}>{editando ? "Editar Sala" : "Nova Sala"}</Text>
+                  <Text style={sm.headerSub}>{editando ? `Editando: ${editando.nome}` : "Preencha os dados da nova sala"}</Text>
+                </View>
+                <TouchableOpacity onPress={fecharModal} style={sm.closeBtn} activeOpacity={0.7}>
+                  <Ionicons name="close" size={18} color="#6B7280" />
                 </TouchableOpacity>
-                <TouchableOpacity style={s.modalSaveBtn} onPress={handleSalvar} disabled={salvando}>
-                  {salvando ? <ActivityIndicator color="#fff" /> : <Text style={s.modalSaveText}>{editando ? "Salvar" : "Criar"}</Text>}
+              </View>
+
+              {/* Campos */}
+              <View style={sm.fieldsWrap}>
+                <View style={sm.field}>
+                  <View style={sm.fieldLabelRow}>
+                    <View style={sm.fieldDot} />
+                    <Text style={sm.fieldLabel}>Nome da sala</Text>
+                    <Text style={sm.required}>*</Text>
+                  </View>
+                  <TextInput
+                    style={[sm.input, nomeFocused && sm.inputFocused]}
+                    value={nome}
+                    onChangeText={setNome}
+                    placeholder="Ex: Sala 01, Laboratório..."
+                    placeholderTextColor="#9CA3AF"
+                    onFocus={() => setNomeFocused(true)}
+                    onBlur={() => setNomeFocused(false)}
+                  />
+                </View>
+
+                <View style={sm.field}>
+                  <View style={sm.fieldLabelRow}>
+                    <View style={[sm.fieldDot, { backgroundColor: "#3b82f6" }]} />
+                    <Text style={sm.fieldLabel}>Turma</Text>
+                    <Text style={sm.required}>*</Text>
+                  </View>
+                  <TextInput
+                    style={[sm.input, turmaFocused && sm.inputFocused]}
+                    value={turma}
+                    onChangeText={setTurma}
+                    placeholder="Ex: 3º A, 2º B, 1º Ano..."
+                    placeholderTextColor="#9CA3AF"
+                    onFocus={() => setTurmaFocused(true)}
+                    onBlur={() => setTurmaFocused(false)}
+                  />
+                </View>
+
+                <View style={sm.field}>
+                  <View style={sm.fieldLabelRow}>
+                    <View style={[sm.fieldDot, { backgroundColor: "#f97316" }]} />
+                    <Text style={sm.fieldLabel}>Capacidade de alunos</Text>
+                    <Text style={sm.required}>*</Text>
+                  </View>
+                  <TextInput
+                    style={[sm.input, capFocused && sm.inputFocused]}
+                    value={capacidade}
+                    onChangeText={setCapacidade}
+                    placeholder="Ex: 35"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="number-pad"
+                    onFocus={() => setCapFocused(true)}
+                    onBlur={() => setCapFocused(false)}
+                  />
+                </View>
+              </View>
+
+              {/* Botões */}
+              <View style={sm.btnRow}>
+                <TouchableOpacity style={sm.cancelBtn} onPress={fecharModal} activeOpacity={0.75}>
+                  <Text style={sm.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[sm.saveBtn, { backgroundColor: editando ? "#3b82f6" : "#3a7d44" }, salvando && { opacity: 0.65 }]}
+                  onPress={handleSalvar}
+                  disabled={salvando}
+                  activeOpacity={0.85}
+                >
+                  {salvando
+                    ? <ActivityIndicator color="#fff" size="small" />
+                    : <><Ionicons name={editando ? "checkmark-outline" : "add-outline"} size={18} color="#fff" /><Text style={sm.saveText}>{editando ? "Salvar" : "Criar Sala"}</Text></>
+                  }
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -285,6 +342,46 @@ export default function SalasScreen() {
     </SafeAreaView>
   );
 }
+
+const sm = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.6)", justifyContent: "flex-end" },
+  sheet: {
+    backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    paddingTop: 12, paddingBottom: 32,
+  },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
+
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, marginBottom: 20 },
+  headerIcon: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#E5E7EB" },
+  headerTitle: { fontSize: 18, fontWeight: "800", color: "#111827" },
+  headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E5E7EB" },
+
+  fieldsWrap: { paddingHorizontal: 20, gap: 14, marginBottom: 24 },
+  field: { gap: 6 },
+  fieldLabelRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  fieldDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#3a7d44" },
+  fieldLabel: { fontSize: 13, fontWeight: "700", color: "#374151", flex: 1 },
+  required: { fontSize: 13, color: "#ef4444", fontWeight: "700" },
+  input: {
+    backgroundColor: "#F9FAFB", borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB",
+    paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: "#111827",
+  },
+  inputFocused: { borderColor: "#3a7d44", backgroundColor: "#fff" },
+
+  btnRow: { flexDirection: "row", gap: 10, paddingHorizontal: 20 },
+  cancelBtn: {
+    flex: 1, paddingVertical: 14, borderRadius: 14,
+    borderWidth: 1.5, borderColor: "#E5E7EB", alignItems: "center", backgroundColor: "#F9FAFB",
+  },
+  cancelText: { fontSize: 15, fontWeight: "600", color: "#6B7280" },
+  saveBtn: {
+    flex: 2, paddingVertical: 14, borderRadius: 14,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    shadowColor: "#3a7d44", shadowOpacity: 0.28, shadowRadius: 10, elevation: 5,
+  },
+  saveText: { fontSize: 15, fontWeight: "800", color: "#fff" },
+});
 
 const sl = StyleSheet.create({
   counterRow: { flexDirection: "row", alignItems: "center", marginBottom: 18 },
