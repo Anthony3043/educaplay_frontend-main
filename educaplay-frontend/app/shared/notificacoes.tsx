@@ -1,8 +1,7 @@
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   ScrollView,
   StatusBar,
@@ -101,6 +100,10 @@ export default function NotificacoesScreen() {
   const [carregando, setCarregando] = useState(true);
   const [prefs, setPrefs] = useState<Record<string, boolean>>(PREFS_DEFAULT);
   const [modalLimpar, setModalLimpar] = useState(false);
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
 
   useEffect(() => {
     carregar();
@@ -138,7 +141,7 @@ export default function NotificacoesScreen() {
       const res = await api.get("/notificacoes");
       setNotifs(res.data);
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar as notificações.");
+      showInfo("Erro", "Não foi possível carregar as notificações.", "erro");
     } finally {
       setCarregando(false);
     }
@@ -179,12 +182,12 @@ export default function NotificacoesScreen() {
 
   return (
     <SafeAreaView style={st.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
       {/* Header */}
       <View style={st.header}>
-        <TouchableOpacity style={st.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
+        <TouchableOpacity style={st.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Text style={st.headerTitle}>Notificações</Text>
@@ -192,7 +195,9 @@ export default function NotificacoesScreen() {
             <Text style={st.headerSub}>{naoLidas} não lida{naoLidas > 1 ? "s" : ""}</Text>
           )}
         </View>
-        <View style={{ width: 40 }} />
+        <View style={st.headerBadge}>
+          <Ionicons name="notifications-outline" size={20} color="rgba(255,255,255,0.85)" />
+        </View>
       </View>
 
       {/* Tabs pill */}
@@ -325,6 +330,22 @@ export default function NotificacoesScreen() {
         )}
       </ScrollView>
 
+      {/* Modal de feedback */}
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"} />
+            </View>
+            <Text style={[inf.titulo, { color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal limpar tudo */}
       <Modal visible={modalLimpar} transparent animationType="fade" onRequestClose={() => setModalLimpar(false)}>
         <View style={st.mlOverlay}>
@@ -350,17 +371,37 @@ export default function NotificacoesScreen() {
   );
 }
 
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});
+
 const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F4F6FA" },
 
   header: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: "#EFEFEF",
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#3a7d44",
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
   },
-  backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: "#1a1a2e" },
-  headerSub: { fontSize: 11, color: "#3a7d44", fontWeight: "600", marginTop: 1 },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
+  },
+  headerBadge: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center", justifyContent: "center",
+  },
+  headerTitle: { fontSize: 20, fontWeight: "800", color: "#fff" },
+  headerSub: { fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: "600", marginTop: 1 },
 
   tabsWrap: { backgroundColor: "#fff", paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "#EFEFEF" },
   tabsPill: {
