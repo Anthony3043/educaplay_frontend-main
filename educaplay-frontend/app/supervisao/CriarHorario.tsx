@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -64,6 +63,10 @@ export default function CriarHorarioScreen() {
   const [professoresIndisponiveis, setProfessoresIndisponiveis]   = useState<ProfIndisponivel[]>([]);
   const [carregando, setCarregando]                               = useState(true);
   const [salvando, setSalvando]                                   = useState(false);
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
 
   const carregarDados = useCallback(async () => {
     try {
@@ -125,11 +128,11 @@ export default function CriarHorarioScreen() {
       setProfessoresDisponiveis(disponiveis);
       setProfessoresIndisponiveis(indisponiveis);
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar os professores.");
+      showInfo("Erro", "Não foi possível carregar os professores.", "erro");
     } finally {
       setCarregando(false);
     }
-  }, [diaSemana, timeStart, timeEnd]);
+  }, [diaSemana, timeStart, timeEnd, showInfo]);
 
   useEffect(() => { carregarDados(); }, [carregarDados]);
 
@@ -138,7 +141,7 @@ export default function CriarHorarioScreen() {
     if (!materia.trim())       erros.push("• Você não preencheu a matéria");
     if (!professorSelecionado) erros.push("• Você não escolheu o professor");
     if (erros.length > 0) {
-      Alert.alert("Campos obrigatórios", erros.join("\n"));
+      showInfo("Campos obrigatórios", erros.join("\n"), "aviso");
       return;
     }
 
@@ -161,7 +164,7 @@ export default function CriarHorarioScreen() {
       if (status === 409) {
         setConflictMsg(backendMsg || "Já existe um horário cadastrado neste horário e dia.");
       } else {
-        Alert.alert("Erro", backendMsg || "Não foi possível criar o horário.");
+        showInfo("Erro", backendMsg || "Não foi possível criar o horário.", "erro");
       }
     } finally {
       setSalvando(false);
@@ -374,6 +377,22 @@ export default function CriarHorarioScreen() {
         </View>
       </Modal>
 
+      {/* Modal de feedback */}
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"} />
+            </View>
+            <Text style={[inf.titulo, { color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de conflito */}
       <Modal visible={!!conflictMsg} transparent animationType="fade" onRequestClose={() => setConflictMsg(null)}>
         <View style={cf.overlay}>
@@ -399,6 +418,16 @@ export default function CriarHorarioScreen() {
     </SafeAreaView>
   );
 }
+
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});
 
 const ch = StyleSheet.create({
   infoBanner: {

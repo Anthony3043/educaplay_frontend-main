@@ -18,8 +18,8 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
+  Modal,
   LayoutAnimation,
   PanResponder,
   ScrollView,
@@ -353,6 +353,10 @@ export default function CronogramaSalaScreen() {
   const [carregando, setCarregando] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [exportando, setExportando] = useState(false);
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const showInfo = useCallback((titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  }, []);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -386,11 +390,11 @@ export default function CronogramaSalaScreen() {
       setCronogramaIds(ids);
       setCronogramas(dados);
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar os cronogramas.");
+      showInfo("Erro", "Não foi possível carregar os cronogramas.", "erro");
     } finally {
       setCarregando(false);
     }
-  }, [salaId]);
+  }, [salaId, showInfo]);
 
   useFocusEffect(useCallback(() => { carregar(); }, [carregar]));
 
@@ -402,7 +406,7 @@ export default function CronogramaSalaScreen() {
         cronogramaId = res.data.id;
         setCronogramaIds(prev => ({ ...prev, [selectedTurno]: cronogramaId! }));
       } catch {
-        Alert.alert("Erro", "Não foi possível iniciar o cronograma.");
+        showInfo("Erro", "Não foi possível iniciar o cronograma.", "erro");
         return;
       }
     }
@@ -559,7 +563,7 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 
       await Sharing.shareAsync(novoUri, { mimeType: "application/pdf", dialogTitle: "Exportar Cronograma" });
     } catch {
-      Alert.alert("Erro", "Não foi possível gerar o PDF.");
+      showInfo("Erro", "Não foi possível gerar o PDF.", "erro");
     } finally {
       setExportando(false);
     }
@@ -567,11 +571,11 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle} numberOfLines={1}>{tituloSala}</Text>
         <TouchableOpacity
@@ -581,8 +585,8 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
           activeOpacity={0.7}
         >
           {exportando
-            ? <ActivityIndicator size={16} color={Colors.primary} />
-            : <Ionicons name="document-text-outline" size={22} color={Colors.primary} />}
+            ? <ActivityIndicator size={16} color="#fff" />
+            : <Ionicons name="document-text-outline" size={22} color="#fff" />}
         </TouchableOpacity>
       </View>
 
@@ -646,19 +650,45 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
           </View>
         </ScrollView>
       )}
+
+      {/* Modal de feedback */}
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={inf.overlay}>
+          <View style={inf.box}>
+            <View style={[inf.iconCircle, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#dcfce7" : "#FFF7ED" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "close-circle-outline" : modalInfo.tipo === "sucesso" ? "checkmark-circle-outline" : "warning-outline"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316"} />
+            </View>
+            <Text style={[inf.titulo, { color: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]}>{modalInfo.titulo}</Text>
+            <Text style={inf.msg}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[inf.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f97316" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={inf.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
+const inf = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", elevation: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20 },
+  iconCircle: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  titulo: { fontSize: 17, fontWeight: "800", textAlign: "center", marginBottom: 8 },
+  msg: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 22, marginBottom: 24 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center", elevation: 3 },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+});
+
 const cal = StyleSheet.create({
   dayHeader: {
-    backgroundColor: Colors.primary, borderRadius: 8, paddingVertical: 8, alignItems: "center",
+    backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 9, alignItems: "center",
   },
-  dayHeaderText: { fontSize: 11, fontWeight: "800", color: Colors.textOnPrimary, letterSpacing: 0.8 },
+  dayHeaderText: { fontSize: 11, fontWeight: "800", color: Colors.textOnPrimary, letterSpacing: 1 },
 
   aulaCard: {
     backgroundColor: Colors.surface, borderRadius: 10, borderLeftWidth: 3, padding: 9, flex: 1,
-    shadowColor: Colors.shadow, shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
+    shadowColor: Colors.shadow, shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
   aulaTime: { fontSize: 10, fontWeight: "800" },
   aulaSubject: { fontSize: 12, fontWeight: "700", color: Colors.textPrimary, marginBottom: 5, lineHeight: 16 },
@@ -683,12 +713,12 @@ const cal = StyleSheet.create({
   sectionHeaderText: { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.6 },
 
   rowCard: {
-    flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface, borderRadius: 12,
-    padding: 12, marginBottom: 8, borderWidth: 1, borderColor: Colors.border, gap: 12,
-    shadowColor: Colors.shadow, shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
+    flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface, borderRadius: 14,
+    padding: 14, marginBottom: 8, borderWidth: 1, borderColor: Colors.border, gap: 12,
+    shadowColor: Colors.shadow, shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
-  rowTimeBox: { alignItems: "center", width: 44, gap: 2 },
-  rowTimeStart: { fontSize: 12, fontWeight: "800", color: Colors.textPrimary },
+  rowTimeBox: { alignItems: "center", width: 46, gap: 2 },
+  rowTimeStart: { fontSize: 13, fontWeight: "800", color: Colors.textPrimary },
   rowTimeEnd: { fontSize: 11, color: Colors.textMuted },
   rowSubject: { fontSize: 13, fontWeight: "700", color: Colors.textPrimary, marginBottom: 3 },
 });
@@ -696,14 +726,21 @@ const cal = StyleSheet.create({
 const act = StyleSheet.create({
   calHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 14 },
   dicaBanner: {
-    flexDirection: "row", alignItems: "flex-start", gap: 8,
-    marginHorizontal: 20, marginBottom: 8,
-    backgroundColor: Colors.primaryPale, borderRadius: 10, padding: 10,
+    flexDirection: "row", alignItems: "center", gap: 10,
+    marginHorizontal: 16, marginBottom: 4, marginTop: 8,
+    backgroundColor: Colors.primaryPale, borderRadius: 14, padding: 14,
     borderWidth: 1, borderColor: Colors.primaryLight,
   },
-  dicaText: { fontSize: 12, color: Colors.primary, flex: 1, lineHeight: 17 },
+  dicaText: { fontSize: 12, color: Colors.primary, flex: 1, lineHeight: 18 },
 });
 
 const pdfSt = StyleSheet.create({
-  btn: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
+  btn: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
