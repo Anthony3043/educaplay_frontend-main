@@ -238,8 +238,8 @@ const s = StyleSheet.create({
   nameBlock: { alignItems: "center", gap: -6 },
   nameEduca: {
     fontSize: 15,
-    fontWeight: "400",
-    color: "rgba(255,255,255,0.65)",
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.88)",
     letterSpacing: 8,
     textTransform: "uppercase",
   },
