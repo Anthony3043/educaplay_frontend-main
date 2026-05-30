@@ -9,7 +9,8 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AppSplashScreen from '../components/AppSplashScreen';
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
-const MIN_SPLASH_MS = 400; // tempo mínimo da splash nativa antes de revelar a JS
+const MIN_SPLASH_MS  = 400;   // tempo mínimo splash nativa
+const MIN_JS_SPLASH  = 2600;  // tempo mínimo da splash JS animada
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,16 +18,23 @@ function RootNavigator() {
   const { usuario, carregando, logout } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [biometriaOk, setBiometriaOk] = useState(false);
+  const [biometriaOk, setBiometriaOk]   = useState(false);
+  const [jsSplashOk, setJsSplashOk]     = useState(false); // timer mínimo da splash JS
   const biometriaVerificada = useRef(false);
   const [splashPronto, setSplashPronto] = useState(false);
   const splashStartTime = useRef(Date.now());
 
-  // Timer mínimo: garante que o splash apareça por pelo menos 2 s
+  // Timer mínimo: splash nativa
   useEffect(() => {
     const elapsed = Date.now() - splashStartTime.current;
     const delay = Math.max(0, MIN_SPLASH_MS - elapsed);
     const t = setTimeout(() => setSplashPronto(true), delay);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Timer mínimo da splash JS animada (2.6 s)
+  useEffect(() => {
+    const t = setTimeout(() => setJsSplashOk(true), MIN_JS_SPLASH);
     return () => clearTimeout(t);
   }, []);
 
@@ -95,7 +103,8 @@ function RootNavigator() {
     }
   }, [usuario, carregando, segments, biometriaOk, router]);
 
-  if (!biometriaOk) {
+  // Mostra splash enquanto biometria não confirmou OU timer mínimo não passou
+  if (!biometriaOk || !jsSplashOk) {
     return <AppSplashScreen />;
   }
 
