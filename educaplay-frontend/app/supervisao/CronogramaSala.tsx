@@ -676,8 +676,8 @@ const cal = StyleSheet.create({
 
   // ── Aula card ────────────────────────────────────────────────
   aulaCard: {
-    flex: 1, borderRadius: 10, borderWidth: 1.5, overflow: "hidden",
-    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+    flex: 1, borderRadius: 10, borderWidth: 1, overflow: "hidden",
+    elevation: 0,
     position: "relative",
   },
   aulaAccentBar: { height: 3, width: "100%" },
