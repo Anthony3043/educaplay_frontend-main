@@ -96,7 +96,7 @@ function CalendarioSemanal({
   onPressEmpty: (dia: string, timeStart: string, timeEnd: string) => void;
   onDragging?: (d: boolean) => void;
 }) {
-  const cor = TURNO_COLORS[turno] || "#3a7d44";
+  const cor = "#3a7d44"; // paleta verde do app
 
   const [dayGaps, setDayGaps] = useState<Record<string, { g1: number; g2: number }>>(
     () => Object.fromEntries(DIAS_SEMANA.map(d => [d, { g1: DEFAULT_INT1_GAP, g2: DEFAULT_INT2_GAP }]))
@@ -622,25 +622,21 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
             <View style={cs.turnoRow}>
               {TURNOS.map((turno) => {
                 const ativo = selectedTurno === turno.id;
-                const cor = TURNO_COLORS[turno.id];
                 return (
                   <TouchableOpacity
                     key={turno.id}
-                    style={[cs.turnoCard, ativo && { borderColor: cor, shadowColor: cor, shadowOpacity: 0.28, elevation: 7 }]}
+                    style={[cs.turnoCard, ativo && { borderColor: "#3a7d44", shadowColor: "#3a7d44", shadowOpacity: 0.25, elevation: 7 }]}
                     onPress={() => setSelectedTurno(turno.id)}
                     activeOpacity={0.82}
                   >
-                    {/* Ghost icon */}
-                    <Ionicons name={turno.ionicon} size={80} color={ativo ? cor + "22" : "#00000008"} style={{ position: "absolute", top: -10, right: -10 }} />
-                    {/* Glint */}
+                    <Ionicons name={turno.ionicon} size={80} color={ativo ? "#3a7d4422" : "#00000008"} style={{ position: "absolute", top: -10, right: -10 }} />
                     <View style={cs.turnoGlint} />
-                    {/* Icon wrap */}
-                    <View style={[cs.turnoIconWrap, { backgroundColor: ativo ? cor + "22" : "#F3F4F6" }]}>
-                      <Ionicons name={turno.ionicon} size={22} color={ativo ? cor : "#9CA3AF"} />
+                    <View style={[cs.turnoIconWrap, { backgroundColor: ativo ? "#e8f5ea" : "#F3F4F6" }]}>
+                      <Ionicons name={turno.ionicon} size={22} color={ativo ? "#3a7d44" : "#9CA3AF"} />
                     </View>
-                    <Text style={[cs.turnoLabel, ativo && { color: cor, fontWeight: "800" }]}>{turno.label}</Text>
+                    <Text style={[cs.turnoLabel, ativo && { color: "#3a7d44", fontWeight: "800" }]}>{turno.label}</Text>
                     <Text style={cs.turnoTime}>{turno.time}</Text>
-                    {ativo && <View style={[cs.turnoDot, { backgroundColor: cor }]} />}
+                    {ativo && <View style={[cs.turnoDot, { backgroundColor: "#3a7d44" }]} />}
                   </TouchableOpacity>
                 );
               })}
@@ -649,8 +645,8 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
 
           {/* Dica compacta */}
           <View style={cs.dica}>
-            <Ionicons name="finger-print-outline" size={14} color={TURNO_COLORS[selectedTurno]} />
-            <Text style={[cs.dicaText, { color: TURNO_COLORS[selectedTurno] }]}>
+            <Ionicons name="finger-print-outline" size={14} color="#3a7d44" />
+            <Text style={[cs.dicaText, { color: "#3a7d44" }]}>
               Toque numa célula vazia para criar • Arraste intervalos para mover
             </Text>
           </View>
@@ -658,7 +654,7 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
           {/* Calendário */}
           <View style={[s.section, { paddingTop: 14 }]}>
             <View style={cs.calHeader}>
-              <View style={[cs.calHeaderDot, { backgroundColor: TURNO_COLORS[selectedTurno] }]} />
+              <View style={[cs.calHeaderDot, { backgroundColor: "#3a7d44" }]} />
               <Text style={[s.sectionTitle, { marginBottom: 0, flex: 1 }]}>
                 {TURNOS.find(t => t.id === selectedTurno)?.label}
               </Text>
