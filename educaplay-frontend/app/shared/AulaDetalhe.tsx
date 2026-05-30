@@ -284,7 +284,7 @@ export default function AulaDetalheScreen() {
 
       <ScrollView contentContainerStyle={ad.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* ── HERO ────────────────────────────────────────── */}
+        {/* ── HERO ─────────────────────────────────────────────── */}
         {ehIntervalo ? (
           <View style={ad.intervaloHero}>
             <View style={ad.intervaloIconWrap}>
@@ -295,55 +295,60 @@ export default function AulaDetalheScreen() {
             <Text style={ad.intervaloDia}>{params.diaSemana || "Todos os dias"}</Text>
           </View>
         ) : (
-          <View style={[ad.hero, { backgroundColor: turnoInfo.color }]}>
-            {/* Ghost icon de fundo */}
-            <Ionicons
-              name={turnoInfo.ionicon}
-              size={160}
-              color="rgba(255,255,255,0.08)"
-              style={{ position: "absolute", right: -30, bottom: -30 }}
-            />
-            {/* Linha superior: turno + dia */}
-            <View style={ad.heroTopRow}>
-              <View style={ad.heroTurnoPill}>
-                <Ionicons name={turnoInfo.ionicon} size={12} color="rgba(255,255,255,0.9)" />
-                <Text style={ad.heroTurnoText}>{turnoInfo.label}</Text>
-              </View>
-              {params.diaSemana ? (
-                <View style={ad.heroDiaPill}>
-                  <Ionicons name="calendar-outline" size={11} color="rgba(255,255,255,0.85)" />
-                  <Text style={ad.heroDiaText}>{params.diaSemana}</Text>
+          <View style={ad.heroWrap}>
+            {/* Faixa colorida de topo */}
+            <View style={[ad.heroStripe, { backgroundColor: turnoInfo.color }]}>
+              <Ionicons name={turnoInfo.ionicon} size={120} color="rgba(255,255,255,0.1)" style={{ position: "absolute", right: -16, top: -16 }} />
+              <View style={ad.heroStripeRow}>
+                <View style={ad.heroTurnoPill}>
+                  <Ionicons name={turnoInfo.ionicon} size={11} color="rgba(255,255,255,0.92)" />
+                  <Text style={ad.heroTurnoText}>{turnoInfo.label}</Text>
                 </View>
-              ) : null}
+                {params.diaSemana ? (
+                  <View style={ad.heroDiaPill}>
+                    <Ionicons name="calendar-outline" size={11} color="rgba(255,255,255,0.85)" />
+                    <Text style={ad.heroDiaText}>{params.diaSemana}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text style={ad.heroSubject} numberOfLines={2}>{params.subject}</Text>
             </View>
 
-            {/* Matéria — destaque principal */}
-            <Text style={ad.heroSubject} numberOfLines={3}>{params.subject}</Text>
+            {/* Ticket perfurado */}
+            <View style={ad.ticketDivider}>
+              <View style={[ad.ticketCircle, { left: -14, backgroundColor: "#F1F5F9" }]} />
+              <View style={ad.ticketDashedLine} />
+              <View style={[ad.ticketCircle, { right: -14, backgroundColor: "#F1F5F9" }]} />
+            </View>
 
-            {/* Horário — linha inferior tipo ticket */}
-            <View style={ad.heroTimeRow}>
-              <View style={ad.heroTimeSide}>
-                <Text style={ad.heroTimeLabel}>INÍCIO</Text>
-                <Text style={ad.heroTimeBig}>{params.timeStart}</Text>
+            {/* Parte branca: horários */}
+            <View style={ad.ticketBody}>
+              <View style={ad.ticketTimeCol}>
+                <Text style={[ad.ticketTimeLabel, { color: turnoInfo.color }]}>INÍCIO</Text>
+                <Text style={[ad.ticketTimeBig, { color: turnoInfo.color }]}>{params.timeStart}</Text>
               </View>
-              <View style={ad.heroTimeDivider}>
-                <View style={ad.heroTimeLine} />
-                <View style={ad.heroTimeDurationBadge}>
-                  <Text style={ad.heroTimeDuration}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
+              <View style={ad.ticketMid}>
+                <View style={[ad.ticketDot, { backgroundColor: turnoInfo.color }]} />
+                <View style={[ad.ticketLine, { backgroundColor: turnoInfo.color + "40" }]} />
+                <View style={[ad.ticketDurBadge, { backgroundColor: turnoInfo.color + "18", borderColor: turnoInfo.color + "40" }]}>
+                  <Ionicons name="timer-outline" size={11} color={turnoInfo.color} />
+                  <Text style={[ad.ticketDurText, { color: turnoInfo.color }]}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
                 </View>
-                <View style={ad.heroTimeLine} />
+                <View style={[ad.ticketLine, { backgroundColor: turnoInfo.color + "40" }]} />
+                <View style={[ad.ticketDot, { backgroundColor: turnoInfo.color }]} />
               </View>
-              <View style={[ad.heroTimeSide, { alignItems: "flex-end" }]}>
-                <Text style={ad.heroTimeLabel}>FIM</Text>
-                <Text style={ad.heroTimeBig}>{params.timeEnd}</Text>
+              <View style={[ad.ticketTimeCol, { alignItems: "flex-end" }]}>
+                <Text style={[ad.ticketTimeLabel, { color: turnoInfo.color }]}>FIM</Text>
+                <Text style={[ad.ticketTimeBig, { color: turnoInfo.color }]}>{params.timeEnd}</Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* ── PROFESSOR ───────────────────────────────────── */}
+        {/* ── PROFESSOR ────────────────────────────────────────── */}
         {!ehIntervalo && (
           <View style={ad.profCard}>
+            {/* Avatar grande */}
             <View style={ad.profAvatarWrap}>
               {profFoto ? (
                 <Image source={{ uri: profFoto }} style={ad.profAvatar} resizeMode="cover" />
@@ -352,43 +357,48 @@ export default function AulaDetalheScreen() {
                   <Text style={ad.profInitialText}>{params.teacher.trim()[0]?.toUpperCase()}</Text>
                 </View>
               ) : (
-                <View style={ad.profInitial}>
-                  <Ionicons name="person-outline" size={26} color="#9CA3AF" />
+                <View style={[ad.profInitial, { backgroundColor: "#F3F4F6" }]}>
+                  <Ionicons name="person-outline" size={28} color="#9CA3AF" />
                 </View>
               )}
-              {params.teacher && <View style={ad.profOnlineDot} />}
+              {params.teacher && <View style={[ad.profDot, { backgroundColor: "#22C55E" }]} />}
             </View>
+
+            {/* Info */}
             <View style={ad.profInfo}>
-              <Text style={ad.profLabel}>Professor(a)</Text>
+              <Text style={ad.profRole}>Professor(a)</Text>
               <Text style={[ad.profName, !params.teacher && { color: "#9CA3AF", fontStyle: "italic" }]}>
                 {params.teacher || "Não atribuído"}
               </Text>
-            </View>
-            <View style={[ad.profBadge, { backgroundColor: turnoInfo.color + "18" }]}>
-              <Ionicons name="school-outline" size={16} color={turnoInfo.color} />
+              {params.teacher && (
+                <View style={[ad.profChip, { backgroundColor: turnoInfo.color + "15" }]}>
+                  <Text style={[ad.profChipText, { color: turnoInfo.color }]}>Responsável pela aula</Text>
+                </View>
+              )}
             </View>
           </View>
         )}
 
-        {/* ── SALA ────────────────────────────────────────── */}
+        {/* ── SALA ─────────────────────────────────────────────── */}
         {!ehIntervalo && params.salaNome && (
-          <View style={ad.salaCard}>
-            <View style={ad.salaIconWrap}>
-              <Ionicons name="business-outline" size={22} color="#3b82f6" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={ad.salaLabel}>Sala</Text>
-              <Text style={ad.salaNome}>{params.salaNome}</Text>
-              {params.salaTurma ? <Text style={ad.salaTurma}>{params.salaTurma}</Text> : null}
+          <View style={ad.metaCard}>
+            <View style={ad.metaRow}>
+              <View style={[ad.metaIcon, { backgroundColor: "#EFF6FF" }]}>
+                <Ionicons name="business-outline" size={18} color="#3b82f6" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={ad.metaLabel}>Sala</Text>
+                <Text style={ad.metaValue}>{params.salaNome}{params.salaTurma ? ` · ${params.salaTurma}` : ""}</Text>
+              </View>
             </View>
           </View>
         )}
 
-        {/* ── EXCLUIR ─────────────────────────────────────── */}
+        {/* ── EXCLUIR ──────────────────────────────────────────── */}
         {!ehIntervalo && !ehReadOnly && (
           <TouchableOpacity onPress={handleExcluir} style={ad.deleteBtn} activeOpacity={0.8}>
             <View style={ad.deleteIconWrap}>
-              <Ionicons name="trash-outline" size={17} color="#ef4444" />
+              <Ionicons name="trash-outline" size={16} color="#ef4444" />
             </View>
             <Text style={ad.deleteBtnText}>Excluir este horário</Text>
           </TouchableOpacity>
@@ -436,111 +446,136 @@ export default function AulaDetalheScreen() {
 }
 
 const ad = StyleSheet.create({
-  scroll: { paddingBottom: 56, gap: 14 },
+  scroll: { paddingBottom: 56, paddingTop: 8, gap: 16 },
 
-  // ── Intervalo hero ────────────────────────────────────────
+  // ── Intervalo ─────────────────────────────────────────────
   intervaloHero: {
-    backgroundColor: "#FFF8F0", margin: 16, borderRadius: 24, padding: 28,
-    alignItems: "center", gap: 8,
+    backgroundColor: "#FFF8F0", marginHorizontal: 16, borderRadius: 24, padding: 32,
+    alignItems: "center", gap: 10,
     borderWidth: 2, borderColor: "#FDE68A",
-    shadowColor: "#F59E0B", shadowOpacity: 0.15, shadowRadius: 12, elevation: 4,
+    shadowColor: "#F59E0B", shadowOpacity: 0.15, shadowRadius: 14, elevation: 4,
   },
   intervaloIconWrap: {
-    width: 64, height: 64, borderRadius: 20,
+    width: 72, height: 72, borderRadius: 22,
     backgroundColor: "#FEF3C7", alignItems: "center", justifyContent: "center",
-    marginBottom: 4, borderWidth: 2, borderColor: "#FDE68A",
+    marginBottom: 6, borderWidth: 2, borderColor: "#FDE68A",
   },
-  intervaloTitle: { fontSize: 24, fontWeight: "800", color: "#92400e" },
-  intervaloTime: { fontSize: 17, fontWeight: "700", color: "#B45309" },
-  intervaloDia: { fontSize: 13, color: "#D97706", fontWeight: "500" },
+  intervaloTitle: { fontSize: 26, fontWeight: "800", color: "#92400e" },
+  intervaloTime: { fontSize: 18, fontWeight: "700", color: "#B45309" },
+  intervaloDia: { fontSize: 13, color: "#D97706", fontWeight: "600" },
 
-  // ── Hero aula ────────────────────────────────────────────
-  hero: {
-    margin: 16, borderRadius: 24, padding: 22, overflow: "hidden",
-    shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 16, elevation: 8,
-    gap: 16,
+  // ── Hero ticket ───────────────────────────────────────────
+  heroWrap: {
+    marginHorizontal: 16, borderRadius: 24, overflow: "hidden",
+    backgroundColor: "#fff",
+    shadowColor: "#000", shadowOpacity: 0.14, shadowRadius: 18, elevation: 8,
   },
-  heroTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  heroStripe: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, overflow: "hidden", gap: 14 },
+  heroStripeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   heroTurnoPill: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 20,
     paddingHorizontal: 10, paddingVertical: 5,
   },
   heroTurnoText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.95)" },
   heroDiaPill: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(0,0,0,0.15)", borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.14)", borderRadius: 20,
     paddingHorizontal: 10, paddingVertical: 5,
   },
-  heroDiaText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.9)" },
+  heroDiaText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.92)" },
+  heroSubject: { fontSize: 28, fontWeight: "800", color: "#fff", lineHeight: 34, letterSpacing: -0.5 },
 
-  heroSubject: { fontSize: 26, fontWeight: "800", color: "#fff", lineHeight: 32, letterSpacing: -0.3 },
-
-  // Ticket de horário
-  heroTimeRow: { flexDirection: "row", alignItems: "center", gap: 0 },
-  heroTimeSide: { alignItems: "flex-start", minWidth: 72 },
-  heroTimeLabel: { fontSize: 9, fontWeight: "700", color: "rgba(255,255,255,0.6)", letterSpacing: 1, marginBottom: 2 },
-  heroTimeBig: { fontSize: 22, fontWeight: "800", color: "#fff" },
-  heroTimeDivider: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8 },
-  heroTimeLine: { flex: 1, height: 1.5, backgroundColor: "rgba(255,255,255,0.3)", borderRadius: 1 },
-  heroTimeDurationBadge: {
-    backgroundColor: "rgba(0,0,0,0.18)", borderRadius: 20,
-    paddingHorizontal: 10, paddingVertical: 4,
+  // Perfuração ticket
+  ticketDivider: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 0, height: 24, overflow: "visible",
   },
-  heroTimeDuration: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.9)" },
+  ticketCircle: {
+    position: "absolute", width: 26, height: 26, borderRadius: 13,
+    zIndex: 2,
+  },
+  ticketDashedLine: {
+    flex: 1, height: 1.5, marginHorizontal: 14,
+    borderWidth: 1, borderColor: "#E5E7EB", borderStyle: "dashed",
+  },
 
-  // ── Professor card ────────────────────────────────────────
+  // Corpo branco
+  ticketBody: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 22, paddingVertical: 20, gap: 0,
+  },
+  ticketTimeCol: { alignItems: "flex-start", minWidth: 68 },
+  ticketTimeLabel: { fontSize: 9, fontWeight: "800", letterSpacing: 1.2, marginBottom: 4 },
+  ticketTimeBig: { fontSize: 26, fontWeight: "800", lineHeight: 30 },
+  ticketMid: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8 },
+  ticketLine: { flex: 1, height: 1.5, borderRadius: 1 },
+  ticketDot: { width: 8, height: 8, borderRadius: 4 },
+  ticketDurBadge: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    borderRadius: 20, borderWidth: 1.5,
+    paddingHorizontal: 8, paddingVertical: 4,
+  },
+  ticketDurText: { fontSize: 11, fontWeight: "700" },
+
+  // ── Professor ─────────────────────────────────────────────
   profCard: {
     flexDirection: "row", alignItems: "center", gap: 16,
-    backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 20, padding: 18,
-    shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 12, elevation: 4,
+    backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 22,
+    padding: 20,
+    shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 14, elevation: 5,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
   profAvatarWrap: { position: "relative" },
-  profAvatar: { width: 60, height: 60, borderRadius: 20 },
+  profAvatar: { width: 66, height: 66, borderRadius: 22 },
   profInitial: {
-    width: 60, height: 60, borderRadius: 20,
-    backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center",
+    width: 66, height: 66, borderRadius: 22,
+    alignItems: "center", justifyContent: "center",
   },
-  profInitialText: { fontSize: 24, fontWeight: "800", color: "#fff" },
-  profOnlineDot: {
+  profInitialText: { fontSize: 26, fontWeight: "800", color: "#fff" },
+  profDot: {
     position: "absolute", bottom: 1, right: 1,
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: "#22C55E", borderWidth: 2.5, borderColor: "#fff",
+    width: 15, height: 15, borderRadius: 8, borderWidth: 2.5, borderColor: "#fff",
   },
-  profInfo: { flex: 1, gap: 4 },
-  profLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6 },
-  profName: { fontSize: 17, fontWeight: "800", color: "#111827" },
-  profBadge: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  profInfo: { flex: 1, gap: 5 },
+  profRole: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.7 },
+  profName: { fontSize: 18, fontWeight: "800", color: "#111827", lineHeight: 22 },
+  profChip: {
+    alignSelf: "flex-start", borderRadius: 8,
+    paddingHorizontal: 9, paddingVertical: 3, marginTop: 2,
+  },
+  profChipText: { fontSize: 11, fontWeight: "600" },
 
-  // ── Sala card ─────────────────────────────────────────────
-  salaCard: {
-    flexDirection: "row", alignItems: "center", gap: 14,
-    backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 18, padding: 16,
+  // ── Meta (sala) ───────────────────────────────────────────
+  metaCard: {
+    backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 18,
+    overflow: "hidden",
     shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
-  salaIconWrap: {
-    width: 46, height: 46, borderRadius: 14,
-    backgroundColor: "#EFF6FF", alignItems: "center", justifyContent: "center",
-    borderWidth: 1.5, borderColor: "#BFDBFE",
+  metaRow: {
+    flexDirection: "row", alignItems: "center", gap: 14,
+    padding: 16,
   },
-  salaLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 },
-  salaNome: { fontSize: 15, fontWeight: "700", color: "#111827" },
-  salaTurma: { fontSize: 12, color: "#6B7280", marginTop: 2 },
+  metaIcon: {
+    width: 44, height: 44, borderRadius: 13,
+    alignItems: "center", justifyContent: "center",
+  },
+  metaLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 4 },
+  metaValue: { fontSize: 15, fontWeight: "700", color: "#111827" },
 
   // ── Delete ────────────────────────────────────────────────
   deleteBtn: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    marginHorizontal: 16, marginTop: 4,
-    backgroundColor: "#FEF2F2", borderRadius: 18, padding: 16,
+    flexDirection: "row", alignItems: "center", gap: 14,
+    marginHorizontal: 16,
+    backgroundColor: "#FEF2F2", borderRadius: 18, padding: 18,
     borderWidth: 1.5, borderColor: "#FECACA",
   },
   deleteIconWrap: {
-    width: 36, height: 36, borderRadius: 11,
-    backgroundColor: "#fee2e2", alignItems: "center", justifyContent: "center",
+    width: 38, height: 38, borderRadius: 12,
+    backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center",
   },
-  deleteBtnText: { fontSize: 15, fontWeight: "700", color: "#ef4444", flex: 1 },
+  deleteBtnText: { fontSize: 15, fontWeight: "700", color: "#ef4444" },
 });
 
 const adHero = StyleSheet.create({
