@@ -180,62 +180,81 @@ export default function AulaDetalheScreen() {
         {carregando ? (
           <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
         ) : (
-          <ScrollView contentContainerStyle={es.scrollContent} keyboardShouldPersistTaps="handled">
-            {/* Banner de horário (somente leitura) */}
-            <View style={adEd.horarioBanner}>
-              <View style={adEd.horarioIconBox}>
-                <Ionicons name="time-outline" size={22} color="#3a7d44" />
+          <ScrollView contentContainerStyle={adNew.scroll} keyboardShouldPersistTaps="handled">
+            {/* ── Horário imutável ── */}
+            <View style={adNew.timeChip}>
+              <View style={adNew.timeChipLeft}>
+                <Ionicons name="time-outline" size={16} color="#3a7d44" />
+                <Text style={adNew.timeChipText}>{params.timeStart} – {params.timeEnd}</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={adEd.horarioLabel}>Horário (não editável)</Text>
-                <Text style={adEd.horarioValue}>{params.timeStart} – {params.timeEnd}</Text>
+              <View style={adNew.timeChipLock}>
+                <Ionicons name="lock-closed-outline" size={11} color="#9CA3AF" />
+                <Text style={adNew.timeChipLockText}>Não editável</Text>
               </View>
-              <Ionicons name="lock-closed-outline" size={16} color="#aaa" />
             </View>
 
-            <View style={es.section}>
-              <Text style={es.sectionTitle}>Matéria</Text>
-              <TextInput style={es.inputCard} value={subject} onChangeText={setSubject} placeholder="Ex: Matemática" placeholderTextColor="#AAAAAA" />
+            {/* ── Matéria ── */}
+            <View style={adNew.card}>
+              <Text style={adNew.cardLabel}>Matéria</Text>
+              <TextInput
+                style={adNew.materiaInput}
+                value={subject}
+                onChangeText={setSubject}
+                placeholder="Nome da matéria..."
+                placeholderTextColor="#D1D5DB"
+                autoCapitalize="words"
+              />
             </View>
 
-            <View style={es.section}>
-              <Text style={es.sectionTitle}>Professor</Text>
-              {professores.map((prof, idx) => {
-                const sel = professorSelecionado?.id === prof.id;
-                const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
-                const cor = CORES[idx % CORES.length];
-                const inicial = prof.nome.trim()[0]?.toUpperCase() ?? "P";
-                return (
-                  <TouchableOpacity
-                    key={prof.id}
-                    style={[es.professorCard, sel && es.professorCardSelected]}
-                    onPress={() => setProfessorSelecionado(sel ? null : prof)}
-                    activeOpacity={0.75}
-                  >
-                    <View style={[es.professorAvatar, { backgroundColor: cor + "20" }]}>
-                      {prof.foto ? (
-                        <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 14 }} resizeMode="cover" />
-                      ) : (
-                        <Text style={[es.professorAvatarText, { color: cor, fontSize: 18, fontWeight: "800" }]}>{inicial}</Text>
-                      )}
-                    </View>
-                    <View style={es.professorInfo}>
-                      <Text style={es.professorNome}>{prof.nome}</Text>
-                      {prof.cargo ? <Text style={es.professorMaterias}>{prof.cargo}</Text> : null}
-                    </View>
-                    {sel && (
-                      <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center" }}>
-                        <Ionicons name="checkmark" size={16} color="#fff" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+            {/* ── Professor ── */}
+            <View style={adNew.card}>
+              <Text style={adNew.cardLabel}>Professor responsável</Text>
+              {professores.length === 0 ? (
+                <View style={adNew.emptyProf}>
+                  <Ionicons name="people-outline" size={28} color="#D1D5DB" />
+                  <Text style={adNew.emptyProfText}>Nenhum professor cadastrado</Text>
+                </View>
+              ) : (
+                <View style={adNew.profList}>
+                  {professores.map((prof, idx) => {
+                    const sel = professorSelecionado?.id === prof.id;
+                    const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
+                    const cor = CORES[idx % CORES.length];
+                    const inicial = prof.nome.trim()[0]?.toUpperCase() ?? "P";
+                    return (
+                      <TouchableOpacity
+                        key={prof.id}
+                        style={[adNew.profRow, sel && { backgroundColor: "#F0FDF4" }, idx < professores.length - 1 && adNew.profRowBorder]}
+                        onPress={() => setProfessorSelecionado(sel ? null : prof)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={[adNew.profAvatar, { backgroundColor: cor + "20" }]}>
+                          {prof.foto ? (
+                            <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 14 }} resizeMode="cover" />
+                          ) : (
+                            <Text style={[adNew.profInitial, { color: cor }]}>{inicial}</Text>
+                          )}
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[adNew.profNome, sel && { color: "#3a7d44" }]}>{prof.nome}</Text>
+                          {prof.cargo ? <Text style={adNew.profMaterias}>{prof.cargo}</Text> : null}
+                        </View>
+                        <View style={[adNew.profCheck, sel ? { backgroundColor: "#3a7d44" } : { backgroundColor: "#F3F4F6", borderWidth: 1.5, borderColor: "#E5E7EB" }]}>
+                          {sel && <Ionicons name="checkmark" size={14} color="#fff" />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
             </View>
 
-            <TouchableOpacity onPress={handleExcluir} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 0, padding: 15, backgroundColor: "#FEF2F2", borderRadius: 16, borderWidth: 1.5, borderColor: "#FECACA" }} activeOpacity={0.8}>
-              <Ionicons name="trash-outline" size={17} color="#ef4444" />
-              <Text style={{ color: "#ef4444", fontWeight: "700", fontSize: 15 }}>Excluir este horário</Text>
+            {/* ── Excluir ── */}
+            <TouchableOpacity onPress={handleExcluir} style={adNew.deleteBtn} activeOpacity={0.8}>
+              <View style={adNew.deleteIcon}>
+                <Ionicons name="trash-outline" size={16} color="#ef4444" />
+              </View>
+              <Text style={adNew.deleteBtnText}>Excluir este horário</Text>
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -623,6 +642,42 @@ const adHero = StyleSheet.create({
     width: 10, height: 10, borderRadius: 5, backgroundColor: "#22C55E",
     borderWidth: 2, borderColor: "#fff",
   },
+});
+
+const adNew = StyleSheet.create({
+  scroll: { padding: 16, paddingBottom: 48, gap: 14 },
+  timeChip: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    backgroundColor: "#F0FDF4", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
+    borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  timeChipLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+  timeChipText: { fontSize: 16, fontWeight: "800", color: "#166534" },
+  timeChipLock: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#fff", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "#E5E7EB" },
+  timeChipLockText: { fontSize: 10, color: "#9CA3AF", fontWeight: "600" },
+  card: {
+    backgroundColor: "#fff", borderRadius: 20, padding: 18, gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 10, elevation: 3,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  cardLabel: { fontSize: 11, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.7 },
+  materiaInput: {
+    fontSize: 22, fontWeight: "700", color: "#111827",
+    borderBottomWidth: 2, borderBottomColor: "#F1F5F9", paddingBottom: 10, padding: 0,
+  },
+  profList: { gap: 0 },
+  profRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 13, paddingHorizontal: 2 },
+  profRowBorder: { borderBottomWidth: 1, borderBottomColor: "#F9FAFB" },
+  profAvatar: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  profInitial: { fontSize: 18, fontWeight: "800" },
+  profNome: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  profMaterias: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
+  profCheck: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  emptyProf: { alignItems: "center", paddingVertical: 24, gap: 8 },
+  emptyProfText: { fontSize: 13, color: "#9CA3AF" },
+  deleteBtn: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "#FEF2F2", borderRadius: 18, padding: 16, borderWidth: 1.5, borderColor: "#FECACA" },
+  deleteIcon: { width: 36, height: 36, borderRadius: 11, backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center" },
+  deleteBtnText: { fontSize: 15, fontWeight: "700", color: "#ef4444" },
 });
 
 const adEd = StyleSheet.create({

@@ -105,123 +105,116 @@ export default function EditarHorarioScreen() {
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
       <ScrollView
-        contentContainerStyle={s.scrollContent}
+        contentContainerStyle={ehNew.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Banner de horário */}
-        <View style={ehEx.horarioBanner}>
-          <View style={ehEx.horarioIconBox}>
-            <Ionicons name="time-outline" size={22} color="#3a7d44" />
+        {/* ── Constraint de horário ── */}
+        <View style={ehNew.timeChip}>
+          <View style={ehNew.timeChipLeft}>
+            <Ionicons name="time-outline" size={16} color="#3a7d44" />
+            <Text style={ehNew.timeChipText}>{params.timeStart} – {params.timeEnd}</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={ehEx.horarioLabel}>Horário da aula</Text>
-            <Text style={ehEx.horarioValue}>{params.timeStart} – {params.timeEnd}</Text>
-          </View>
-          <View style={ehEx.lockBadge}>
-            <Ionicons name="lock-closed-outline" size={13} color="#9CA3AF" />
-            <Text style={ehEx.lockText}>Fixo</Text>
+          <View style={ehNew.timeChipLock}>
+            <Ionicons name="lock-closed-outline" size={11} color="#9CA3AF" />
+            <Text style={ehNew.timeChipLockText}>Não editável</Text>
           </View>
         </View>
 
-        {/* Tipo */}
-        <View style={s.section}>
-          <Text style={s.sectionTitle}>Tipo do horário</Text>
-          <View style={ehEx.tipoRow}>
-            <TouchableOpacity
-              style={[ehEx.tipoBtn, tipoSlot === "aula" && ehEx.tipoBtnActive]}
-              onPress={() => setTipoSlot("aula")}
-              activeOpacity={0.8}
-            >
-              <View style={[ehEx.tipoBtnIcon, { backgroundColor: tipoSlot === "aula" ? "#3a7d44" : "#F3F4F6" }]}>
-                <Ionicons name="book-outline" size={18} color={tipoSlot === "aula" ? "#fff" : "#9CA3AF"} />
-              </View>
-              <Text style={[ehEx.tipoBtnText, tipoSlot === "aula" && ehEx.tipoBtnTextActive]}>Aula</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[ehEx.tipoBtn, tipoSlot === "intervalo" && ehEx.tipoBtnActive]}
-              onPress={() => setTipoSlot("intervalo")}
-              activeOpacity={0.8}
-            >
-              <View style={[ehEx.tipoBtnIcon, { backgroundColor: tipoSlot === "intervalo" ? "#92400e" : "#F3F4F6" }]}>
-                <Ionicons name="cafe-outline" size={18} color={tipoSlot === "intervalo" ? "#fff" : "#9CA3AF"} />
-              </View>
-              <Text style={[ehEx.tipoBtnText, tipoSlot === "intervalo" && { color: "#92400e", fontWeight: "800" }]}>Intervalo</Text>
-            </TouchableOpacity>
-          </View>
+        {/* ── Tipo ── */}
+        <View style={ehNew.tipoWrap}>
+          <TouchableOpacity
+            style={[ehNew.tipoTab, tipoSlot === "aula" && ehNew.tipoTabActive]}
+            onPress={() => setTipoSlot("aula")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="book-outline" size={16} color={tipoSlot === "aula" ? "#fff" : "#9CA3AF"} />
+            <Text style={[ehNew.tipoTabText, tipoSlot === "aula" && ehNew.tipoTabTextActive]}>Aula</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[ehNew.tipoTab, tipoSlot === "intervalo" && { backgroundColor: "#92400e" }]}
+            onPress={() => setTipoSlot("intervalo")}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="cafe-outline" size={16} color={tipoSlot === "intervalo" ? "#fff" : "#9CA3AF"} />
+            <Text style={[ehNew.tipoTabText, tipoSlot === "intervalo" && ehNew.tipoTabTextActive]}>Intervalo</Text>
+          </TouchableOpacity>
         </View>
 
         {tipoSlot === "intervalo" ? (
-          <View style={ehEx.intervaloBanner}>
-            <View style={ehEx.intervaloBannerIcon}>
-              <Ionicons name="cafe-outline" size={20} color="#92400e" />
+          <View style={ehNew.intervaloBanner}>
+            <Ionicons name="cafe-outline" size={22} color="#92400e" />
+            <View style={{ flex: 1 }}>
+              <Text style={ehNew.intervaloTitle}>Intervalo configurado</Text>
+              <Text style={ehNew.intervaloSub}>Nenhum professor ou matéria será atribuído.</Text>
             </View>
-            <Text style={ehEx.intervaloBannerText}>
-              Marcado como intervalo. Sem professor ou matéria.
-            </Text>
           </View>
         ) : (
           <>
-            {/* Matéria */}
-            <View style={s.section}>
-              <Text style={s.sectionTitle}>Matéria</Text>
+            {/* ── Matéria ── */}
+            <View style={ehNew.card}>
+              <Text style={ehNew.cardLabel}>Matéria</Text>
               <TextInput
-                style={ehEx.materiaInput}
+                style={ehNew.materiaInput}
                 value={materia}
                 onChangeText={setMateria}
-                placeholder="Ex: Matemática, Português..."
-                placeholderTextColor="#9CA3AF"
+                placeholder="Nome da matéria..."
+                placeholderTextColor="#D1D5DB"
+                autoCapitalize="words"
               />
             </View>
 
-            {/* Professor */}
-            <View style={s.section}>
-              <Text style={s.sectionTitle}>Professor</Text>
+            {/* ── Professor ── */}
+            <View style={ehNew.card}>
+              <Text style={ehNew.cardLabel}>Professor responsável</Text>
               {carregando ? (
-                <ActivityIndicator color="#3a7d44" style={{ marginTop: 16 }} />
+                <ActivityIndicator color="#3a7d44" style={{ marginVertical: 20 }} />
               ) : professores.length === 0 ? (
-                <View style={s.emptyProfessores}>
-                  <Ionicons name="person-outline" size={32} color="#D1D5DB" />
-                  <Text style={s.emptyProfessoresText}>Nenhum professor cadastrado.</Text>
+                <View style={ehNew.emptyProf}>
+                  <Ionicons name="people-outline" size={28} color="#D1D5DB" />
+                  <Text style={ehNew.emptyProfText}>Nenhum professor cadastrado</Text>
                 </View>
               ) : (
-                professores.map((prof, idx) => {
-                  const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
-                  const cor = CORES[idx % CORES.length];
-                  const inicial = prof.nome.trim()[0]?.toUpperCase() ?? "P";
-                  const selected = professorSelecionado?.id === prof.id;
-                  return (
-                    <TouchableOpacity
-                      key={prof.id}
-                      style={[s.professorCard, selected && s.professorCardSelected]}
-                      onPress={() => setProfessorSelecionado(selected ? null : prof)}
-                      activeOpacity={0.75}
-                    >
-                      <View style={[s.professorAvatar, { backgroundColor: cor + "20" }]}>
-                        <Text style={{ fontSize: 18, fontWeight: "800", color: cor }}>{inicial}</Text>
-                      </View>
-                      <View style={s.professorInfo}>
-                        <Text style={s.professorNome}>{prof.nome}</Text>
-                        {prof.materias.length > 0 && (
-                          <Text style={s.professorMaterias} numberOfLines={1}>{prof.materias.join(" · ")}</Text>
-                        )}
-                      </View>
-                      {selected && (
-                        <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center" }}>
-                          <Ionicons name="checkmark" size={16} color="#fff" />
+                <View style={ehNew.profList}>
+                  {professores.map((prof, idx) => {
+                    const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
+                    const cor = CORES[idx % CORES.length];
+                    const inicial = prof.nome.trim()[0]?.toUpperCase() ?? "P";
+                    const selected = professorSelecionado?.id === prof.id;
+                    return (
+                      <TouchableOpacity
+                        key={prof.id}
+                        style={[ehNew.profRow, selected && { backgroundColor: "#F0FDF4" }, idx < professores.length - 1 && ehNew.profRowBorder]}
+                        onPress={() => setProfessorSelecionado(selected ? null : prof)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={[ehNew.profAvatar, { backgroundColor: cor + "20" }]}>
+                          <Text style={[ehNew.profInitial, { color: cor }]}>{inicial}</Text>
                         </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })
+                        <View style={{ flex: 1 }}>
+                          <Text style={[ehNew.profNome, selected && { color: "#3a7d44" }]}>{prof.nome}</Text>
+                          {prof.materias.length > 0 && (
+                            <Text style={ehNew.profMaterias} numberOfLines={1}>{prof.materias.join(" · ")}</Text>
+                          )}
+                        </View>
+                        <View style={[ehNew.profCheck, selected ? { backgroundColor: "#3a7d44" } : { backgroundColor: "#F3F4F6", borderWidth: 1.5, borderColor: "#E5E7EB" }]}>
+                          {selected && <Ionicons name="checkmark" size={14} color="#fff" />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
               )}
             </View>
           </>
         )}
 
-        <TouchableOpacity onPress={() => setModalConfirmar(true)} style={ehDel.btn} activeOpacity={0.8}>
-          <Ionicons name="trash-outline" size={17} color="#ef4444" />
-          <Text style={ehDel.btnText}>Excluir este horário</Text>
+        {/* ── Excluir ── */}
+        <TouchableOpacity onPress={() => setModalConfirmar(true)} style={ehNew.deleteBtn} activeOpacity={0.8}>
+          <View style={ehNew.deleteIcon}>
+            <Ionicons name="trash-outline" size={16} color="#ef4444" />
+          </View>
+          <Text style={ehNew.deleteBtnText}>Excluir este horário</Text>
         </TouchableOpacity>
       </ScrollView>
       </KeyboardAvoidingView>
@@ -265,6 +258,82 @@ export default function EditarHorarioScreen() {
     </SafeAreaView>
   );
 }
+
+const ehNew = StyleSheet.create({
+  scroll: { padding: 16, paddingBottom: 48, gap: 14 },
+
+  // Chip de horário imutável
+  timeChip: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    backgroundColor: "#F0FDF4", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
+    borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  timeChipLeft: { flexDirection: "row", alignItems: "center", gap: 8 },
+  timeChipText: { fontSize: 16, fontWeight: "800", color: "#166534" },
+  timeChipLock: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#fff", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "#E5E7EB" },
+  timeChipLockText: { fontSize: 10, color: "#9CA3AF", fontWeight: "600" },
+
+  // Tipo tabs
+  tipoWrap: {
+    flexDirection: "row", backgroundColor: "#F3F4F6", borderRadius: 16, padding: 4, gap: 4,
+  },
+  tipoTab: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    paddingVertical: 11, borderRadius: 13,
+  },
+  tipoTabActive: { backgroundColor: "#3a7d44", shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 6, elevation: 3 },
+  tipoTabText: { fontSize: 14, fontWeight: "600", color: "#9CA3AF" },
+  tipoTabTextActive: { color: "#fff", fontWeight: "800" },
+
+  // Banner intervalo
+  intervaloBanner: {
+    flexDirection: "row", alignItems: "center", gap: 14,
+    backgroundColor: "#FFF8F0", borderRadius: 18, padding: 20,
+    borderWidth: 1.5, borderColor: "#FDE68A",
+  },
+  intervaloTitle: { fontSize: 15, fontWeight: "700", color: "#92400e" },
+  intervaloSub: { fontSize: 12, color: "#B45309", marginTop: 2 },
+
+  // Card de seção
+  card: {
+    backgroundColor: "#fff", borderRadius: 20, padding: 18, gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 10, elevation: 3,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  cardLabel: { fontSize: 11, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.7 },
+
+  // Input matéria grande
+  materiaInput: {
+    fontSize: 22, fontWeight: "700", color: "#111827",
+    borderBottomWidth: 2, borderBottomColor: "#F1F5F9", paddingBottom: 10,
+    padding: 0,
+  },
+
+  // Lista de professores
+  profList: { gap: 0 },
+  profRow: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingVertical: 13, paddingHorizontal: 2,
+  },
+  profRowBorder: { borderBottomWidth: 1, borderBottomColor: "#F9FAFB" },
+  profAvatar: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  profInitial: { fontSize: 18, fontWeight: "800" },
+  profNome: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  profMaterias: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
+  profCheck: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+
+  emptyProf: { alignItems: "center", paddingVertical: 24, gap: 8 },
+  emptyProfText: { fontSize: 13, color: "#9CA3AF" },
+
+  // Delete
+  deleteBtn: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#FEF2F2", borderRadius: 18, padding: 16,
+    borderWidth: 1.5, borderColor: "#FECACA",
+  },
+  deleteIcon: { width: 36, height: 36, borderRadius: 11, backgroundColor: "#FEE2E2", alignItems: "center", justifyContent: "center" },
+  deleteBtnText: { fontSize: 15, fontWeight: "700", color: "#ef4444" },
+});
 
 const eh = StyleSheet.create({
   diasRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
