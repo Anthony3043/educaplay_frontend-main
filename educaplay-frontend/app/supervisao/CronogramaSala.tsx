@@ -44,6 +44,7 @@ export type Aula = {
   timeEnd: string;
   subject: string;
   teacher: string;
+  teacherFoto?: string | null;
   isInterval?: boolean;
   diaSemana?: string | null;
   professorId?: string | null;
@@ -62,7 +63,7 @@ type CronogramaAPI = {
     subject: string;
     diaSemana?: string | null;
     isInterval: boolean;
-    professor: { id: string; nome: string } | null;
+    professor: { id: string; nome: string; foto?: string | null } | null;
     sala: { id: string; nome: string; turma?: string | null } | null;
   }[];
 };
@@ -377,6 +378,7 @@ export default function CronogramaSalaScreen() {
             timeEnd: a.timeEnd,
             subject: a.subject,
             teacher: a.professor?.nome ?? "",
+            teacherFoto: a.professor?.foto ?? null,
             isInterval: a.isInterval,
             diaSemana: a.diaSemana ?? null,
             professorId: a.professor?.id ?? null,
@@ -432,6 +434,7 @@ export default function CronogramaSalaScreen() {
         timeEnd: aula.timeEnd,
         subject: aula.subject,
         teacher: aula.teacher,
+        teacherFoto: aula.teacherFoto ?? "",
         diaSemana: aula.diaSemana ?? "",
         professorId: aula.professorId ?? "",
         salaId: aula.salaId ?? "",

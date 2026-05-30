@@ -58,7 +58,7 @@ export default function AulaDetalheScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     id: string; timeStart: string; timeEnd: string;
-    subject: string; teacher: string; turno: string;
+    subject: string; teacher: string; teacherFoto?: string; turno: string;
     diaSemana: string;
     professorId: string; salaId: string; salaNome: string; salaTurma: string;
     isInterval?: string;
@@ -359,7 +359,13 @@ export default function AulaDetalheScreen() {
         {!ehIntervalo && (
           <View style={s.teacherCard}>
             <View style={s.teacherAvatar}>
-              {params.teacher ? (
+              {params.teacherFoto ? (
+                <Image
+                  source={{ uri: params.teacherFoto }}
+                  style={{ width: 56, height: 56, borderRadius: 18 }}
+                  resizeMode="cover"
+                />
+              ) : params.teacher ? (
                 <View style={adHero.profInitial}>
                   <Text style={adHero.profInitialText}>{params.teacher.trim()[0]?.toUpperCase() ?? "P"}</Text>
                 </View>
@@ -373,9 +379,7 @@ export default function AulaDetalheScreen() {
                 {params.teacher || "Não atribuído"}
               </Text>
             </View>
-            {params.teacher && (
-              <View style={adHero.profStatusDot} />
-            )}
+            {params.teacher && <View style={adHero.profStatusDot} />}
           </View>
         )}
 

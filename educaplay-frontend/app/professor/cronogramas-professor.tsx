@@ -181,7 +181,8 @@ export default function CronogramasProfessorScreen() {
       pathname: "/shared/AulaDetalhe",
       params: {
         id: aula.id, timeStart: aula.timeStart, timeEnd: aula.timeEnd, subject: aula.subject,
-        teacher: usuario?.nome ?? "", diaSemana: aula.diaSemana ?? "",
+        teacher: usuario?.nome ?? "", teacherFoto: usuario?.foto ?? "",
+        diaSemana: aula.diaSemana ?? "",
         professorId: usuario?.id ?? "", salaId: aula.salaId ?? "",
         salaNome: aula.salaNome ?? "", salaTurma: aula.salaTurma ?? "",
         turno: aula.turno, isInterval: "false", readOnly: "true",
