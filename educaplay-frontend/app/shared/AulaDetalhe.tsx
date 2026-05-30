@@ -264,8 +264,33 @@ export default function AulaDetalheScreen() {
   }
 
   return (
-    <SafeAreaView style={[s.container, { backgroundColor: ehIntervalo ? "#FFF8F0" : turnoInfo.color }]}>
-      <StatusBar barStyle="light-content" backgroundColor={ehIntervalo ? "#FFF8F0" : turnoInfo.color} />
+    <SafeAreaView style={s.container}>
+      <StatusBar barStyle="light-content" backgroundColor={ehIntervalo ? "#92400e" : turnoInfo.color} />
+
+      {/* Header na cor do turno — sem clash */}
+      <View style={[s.header, { backgroundColor: ehIntervalo ? "#92400e" : turnoInfo.color, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
+        </TouchableOpacity>
+        <Text style={s.headerTitle} numberOfLines={1}>{ehIntervalo ? "Intervalo" : params.subject}</Text>
+        {ehReadOnly ? (
+          <View style={{ width: 40 }} />
+        ) : (
+          <TouchableOpacity
+            style={s.headerRightBtn}
+            onPress={() => {
+              if (ehIntervalo) {
+                router.push({ pathname: "/supervisao/EditarHorario", params: { id: params.id, timeStart: params.timeStart, timeEnd: params.timeEnd, subject: params.subject, turno: params.turno, isInterval: "true", diaSemana: params.diaSemana ?? "" } });
+              } else {
+                setEditando(true);
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="pencil-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       <ScrollView contentContainerStyle={ad.scroll} showsVerticalScrollIndicator={false}>
 
@@ -281,20 +306,9 @@ export default function AulaDetalheScreen() {
           </View>
         ) : (
           <View style={ad.heroWrap}>
-            {/* Faixa colorida de topo — inclui botões nav */}
+            {/* Faixa colorida */}
             <View style={[ad.heroStripe, { backgroundColor: turnoInfo.color }]}>
               <Ionicons name={turnoInfo.ionicon} size={120} color="rgba(255,255,255,0.1)" style={{ position: "absolute", right: -16, top: -16 }} />
-              {/* Botões back/edit sobre o hero */}
-              <View style={ad.heroNav}>
-                <TouchableOpacity style={ad.heroNavBtn} onPress={() => router.back()} activeOpacity={0.7}>
-                  <Ionicons name="arrow-back" size={20} color="#fff" />
-                </TouchableOpacity>
-                {!ehReadOnly ? (
-                  <TouchableOpacity style={ad.heroNavBtn} onPress={() => setEditando(true)} activeOpacity={0.7}>
-                    <Ionicons name="pencil-outline" size={18} color="#fff" />
-                  </TouchableOpacity>
-                ) : <View style={{ width: 40 }} />}
-              </View>
               <View style={ad.heroStripeRow}>
                 <View style={ad.heroTurnoPill}>
                   <Ionicons name={turnoInfo.ionicon} size={11} color="rgba(255,255,255,0.92)" />
@@ -442,7 +456,7 @@ export default function AulaDetalheScreen() {
 }
 
 const ad = StyleSheet.create({
-  scroll: { paddingBottom: 56, paddingTop: 0, gap: 16 },
+  scroll: { paddingBottom: 56, paddingTop: 16, gap: 16 },
 
   // ── Intervalo ─────────────────────────────────────────────
   intervaloHero: {
@@ -462,20 +476,11 @@ const ad = StyleSheet.create({
 
   // ── Hero ticket ───────────────────────────────────────────
   heroWrap: {
-    marginHorizontal: 0, borderRadius: 0, overflow: "hidden",
+    marginHorizontal: 16, borderRadius: 24, overflow: "hidden",
     backgroundColor: "#fff",
     shadowColor: "#000", shadowOpacity: 0.14, shadowRadius: 18, elevation: 8,
   },
-  heroNav: {
-    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
-    marginBottom: 8,
-  },
-  heroNavBtn: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center", justifyContent: "center",
-  },
-  heroStripe: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24, overflow: "hidden", gap: 10 },
+  heroStripe: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, overflow: "hidden", gap: 14 },
   heroStripeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   heroTurnoPill: {
     flexDirection: "row", alignItems: "center", gap: 5,
