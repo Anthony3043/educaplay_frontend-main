@@ -94,14 +94,26 @@ export default function HomeScreen() {
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
   // Verifica avisos ao focar E a cada 30s enquanto a tela está ativa
+  const [sucessoSubstituto, setSucessoSubstituto] = useState<{nome: string; aulas: number} | null>(null);
+
+  const getDiaSemanaHoje = () => {
+    const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
+    return map[new Date().getDay()] ?? null;
+  };
+
   const abrirSubstituto = async (alerta: any) => {
     setAlertaParaSubstituir(alerta);
     setSubstitutoEscolhido(null);
+    setProfessoresLista([]);
     setModalSubstituto(true);
     try {
-      const res = await api.get("/professores");
-      // Exclui o professor ausente da lista
-      setProfessoresLista(res.data.filter((p: any) => p.id !== alerta.professor?.id && p.ativo !== false));
+      const params: any = {
+        professorAbsenteId: alerta.professor?.id,
+        diaSemana: getDiaSemanaHoje(),
+      };
+      if (alerta.horarioChegada) params.horarioChegada = alerta.horarioChegada;
+      const res = await api.get("/avisos-professor/professores-disponiveis", { params });
+      setProfessoresLista(res.data);
     } catch {}
   };
 
@@ -109,20 +121,14 @@ export default function HomeScreen() {
     if (!substitutoEscolhido || !alertaParaSubstituir) return;
     setSalvandoSubstituto(true);
     try {
-      const diaSemanaHoje = (() => {
-        const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
-        return map[new Date().getDay()] ?? null;
-      })();
       const res = await api.post("/avisos-professor/substituir", {
         professorAbsenteId: alertaParaSubstituir.professor?.id,
         professorSubstitutoId: substitutoEscolhido.id,
-        diaSemana: diaSemanaHoje,
+        diaSemana: getDiaSemanaHoje(),
         horarioChegada: alertaParaSubstituir.horarioChegada || null,
       });
       setModalSubstituto(false);
-      setModalAlertas(false);
-      const n = res.data?.aulasSubstituidas ?? 0;
-      alert(`✅ ${n} aula(s) transferida(s) para ${substitutoEscolhido.nome}.`);
+      setSucessoSubstituto({ nome: substitutoEscolhido.nome, aulas: res.data?.aulasSubstituidas ?? 0 });
     } catch (err: any) {
       alert(err?.response?.data?.error || "Erro ao substituir professor.");
     } finally {
@@ -454,6 +460,13 @@ export default function HomeScreen() {
             </Text>
 
             <ScrollView contentContainerStyle={sb.lista} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {professoresLista.length === 0 && (
+                <View style={sb.emptyWrap}>
+                  <Ionicons name="people-outline" size={32} color="#D1D5DB" />
+                  <Text style={sb.emptyText}>Nenhum professor disponível</Text>
+                  <Text style={sb.emptySub}>Todos já têm aulas nesse horário</Text>
+                </View>
+              )}
               {professoresLista.map((prof, idx) => {
                 const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
                 const cor = CORES[idx % CORES.length];
@@ -503,6 +516,25 @@ export default function HomeScreen() {
                 }
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Pop-up de sucesso da substituição */}
+      <Modal visible={!!sucessoSubstituto} transparent animationType="fade" onRequestClose={() => setSucessoSubstituto(null)}>
+        <View style={sb.successOverlay}>
+          <View style={sb.successBox}>
+            <View style={sb.successIconWrap}>
+              <Ionicons name="checkmark-circle" size={40} color="#3a7d44" />
+            </View>
+            <Text style={sb.successTitle}>Substituição confirmada!</Text>
+            <Text style={sb.successMsg}>
+              <Text style={{ fontWeight: "800" }}>{sucessoSubstituto?.aulas ?? 0} aula(s)</Text> transferida(s) para{"\n"}
+              <Text style={{ fontWeight: "800" }}>{sucessoSubstituto?.nome}</Text>.
+            </Text>
+            <TouchableOpacity style={sb.successBtn} onPress={() => setSucessoSubstituto(null)} activeOpacity={0.85}>
+              <Text style={sb.successBtnText}>Fechar</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -618,4 +650,15 @@ const sb = StyleSheet.create({
   cancelText: { fontSize: 14, fontWeight: "600", color: "#6B7280" },
   confirmBtn: { flex: 2, paddingVertical: 14, borderRadius: 14, backgroundColor: "#3a7d44", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, shadowColor: "#3a7d44", shadowOpacity: 0.28, shadowRadius: 8, elevation: 4 },
   confirmText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  emptyWrap: { alignItems: "center", paddingVertical: 32, gap: 8 },
+  emptyText: { fontSize: 15, fontWeight: "700", color: "#6B7280" },
+  emptySub: { fontSize: 13, color: "#9CA3AF", textAlign: "center" },
+  // Sucesso
+  successOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
+  successBox: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", gap: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20, elevation: 10 },
+  successIconWrap: { width: 72, height: 72, borderRadius: 36, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#BBF7D0", marginBottom: 4 },
+  successTitle: { fontSize: 18, fontWeight: "800", color: "#111827", textAlign: "center" },
+  successMsg: { fontSize: 14, color: "#6B7280", textAlign: "center", lineHeight: 22 },
+  successBtn: { width: "100%", backgroundColor: "#3a7d44", borderRadius: 14, paddingVertical: 14, alignItems: "center", marginTop: 8, shadowColor: "#3a7d44", shadowOpacity: 0.28, shadowRadius: 8, elevation: 4 },
+  successBtnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });
