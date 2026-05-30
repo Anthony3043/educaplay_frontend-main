@@ -579,87 +579,79 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
     }
   };
 
+  const aulaCount = cronogramas[selectedTurno].filter(a => !a.isInterval && a.diaSemana).length;
+
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
-      <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={22} color="#fff" />
+      {/* ── Header expandido com sala ── */}
+      <View style={sb.header}>
+        <TouchableOpacity style={sb.headerBack} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: "center", paddingHorizontal: 4 }}>
-          <Text
-            style={[s.headerTitle, { fontSize: 16, lineHeight: 20 }]}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-            minimumFontSize={12}
-          >
+        <View style={{ flex: 1, paddingHorizontal: 12 }}>
+          <Text style={sb.headerLabel}>Cronograma</Text>
+          <Text style={sb.headerSala} numberOfLines={1} adjustsFontSizeToFit minimumFontSize={13}>
             {tituloSala}
           </Text>
         </View>
-        <TouchableOpacity
-          style={pdfSt.btn}
-          onPress={gerarPDF}
-          disabled={exportando}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity style={sb.headerPdf} onPress={gerarPDF} disabled={exportando} activeOpacity={0.7}>
           {exportando
-            ? <ActivityIndicator size={16} color="#fff" />
-            : <Ionicons name="document-text-outline" size={22} color="#fff" />}
+            ? <ActivityIndicator size={15} color="#fff" />
+            : <Ionicons name="document-text-outline" size={19} color="#fff" />}
         </TouchableOpacity>
       </View>
 
+      {/* ── Turno tabs FIXOS (fora do scroll) ── */}
+      <View style={sb.turnoBar}>
+        {TURNOS.map(turno => {
+          const ativo = selectedTurno === turno.id;
+          return (
+            <TouchableOpacity
+              key={turno.id}
+              style={[sb.turnoTab, ativo && sb.turnoTabActive]}
+              onPress={() => setSelectedTurno(turno.id)}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={turno.ionicon}
+                size={16}
+                color={ativo ? "#fff" : "#9CA3AF"}
+              />
+              <View>
+                <Text style={[sb.turnoTabLabel, ativo && sb.turnoTabLabelActive]}>{turno.label}</Text>
+                <Text style={[sb.turnoTabTime, ativo && { color: "rgba(255,255,255,0.7)" }]}>{turno.time}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {carregando ? (
-        <ActivityIndicator style={{ flex: 1 }} size="large" color={Colors.primary} />
+        <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
       ) : (
         <ScrollView
           scrollEnabled={!isDragging}
-          contentContainerStyle={s.scrollContent}
+          contentContainerStyle={sb.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          {/* Seletor de turno */}
-          <View style={cs.turnoSection}>
-            <Text style={cs.turnoSectionLabel}>Selecione o turno</Text>
-            <View style={cs.turnoRow}>
-              {TURNOS.map((turno) => {
-                const ativo = selectedTurno === turno.id;
-                return (
-                  <TouchableOpacity
-                    key={turno.id}
-                    style={[cs.turnoCard, ativo && { borderColor: "#3a7d44", shadowColor: "#3a7d44", shadowOpacity: 0.25, elevation: 7 }]}
-                    onPress={() => setSelectedTurno(turno.id)}
-                    activeOpacity={0.82}
-                  >
-                    <Ionicons name={turno.ionicon} size={80} color={ativo ? "#3a7d4422" : "#00000008"} style={{ position: "absolute", top: -10, right: -10 }} />
-                    <View style={cs.turnoGlint} />
-                    <View style={[cs.turnoIconWrap, { backgroundColor: ativo ? "#e8f5ea" : "#F3F4F6" }]}>
-                      <Ionicons name={turno.ionicon} size={22} color={ativo ? "#3a7d44" : "#9CA3AF"} />
-                    </View>
-                    <Text style={[cs.turnoLabel, ativo && { color: "#3a7d44", fontWeight: "800" }]}>{turno.label}</Text>
-                    <Text style={cs.turnoTime}>{turno.time}</Text>
-                    {ativo && <View style={[cs.turnoDot, { backgroundColor: "#3a7d44" }]} />}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Dica compacta */}
-          <View style={cs.dica}>
-            <Ionicons name="finger-print-outline" size={14} color="#3a7d44" />
-            <Text style={[cs.dicaText, { color: "#3a7d44" }]}>
-              Toque numa célula vazia para criar • Arraste intervalos para mover
-            </Text>
-          </View>
-
-          {/* Calendário */}
-          <View style={[s.section, { paddingTop: 14 }]}>
-            <View style={cs.calHeader}>
-              <View style={[cs.calHeaderDot, { backgroundColor: "#3a7d44" }]} />
-              <Text style={[s.sectionTitle, { marginBottom: 0, flex: 1 }]}>
-                {TURNOS.find(t => t.id === selectedTurno)?.label}
+          {/* ── Info row ── */}
+          <View style={sb.infoRow}>
+            <View style={sb.infoChip}>
+              <View style={sb.infoChipDot} />
+              <Text style={sb.infoChipText}>
+                {aulaCount} {aulaCount === 1 ? "aula" : "aulas"} programadas
               </Text>
-              <Text style={cs.calHeaderSub}>{TURNOS.find(t => t.id === selectedTurno)?.time}</Text>
             </View>
+            <View style={sb.hintChip}>
+              <Ionicons name="hand-left-outline" size={12} color="#9CA3AF" />
+              <Text style={sb.hintChipText}>Toque + para criar</Text>
+            </View>
+          </View>
+
+          {/* ── Grade ── */}
+          <View style={sb.gridWrap}>
             <CalendarioSemanal
               key={selectedTurno}
               aulas={cronogramas[selectedTurno]}
@@ -830,12 +822,73 @@ const cs = StyleSheet.create({
 });
 
 const pdfSt = StyleSheet.create({
-  btn: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
+  btn: { width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
+});
+
+const sb = StyleSheet.create({
+  // ── Header expandido ──────────────────────────────────────
+  header: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "#3a7d44",
+    paddingHorizontal: 16, paddingVertical: 16,
+    borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
   },
+  headerBack: {
+    width: 38, height: 38, borderRadius: 11,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
+  },
+  headerLabel: { fontSize: 11, fontWeight: "600", color: "rgba(255,255,255,0.65)", letterSpacing: 0.5, textTransform: "uppercase" },
+  headerSala: { fontSize: 18, fontWeight: "800", color: "#fff", marginTop: 1 },
+  headerPdf: {
+    width: 38, height: 38, borderRadius: 11,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.3)",
+  },
+
+  // ── Turno tabs fixos ──────────────────────────────────────
+  turnoBar: {
+    flexDirection: "row", backgroundColor: "#fff",
+    borderBottomWidth: 1, borderBottomColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, elevation: 3,
+  },
+  turnoTab: {
+    flex: 1, flexDirection: "row", alignItems: "center", gap: 10,
+    paddingVertical: 14, paddingHorizontal: 16,
+    borderBottomWidth: 3, borderBottomColor: "transparent",
+  },
+  turnoTabActive: {
+    borderBottomColor: "#3a7d44",
+  },
+  turnoTabLabel: { fontSize: 14, fontWeight: "600", color: "#9CA3AF" },
+  turnoTabLabelActive: { color: "#3a7d44", fontWeight: "800" },
+  turnoTabTime: { fontSize: 10, color: "#9CA3AF", marginTop: 1 },
+
+  // ── Scroll ────────────────────────────────────────────────
+  scrollContent: { paddingBottom: 40 },
+
+  // ── Info row ─────────────────────────────────────────────
+  infoRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    paddingHorizontal: 16, paddingVertical: 12,
+  },
+  infoChip: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    backgroundColor: "#F0FDF4", borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 5,
+    borderWidth: 1, borderColor: "#BBF7D0",
+  },
+  infoChipDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#3a7d44" },
+  infoChipText: { fontSize: 12, fontWeight: "700", color: "#166534" },
+  hintChip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "#F9FAFB", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: 1, borderColor: "#E5E7EB",
+  },
+  hintChipText: { fontSize: 11, color: "#9CA3AF", fontWeight: "500" },
+
+  // ── Grid ─────────────────────────────────────────────────
+  gridWrap: { paddingHorizontal: 12, paddingBottom: 8 },
 });
