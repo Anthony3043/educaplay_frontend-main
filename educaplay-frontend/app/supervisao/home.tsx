@@ -1,6 +1,7 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   BackHandler,
   Dimensions,
@@ -76,6 +77,12 @@ export default function HomeScreen() {
   const [alertasProf, setAlertasProf] = useState<any[]>([]);
   const [modalAlertas, setModalAlertas] = useState(false);
   const [alertaIdx, setAlertaIdx] = useState(0);
+  // Modal substituto
+  const [modalSubstituto, setModalSubstituto] = useState(false);
+  const [alertaParaSubstituir, setAlertaParaSubstituir] = useState<any>(null);
+  const [professoresLista, setProfessoresLista] = useState<any[]>([]);
+  const [substitutoEscolhido, setSubstitutoEscolhido] = useState<any>(null);
+  const [salvandoSubstituto, setSalvandoSubstituto] = useState(false);
 
   const carregarNotifs = useCallback(async () => {
     try {
@@ -87,6 +94,42 @@ export default function HomeScreen() {
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
   // Verifica avisos ao focar E a cada 30s enquanto a tela está ativa
+  const abrirSubstituto = async (alerta: any) => {
+    setAlertaParaSubstituir(alerta);
+    setSubstitutoEscolhido(null);
+    setModalSubstituto(true);
+    try {
+      const res = await api.get("/professores");
+      // Exclui o professor ausente da lista
+      setProfessoresLista(res.data.filter((p: any) => p.id !== alerta.professor?.id && p.ativo !== false));
+    } catch {}
+  };
+
+  const confirmarSubstituto = async () => {
+    if (!substitutoEscolhido || !alertaParaSubstituir) return;
+    setSalvandoSubstituto(true);
+    try {
+      const diaSemanaHoje = (() => {
+        const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
+        return map[new Date().getDay()] ?? null;
+      })();
+      const res = await api.post("/avisos-professor/substituir", {
+        professorAbsenteId: alertaParaSubstituir.professor?.id,
+        professorSubstitutoId: substitutoEscolhido.id,
+        diaSemana: diaSemanaHoje,
+        horarioChegada: alertaParaSubstituir.horarioChegada || null,
+      });
+      setModalSubstituto(false);
+      setModalAlertas(false);
+      const n = res.data?.aulasSubstituidas ?? 0;
+      alert(`✅ ${n} aula(s) transferida(s) para ${substitutoEscolhido.nome}.`);
+    } catch (err: any) {
+      alert(err?.response?.data?.error || "Erro ao substituir professor.");
+    } finally {
+      setSalvandoSubstituto(false);
+    }
+  };
+
   useFocusEffect(useCallback(() => {
     const carregarAlertas = async () => {
       try {
@@ -351,6 +394,16 @@ export default function HomeScreen() {
                     <Text style={al.counter}>{alertaIdx + 1} de {alertasProf.length}</Text>
                   )}
 
+                  {/* Botão adicionar substituto */}
+                  <TouchableOpacity
+                    style={al.btnSubstituto}
+                    onPress={() => { setModalAlertas(false); abrirSubstituto(alerta); }}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="person-add-outline" size={16} color="#3a7d44" />
+                    <Text style={al.btnSubstitutoText}>Adicionar substituto</Text>
+                  </TouchableOpacity>
+
                   <View style={al.botoesRow}>
                     {alertaIdx < alertasProf.length - 1 ? (
                       <>
@@ -358,7 +411,7 @@ export default function HomeScreen() {
                           <Text style={al.btnSecundarioText}>Próximo</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={[al.btnPrimario, { backgroundColor: cor }]} onPress={() => setModalAlertas(false)} activeOpacity={0.85}>
-                          <Text style={al.btnPrimarioText}>Fechar tudo</Text>
+                          <Text style={al.btnPrimarioText}>Fechar</Text>
                         </TouchableOpacity>
                       </>
                     ) : (
@@ -370,6 +423,86 @@ export default function HomeScreen() {
                 </>
               );
             })()}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de seleção de substituto */}
+      <Modal visible={modalSubstituto} transparent animationType="slide" onRequestClose={() => setModalSubstituto(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <View style={sb.sheet}>
+            <View style={sb.handle} />
+            <View style={sb.header}>
+              <View style={sb.headerIcon}>
+                <Ionicons name="person-add-outline" size={20} color="#3a7d44" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={sb.headerTitle}>Escolher substituto</Text>
+                <Text style={sb.headerSub} numberOfLines={1}>
+                  Substituindo: {alertaParaSubstituir?.professor?.nome}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setModalSubstituto(false)} style={sb.closeBtn} activeOpacity={0.7}>
+                <Ionicons name="close" size={18} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={sb.sectionLabel}>
+              {alertaParaSubstituir?.tipo === "ausencia"
+                ? "Todas as aulas do dia serão transferidas"
+                : `Aulas antes das ${alertaParaSubstituir?.horarioChegada} serão transferidas`}
+            </Text>
+
+            <ScrollView contentContainerStyle={sb.lista} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              {professoresLista.map((prof, idx) => {
+                const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
+                const cor = CORES[idx % CORES.length];
+                const sel = substitutoEscolhido?.id === prof.id;
+                return (
+                  <TouchableOpacity
+                    key={prof.id}
+                    style={[sb.profRow, sel && { backgroundColor: "#F0FDF4", borderColor: "#BBF7D0" }]}
+                    onPress={() => setSubstitutoEscolhido(sel ? null : prof)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[sb.profAvatar, { backgroundColor: cor + "20" }]}>
+                      {prof.foto
+                        ? <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 13 }} resizeMode="cover" />
+                        : <Text style={[sb.profInitial, { color: cor }]}>{prof.nome[0]?.toUpperCase()}</Text>
+                      }
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[sb.profNome, sel && { color: "#3a7d44" }]}>{prof.nome}</Text>
+                      {prof.materias?.length > 0 && (
+                        <Text style={sb.profMaterias} numberOfLines={1}>{prof.materias.join(" · ")}</Text>
+                      )}
+                    </View>
+                    {sel && (
+                      <View style={sb.profCheck}>
+                        <Ionicons name="checkmark" size={14} color="#fff" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            <View style={sb.footer}>
+              <TouchableOpacity style={sb.cancelBtn} onPress={() => setModalSubstituto(false)} activeOpacity={0.75}>
+                <Text style={sb.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[sb.confirmBtn, (!substitutoEscolhido || salvandoSubstituto) && { opacity: 0.5 }]}
+                onPress={confirmarSubstituto}
+                disabled={!substitutoEscolhido || salvandoSubstituto}
+                activeOpacity={0.85}
+              >
+                {salvandoSubstituto
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <><Ionicons name="checkmark-outline" size={18} color="#fff" /><Text style={sb.confirmText}>Confirmar substituição</Text></>
+                }
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -456,4 +589,33 @@ const al = StyleSheet.create({
   btnSecundarioText: { fontSize: 14, fontWeight: "600", color: "#555" },
   btnPrimario: { flex: 1, paddingVertical: 13, borderRadius: 14, alignItems: "center" },
   btnPrimarioText: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  btnSubstituto: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,
+    width: "100%", paddingVertical: 11, borderRadius: 14, marginTop: 4,
+    backgroundColor: "#F0FDF4", borderWidth: 1.5, borderColor: "#BBF7D0",
+  },
+  btnSubstitutoText: { fontSize: 13, fontWeight: "700", color: "#3a7d44" },
+});
+
+const sb = StyleSheet.create({
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "88%", paddingTop: 12 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, marginBottom: 8 },
+  headerIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#BBF7D0" },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
+  headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
+  sectionLabel: { fontSize: 12, color: "#6B7280", paddingHorizontal: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  lista: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16, gap: 6 },
+  profRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "#F1F5F9", backgroundColor: "#fff" },
+  profAvatar: { width: 44, height: 44, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  profInitial: { fontSize: 18, fontWeight: "800" },
+  profNome: { fontSize: 15, fontWeight: "700", color: "#111827" },
+  profMaterias: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
+  profCheck: { width: 28, height: 28, borderRadius: 14, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center" },
+  footer: { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#F1F5F9" },
+  cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB", alignItems: "center", backgroundColor: "#F9FAFB" },
+  cancelText: { fontSize: 14, fontWeight: "600", color: "#6B7280" },
+  confirmBtn: { flex: 2, paddingVertical: 14, borderRadius: 14, backgroundColor: "#3a7d44", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, shadowColor: "#3a7d44", shadowOpacity: 0.28, shadowRadius: 8, elevation: 4 },
+  confirmText: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });
