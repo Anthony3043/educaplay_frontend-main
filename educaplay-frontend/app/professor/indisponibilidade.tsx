@@ -1,7 +1,9 @@
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -66,6 +68,31 @@ export default function IndisponibilidadeScreen() {
   const [horarioChegada, setHorarioChegada] = useState("");
   const [motivoAviso, setMotivoAviso] = useState("");
   const [enviandoAviso, setEnviandoAviso] = useState(false);
+  // Substituto
+  const [professoresDisponiveis, setProfessoresDisponiveis] = useState<{id:string;nome:string;foto?:string|null}[]>([]);
+  const [substitutoSelecionado, setSubstitutoSelecionado] = useState<{id:string;nome:string} | null>(null);
+  const [carregandoProfs, setCarregandoProfs] = useState(false);
+
+  const { usuario } = useAuth();
+
+  // Dias da semana para enviar ao backend
+  const getDiaSemanaHoje = (): string | null => {
+    const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
+    return map[new Date().getDay()] ?? null;
+  };
+
+  // Carrega professores ao abrir modal
+  useEffect(() => {
+    if (!modalAvisar) return;
+    setCarregandoProfs(true);
+    api.get("/professores")
+      .then(res => {
+        // Exclui o próprio professor da lista
+        setProfessoresDisponiveis(res.data.filter((p: any) => p.id !== usuario?.id && p.ativo !== false));
+      })
+      .catch(() => {})
+      .finally(() => setCarregandoProfs(false));
+  }, [modalAvisar]);
 
   const mostrarAviso = (tipo: "aviso" | "erro" | "sucesso", titulo: string, mensagem: string) =>
     setModalAviso({ visivel: true, tipo, titulo, mensagem });
@@ -81,16 +108,23 @@ export default function IndisponibilidadeScreen() {
     }
     setEnviandoAviso(true);
     try {
-      await api.post("/avisos-professor", {
+      const res = await api.post("/avisos-professor", {
         tipo: tipoAviso,
         horarioChegada: tipoAviso === "atraso" ? horarioChegada.trim() : null,
         motivo: motivoAviso.trim(),
+        professorSubstitutoId: substitutoSelecionado?.id ?? null,
+        diaSemana: getDiaSemanaHoje(),
       });
       setModalAvisar(false);
       setMotivoAviso("");
       setHorarioChegada("");
       setTipoAviso("ausencia");
-      mostrarAviso("sucesso", "Aviso enviado!", "A supervisão foi notificada sobre sua situação.");
+      setSubstitutoSelecionado(null);
+      const aulas = res.data?.aulasSubstituidas ?? 0;
+      const subMsg = substitutoSelecionado && aulas > 0
+        ? `\n${aulas} aula(s) transferida(s) para ${substitutoSelecionado.nome}.`
+        : "";
+      mostrarAviso("sucesso", "Aviso enviado!", `A supervisão foi notificada.${subMsg}`);
     } catch (err: any) {
       const msg = err?.response?.data?.error || err?.message || "Não foi possível enviar o aviso.";
       mostrarAviso("erro", "Erro ao enviar", msg);
@@ -472,6 +506,70 @@ export default function IndisponibilidadeScreen() {
                   textAlignVertical="top"
                 />
 
+                {/* ── Seletor de substituto ── */}
+                <View style={av.subSection}>
+                  <View style={av.subHeader}>
+                    <Ionicons name="people-outline" size={16} color="#374151" />
+                    <Text style={av.subLabel}>
+                      Indicar professor substituto
+                      <Text style={{ color: "#9CA3AF", fontWeight: "400" }}> (opcional)</Text>
+                    </Text>
+                  </View>
+                  <Text style={av.subHint}>
+                    {tipoAviso === "ausencia"
+                      ? "As aulas do dia serão transferidas para o substituto."
+                      : "As aulas antes do seu horário de chegada serão transferidas."}
+                  </Text>
+
+                  {carregandoProfs ? (
+                    <ActivityIndicator size="small" color="#3a7d44" style={{ marginTop: 8 }} />
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={av.subScroll}>
+                      {/* Opção "Nenhum" */}
+                      <TouchableOpacity
+                        style={[av.subCard, !substitutoSelecionado && av.subCardActive]}
+                        onPress={() => setSubstitutoSelecionado(null)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={[av.subAvatar, { backgroundColor: "#F3F4F6" }]}>
+                          <Ionicons name="close-outline" size={20} color="#9CA3AF" />
+                        </View>
+                        <Text style={[av.subNome, !substitutoSelecionado && { color: "#374151" }]}>Nenhum</Text>
+                      </TouchableOpacity>
+
+                      {professoresDisponiveis.map((prof, idx) => {
+                        const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
+                        const cor = CORES[idx % CORES.length];
+                        const sel = substitutoSelecionado?.id === prof.id;
+                        return (
+                          <TouchableOpacity
+                            key={prof.id}
+                            style={[av.subCard, sel && av.subCardActive, sel && { borderColor: cor }]}
+                            onPress={() => setSubstitutoSelecionado(sel ? null : { id: prof.id, nome: prof.nome })}
+                            activeOpacity={0.75}
+                          >
+                            <View style={[av.subAvatar, { backgroundColor: cor + "20" }]}>
+                              {prof.foto ? (
+                                <Image source={{ uri: prof.foto }} style={{ width: 40, height: 40, borderRadius: 12 }} resizeMode="cover" />
+                              ) : (
+                                <Text style={[av.subAvatarText, { color: cor }]}>{prof.nome[0]?.toUpperCase()}</Text>
+                              )}
+                            </View>
+                            <Text style={[av.subNome, sel && { color: cor, fontWeight: "700" }]} numberOfLines={1}>
+                              {prof.nome.split(" ")[0]}
+                            </Text>
+                            {sel && (
+                              <View style={[av.subCheck, { backgroundColor: cor }]}>
+                                <Ionicons name="checkmark" size={10} color="#fff" />
+                              </View>
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
+                </View>
+
                 {/* Botão enviar */}
                 <TouchableOpacity
                   style={[
@@ -809,6 +907,23 @@ const av = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: "#1a1a2e",
     minHeight: 96, marginBottom: 20, lineHeight: 20,
   },
+  // Seletor de substituto
+  subSection: { marginBottom: 20, gap: 8 },
+  subHeader: { flexDirection: "row", alignItems: "center", gap: 7 },
+  subLabel: { fontSize: 13, fontWeight: "700", color: "#374151", flex: 1 },
+  subHint: { fontSize: 11, color: "#9CA3AF", lineHeight: 16 },
+  subScroll: { paddingVertical: 4, gap: 8, paddingRight: 4 },
+  subCard: {
+    alignItems: "center", gap: 6, width: 64,
+    backgroundColor: "#F9FAFB", borderRadius: 14, padding: 8,
+    borderWidth: 1.5, borderColor: "transparent",
+  },
+  subCardActive: { backgroundColor: "#fff", borderColor: "#3a7d44", shadowColor: "#3a7d44", shadowOpacity: 0.12, shadowRadius: 4, elevation: 2 },
+  subAvatar: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  subAvatarText: { fontSize: 18, fontWeight: "800" },
+  subNome: { fontSize: 10, fontWeight: "600", color: "#9CA3AF", textAlign: "center" },
+  subCheck: { position: "absolute", top: 4, right: 4, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
+
   enviarBtn: {
     borderRadius: 16, paddingVertical: 16,
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
