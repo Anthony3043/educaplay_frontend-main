@@ -9,8 +9,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import AppSplashScreen from '../components/AppSplashScreen';
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
-const MIN_SPLASH_MS  = 400;   // tempo mínimo splash nativa
-const MIN_JS_SPLASH  = 2600;  // tempo mínimo da splash JS animada
+const MIN_JS_SPLASH = 2600; // a JS splash cuida do tempo mínimo
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,33 +17,30 @@ function RootNavigator() {
   const { usuario, carregando, logout } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [biometriaOk, setBiometriaOk]   = useState(false);
-  const [jsSplashOk, setJsSplashOk]     = useState(false);
-  const [splashMounted, setSplashMounted] = useState(true); // controla unmount após fade-out
+  const [biometriaOk, setBiometriaOk]     = useState(false);
+  const [jsSplashOk, setJsSplashOk]       = useState(false);
+  const [splashMounted, setSplashMounted] = useState(true);
   const biometriaVerificada = useRef(false);
-  const [splashPronto, setSplashPronto] = useState(false);
-  const splashStartTime = useRef(Date.now());
+  const [splashPronto, setSplashPronto]   = useState(false);
 
-  // Timer mínimo: splash nativa
+  // Esconde splash nativa imediatamente (JS splash cuida do tempo)
   useEffect(() => {
-    const elapsed = Date.now() - splashStartTime.current;
-    const delay = Math.max(0, MIN_SPLASH_MS - elapsed);
-    const t = setTimeout(() => setSplashPronto(true), delay);
+    const t = setTimeout(() => setSplashPronto(true), 0);
     return () => clearTimeout(t);
   }, []);
 
-  // Timer mínimo da splash JS animada (2.6 s)
+  // Timer mínimo da splash JS animada (2.6s)
   useEffect(() => {
     const t = setTimeout(() => setJsSplashOk(true), MIN_JS_SPLASH);
     return () => clearTimeout(t);
   }, []);
 
-  // Oculta o splash somente quando o app estiver pronto E o timer mínimo tiver passado
+  // Esconde a splash NATIVA assim que o JS estiver pronto — a animada cuida do resto
   useEffect(() => {
-    if (biometriaOk && splashPronto) {
+    if (splashPronto) {
       SplashScreen.hideAsync();
     }
-  }, [biometriaOk, splashPronto]);
+  }, [splashPronto]);
 
   useEffect(() => {
     if (carregando) return;

@@ -38,9 +38,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/logo_icon.png",
-          "imageWidth": 160,
+          "imageWidth": 120,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#f0faf1"
         }
       ],
       "expo-web-browser",
