@@ -577,7 +577,16 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>{tituloSala}</Text>
+        <View style={{ flex: 1, alignItems: "center", paddingHorizontal: 4 }}>
+          <Text
+            style={[s.headerTitle, { fontSize: 16, lineHeight: 20 }]}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontSize={12}
+          >
+            {tituloSala}
+          </Text>
+        </View>
         <TouchableOpacity
           style={pdfSt.btn}
           onPress={gerarPDF}
@@ -682,45 +691,47 @@ const inf = StyleSheet.create({
 
 const cal = StyleSheet.create({
   dayHeader: {
-    backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 9, alignItems: "center",
+    backgroundColor: "#1C2B3A", borderRadius: 12, paddingVertical: 10, alignItems: "center",
+    marginBottom: 2,
   },
-  dayHeaderText: { fontSize: 11, fontWeight: "800", color: Colors.textOnPrimary, letterSpacing: 1 },
+  dayHeaderText: { fontSize: 11, fontWeight: "800", color: "rgba(255,255,255,0.85)", letterSpacing: 1.2 },
 
   aulaCard: {
-    backgroundColor: Colors.surface, borderRadius: 10, borderLeftWidth: 3, padding: 9, flex: 1,
-    shadowColor: Colors.shadow, shadowOpacity: 0.08, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    backgroundColor: "#fff", borderRadius: 12, borderLeftWidth: 3, padding: 9, flex: 1,
+    shadowColor: "#000", shadowOpacity: 0.09, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
   aulaTime: { fontSize: 10, fontWeight: "800" },
-  aulaSubject: { fontSize: 12, fontWeight: "700", color: Colors.textPrimary, marginBottom: 5, lineHeight: 16 },
-  detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 3 },
-  detailText: { fontSize: 10, color: Colors.textSecondary, flex: 1 },
+  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", marginBottom: 4, lineHeight: 15 },
+  detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 2 },
+  detailText: { fontSize: 9, color: "#9CA3AF", flex: 1 },
 
   emptyCell: {
-    flex: 1, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 10, borderStyle: "dashed", backgroundColor: Colors.surfaceAlt,
+    flex: 1, borderWidth: 1.5, borderColor: "#E5E7EB",
+    borderRadius: 12, borderStyle: "dashed", backgroundColor: "#F9FAFB",
     alignItems: "center", justifyContent: "center",
   },
 
   intervaloCelula: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     height: INT_H,
-    backgroundColor: Colors.warningBg, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 8,
-    borderWidth: 1.5, borderColor: Colors.warningBorder,
+    backgroundColor: "#FFFBEB", borderRadius: 12, paddingVertical: 8, paddingHorizontal: 8,
+    borderWidth: 1.5, borderColor: "#FDE68A",
+    shadowColor: "#F59E0B", shadowOpacity: 0.12, shadowRadius: 4, elevation: 1,
   },
-  intervaloCelulaText: { fontSize: 10, color: Colors.warningText, fontWeight: "700", flex: 1, marginRight: 2 },
+  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700", flex: 1, marginRight: 2 },
 
-  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 },
-  sectionHeaderText: { fontSize: 11, fontWeight: "700", color: Colors.textMuted, textTransform: "uppercase", letterSpacing: 0.6 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, marginTop: 8 },
+  sectionHeaderText: { fontSize: 12, fontWeight: "700", color: "#6B7280", textTransform: "uppercase", letterSpacing: 0.6 },
 
   rowCard: {
-    flexDirection: "row", alignItems: "center", backgroundColor: Colors.surface, borderRadius: 14,
-    padding: 14, marginBottom: 8, borderWidth: 1, borderColor: Colors.border, gap: 12,
-    shadowColor: Colors.shadow, shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 18,
+    padding: 14, marginBottom: 10, borderWidth: 1, borderColor: "#F1F5F9", gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  rowTimeBox: { alignItems: "center", width: 46, gap: 2 },
-  rowTimeStart: { fontSize: 13, fontWeight: "800", color: Colors.textPrimary },
-  rowTimeEnd: { fontSize: 11, color: Colors.textMuted },
-  rowSubject: { fontSize: 13, fontWeight: "700", color: Colors.textPrimary, marginBottom: 3 },
+  rowTimeBox: { alignItems: "center", width: 50, gap: 2 },
+  rowTimeStart: { fontSize: 14, fontWeight: "800", color: "#111827" },
+  rowTimeEnd: { fontSize: 11, color: "#9CA3AF" },
+  rowSubject: { fontSize: 14, fontWeight: "700", color: "#111827", marginBottom: 3 },
 });
 
 const act = StyleSheet.create({

@@ -942,54 +942,69 @@ const pp = StyleSheet.create({
 });
 
 const em = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.6)", justifyContent: "flex-end" },
+  overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.65)", justifyContent: "flex-end" },
   sheet: {
-    backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    maxHeight: "82%", paddingTop: 12,
+    backgroundColor: "#F8F9FA", borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    maxHeight: "85%", paddingTop: 12,
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
-  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  header: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingHorizontal: 20, paddingBottom: 16,
+    borderBottomWidth: 1, borderBottomColor: "#F1F5F9",
+    backgroundColor: "#fff",
+  },
   headerIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#BBF7D0" },
   headerTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
   headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E5E7EB" },
-  scroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
 
-  emptyWrap: { alignItems: "center", paddingVertical: 24, gap: 8 },
+  emptyWrap: {
+    alignItems: "center", paddingVertical: 32, gap: 10,
+    backgroundColor: "#fff", borderRadius: 20, marginBottom: 16,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
   emptyText: { fontSize: 14, color: "#9CA3AF", fontWeight: "600" },
 
-  chipsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 24 },
+  chipsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 },
   chip: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    backgroundColor: "#F0FDF4", borderRadius: 20,
-    paddingHorizontal: 12, paddingVertical: 8,
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "#fff", borderRadius: 24,
+    paddingHorizontal: 14, paddingVertical: 10,
     borderWidth: 1.5, borderColor: "#BBF7D0",
+    shadowColor: "#3a7d44", shadowOpacity: 0.08, shadowRadius: 6, elevation: 2,
   },
-  chipText: { fontSize: 13, fontWeight: "700", color: "#166534" },
+  chipText: { fontSize: 14, fontWeight: "700", color: "#166534" },
   chipRemove: {
-    width: 22, height: 22, borderRadius: 11,
+    width: 24, height: 24, borderRadius: 12,
     backgroundColor: "#FEF2F2", alignItems: "center", justifyContent: "center",
-    borderWidth: 1, borderColor: "#FECACA",
+    borderWidth: 1.5, borderColor: "#FECACA",
   },
 
-  addSection: { gap: 8, marginBottom: 20 },
-  addLabel: { fontSize: 13, fontWeight: "700", color: "#374151" },
+  addSection: {
+    backgroundColor: "#fff", borderRadius: 18, padding: 16, gap: 10,
+    marginBottom: 16, borderWidth: 1, borderColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  },
+  addLabel: { fontSize: 12, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5 },
   addRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   addInput: {
     flex: 1, backgroundColor: "#F9FAFB", borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB",
-    paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: "#111827",
+    paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: "#111827",
   },
   addBtn: {
-    width: 46, height: 46, borderRadius: 14, backgroundColor: "#3a7d44",
+    width: 48, height: 48, borderRadius: 14, backgroundColor: "#3a7d44",
     alignItems: "center", justifyContent: "center",
-    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 6, elevation: 3,
+    shadowColor: "#3a7d44", shadowOpacity: 0.32, shadowRadius: 8, elevation: 4,
   },
   addHint: { fontSize: 11, color: "#9CA3AF" },
 
   salvarBtn: {
-    backgroundColor: "#3a7d44", borderRadius: 16, paddingVertical: 15,
+    backgroundColor: "#3a7d44", borderRadius: 16, paddingVertical: 16,
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    shadowColor: "#3a7d44", shadowOpacity: 0.3, shadowRadius: 10, elevation: 5,
+    shadowColor: "#3a7d44", shadowOpacity: 0.32, shadowRadius: 12, elevation: 6,
+    marginHorizontal: 0,
   },
   salvarBtnText: { fontSize: 15, fontWeight: "800", color: "#fff" },
 });

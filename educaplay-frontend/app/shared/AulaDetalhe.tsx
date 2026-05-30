@@ -4,9 +4,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -73,6 +73,13 @@ export default function AulaDetalheScreen() {
   const [carregando, setCarregando] = useState(false);
   const [professores, setProfessores] = useState<Professor[]>([]);
 
+  const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
+  const [modalConfirmar, setModalConfirmar] = useState(false);
+
+  const mostrarInfo = (titulo: string, mensagem: string, tipo: "erro" | "aviso" | "sucesso" = "aviso") => {
+    setModalInfo({ visivel: true, titulo, mensagem, tipo });
+  };
+
   const [subject, setSubject] = useState(params.subject);
   const [diaSemana, setDiaSemana] = useState<string | null>(params.diaSemana || null);
   const [professorSelecionado, setProfessorSelecionado] = useState<Professor | null>(null);
@@ -89,7 +96,7 @@ export default function AulaDetalheScreen() {
         if (p) setProfessorSelecionado(p);
       }
     } catch {
-      Alert.alert("Erro", "Não foi possível carregar os professores.");
+      mostrarInfo("Erro", "Não foi possível carregar os professores.", "erro");
     } finally {
       setCarregando(false);
     }
@@ -101,7 +108,7 @@ export default function AulaDetalheScreen() {
 
   const handleSalvar = async () => {
     if (!subject.trim()) {
-      Alert.alert("Atenção", "Informe o nome da matéria.");
+      mostrarInfo("Atenção", "Informe o nome da matéria.");
       return;
     }
     setSalvando(true);
@@ -114,55 +121,43 @@ export default function AulaDetalheScreen() {
         professorId: professorSelecionado?.id ?? null,
         salaId: params.salaId || null,
       });
-      Alert.alert("Sucesso", "Horário atualizado!", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      router.back();
     } catch (err: any) {
       const status = err?.response?.status;
       const msg = err?.response?.data?.error;
       if (status === 409) {
-        Alert.alert("Conflito de horário", msg || "Conflito detectado.");
+        mostrarInfo("Conflito de horário", msg || "Conflito detectado.", "erro");
       } else {
-        Alert.alert("Erro", msg || "Não foi possível salvar.");
+        mostrarInfo("Erro", msg || "Não foi possível salvar.", "erro");
       }
     } finally {
       setSalvando(false);
     }
   };
 
-  const handleExcluir = () => {
-    Alert.alert(
-      "Excluir horário",
-      "Tem certeza que deseja excluir esta aula? Esta ação não pode ser desfeita.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await api.delete(`/aulas/${params.id}`);
-              router.back();
-            } catch {
-              Alert.alert("Erro", "Não foi possível excluir a aula.");
-            }
-          },
-        },
-      ]
-    );
+  const handleExcluir = () => setModalConfirmar(true);
+
+  const confirmarExclusao = async () => {
+    setModalConfirmar(false);
+    try {
+      await api.delete(`/aulas/${params.id}`);
+      router.back();
+    } catch {
+      mostrarInfo("Erro", "Não foi possível excluir a aula.", "erro");
+    }
   };
 
   if (editando) {
     return (
       <SafeAreaView style={es.container}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
         <View style={es.header}>
-          <TouchableOpacity style={es.backBtn} onPress={() => setEditando(false)}>
-            <Text style={{ fontSize: 20 }}>←</Text>
+          <TouchableOpacity style={es.backBtn} onPress={() => setEditando(false)} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={22} color="#fff" />
           </TouchableOpacity>
           <Text style={es.headerTitle}>Editar Horário</Text>
-          <TouchableOpacity style={es.saveBtn} onPress={handleSalvar} disabled={salvando}>
-            <Text style={es.saveBtnText}>{salvando ? "⏳" : "✓"}</Text>
+          <TouchableOpacity style={es.saveBtn} onPress={handleSalvar} disabled={salvando} activeOpacity={0.7}>
+            {salvando ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="checkmark" size={22} color="#fff" />}
           </TouchableOpacity>
         </View>
 
@@ -208,29 +203,42 @@ export default function AulaDetalheScreen() {
 
             <View style={es.section}>
               <Text style={es.sectionTitle}>Professor</Text>
-              {professores.map((prof) => {
+              {professores.map((prof, idx) => {
                 const sel = professorSelecionado?.id === prof.id;
+                const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
+                const cor = CORES[idx % CORES.length];
+                const inicial = prof.nome.trim()[0]?.toUpperCase() ?? "P";
                 return (
-                  <TouchableOpacity key={prof.id} style={[es.professorCard, sel && es.professorCardSelected]} onPress={() => setProfessorSelecionado(sel ? null : prof)} activeOpacity={0.75}>
-                    <View style={es.professorAvatar}>
+                  <TouchableOpacity
+                    key={prof.id}
+                    style={[es.professorCard, sel && es.professorCardSelected]}
+                    onPress={() => setProfessorSelecionado(sel ? null : prof)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[es.professorAvatar, { backgroundColor: cor + "20" }]}>
                       {prof.foto ? (
-                        <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode="cover" />
+                        <Image source={{ uri: prof.foto }} style={{ width: 44, height: 44, borderRadius: 14 }} resizeMode="cover" />
                       ) : (
-                        <Text style={es.professorAvatarText}>👤</Text>
+                        <Text style={[es.professorAvatarText, { color: cor, fontSize: 18, fontWeight: "800" }]}>{inicial}</Text>
                       )}
                     </View>
                     <View style={es.professorInfo}>
                       <Text style={es.professorNome}>{prof.nome}</Text>
                       {prof.cargo ? <Text style={es.professorMaterias}>{prof.cargo}</Text> : null}
                     </View>
-                    {sel && <Text style={es.professorCheckmark}>✓</Text>}
+                    {sel && (
+                      <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center" }}>
+                        <Ionicons name="checkmark" size={16} color="#fff" />
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            <TouchableOpacity onPress={handleExcluir} style={{ margin: 20, padding: 14, backgroundColor: "#fee2e2", borderRadius: 12, alignItems: "center" }} activeOpacity={0.8}>
-              <Text style={{ color: "#dc2626", fontWeight: "700", fontSize: 15 }}>🗑️ Excluir este horário</Text>
+            <TouchableOpacity onPress={handleExcluir} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginHorizontal: 0, padding: 15, backgroundColor: "#FEF2F2", borderRadius: 16, borderWidth: 1.5, borderColor: "#FECACA" }} activeOpacity={0.8}>
+              <Ionicons name="trash-outline" size={17} color="#ef4444" />
+              <Text style={{ color: "#ef4444", fontWeight: "700", fontSize: 15 }}>Excluir este horário</Text>
             </TouchableOpacity>
           </ScrollView>
         )}
@@ -241,17 +249,17 @@ export default function AulaDetalheScreen() {
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
       <View style={s.header}>
-        <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={22} color="#1a1a2e" />
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{ehIntervalo ? "Detalhe do Intervalo" : "Detalhe da Aula"}</Text>
         {ehReadOnly ? (
           <View style={{ width: 40 }} />
         ) : (
           <TouchableOpacity
-            style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}
+            style={s.headerRightBtn}
             onPress={() => {
               if (ehIntervalo) {
                 router.push({
@@ -270,15 +278,15 @@ export default function AulaDetalheScreen() {
                 setEditando(true);
               }
             }}
+            activeOpacity={0.7}
           >
-            <Ionicons name="pencil-outline" size={22} color="#1a1a2e" />
+            <Ionicons name="pencil-outline" size={20} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
 
-      <View style={s.content}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {ehIntervalo ? (
-          /* ── Detalhe de Intervalo ── */
           <View style={adInt.banner}>
             <View style={adInt.iconBox}>
               <Ionicons name="cafe-outline" size={32} color="#92400e" />
@@ -292,36 +300,62 @@ export default function AulaDetalheScreen() {
             </View>
           </View>
         ) : (
-          <View style={[s.subjectBanner, { borderLeftColor: turnoInfo.color }]}>
-            <Ionicons name="book-outline" size={28} color={turnoInfo.color} />
-            <Text style={s.subjectTitle}>{params.subject}</Text>
+          /* Banner hero da matéria */
+          <View style={[adHero.banner]}>
+            <View style={[adHero.accent, { backgroundColor: turnoInfo.color }]} />
+            <View style={[adHero.iconWrap, { backgroundColor: turnoInfo.color + "18" }]}>
+              <Ionicons name="book-outline" size={28} color={turnoInfo.color} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={adHero.label}>Matéria</Text>
+              <Text style={adHero.subject} numberOfLines={2}>{params.subject}</Text>
+            </View>
           </View>
         )}
 
+        {/* Grid de info */}
         <View style={s.infoGrid}>
           <View style={s.infoCard}>
-            <Ionicons name="time-outline" size={24} color="#1a1a2e" />
+            <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
+              <Ionicons name="time-outline" size={18} color="#3a7d44" />
+            </View>
             <Text style={s.infoCardLabel}>Horário</Text>
             <Text style={s.infoCardValue}>{params.timeStart}</Text>
             <Text style={s.infoCardSub}>até {params.timeEnd}</Text>
           </View>
           <View style={s.infoCard}>
-            <Ionicons name={turnoInfo.ionicon} size={24} color={turnoInfo.color} />
+            <View style={[adHero.smallIcon, { backgroundColor: turnoInfo.color + "18" }]}>
+              <Ionicons name={turnoInfo.ionicon} size={18} color={turnoInfo.color} />
+            </View>
             <Text style={s.infoCardLabel}>Turno</Text>
-            <Text style={s.infoCardValue}>{turnoInfo.label}</Text>
+            <Text style={[s.infoCardValue, { color: turnoInfo.color, fontSize: 15 }]}>{turnoInfo.label}</Text>
           </View>
           {params.diaSemana ? (
             <View style={[s.infoCard, { flex: 2 }]}>
-              <Ionicons name="calendar-outline" size={24} color="#3a7d44" />
+              <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
+                <Ionicons name="calendar-outline" size={18} color="#3a7d44" />
+              </View>
               <Text style={s.infoCardLabel}>Dia</Text>
-              <Text style={[s.infoCardValue, { color: "#3a7d44" }]}>{params.diaSemana}</Text>
+              <Text style={[s.infoCardValue, { color: "#3a7d44", fontSize: 15 }]}>{params.diaSemana}</Text>
             </View>
           ) : null}
         </View>
 
+        {/* Duração */}
+        <View style={adHero.durationBar}>
+          <View style={adHero.durationIcon}>
+            <Ionicons name="timer-outline" size={16} color="#3a7d44" />
+          </View>
+          <Text style={adHero.durationLabel}>Duração</Text>
+          <Text style={adHero.durationValue}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
+        </View>
+
+        {/* Sala */}
         {!ehIntervalo && params.salaNome ? (
           <View style={s.teacherCard}>
-            <View style={s.teacherAvatar}><Ionicons name="business-outline" size={28} color="#888" /></View>
+            <View style={[s.teacherAvatar, { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }]}>
+              <Ionicons name="business-outline" size={24} color="#3b82f6" />
+            </View>
             <View style={s.teacherInfo}>
               <Text style={s.teacherLabel}>Sala</Text>
               <Text style={s.teacherName}>
@@ -331,34 +365,115 @@ export default function AulaDetalheScreen() {
           </View>
         ) : null}
 
+        {/* Professor */}
         {!ehIntervalo && (
           <View style={s.teacherCard}>
-            <View style={s.teacherAvatar}><Ionicons name="person-outline" size={28} color="#888" /></View>
+            <View style={s.teacherAvatar}>
+              {params.teacher ? (
+                <View style={adHero.profInitial}>
+                  <Text style={adHero.profInitialText}>{params.teacher.trim()[0]?.toUpperCase() ?? "P"}</Text>
+                </View>
+              ) : (
+                <Ionicons name="person-outline" size={24} color="#3a7d44" />
+              )}
+            </View>
             <View style={s.teacherInfo}>
               <Text style={s.teacherLabel}>Professor(a)</Text>
-              <Text style={s.teacherName}>{params.teacher || "Não atribuído"}</Text>
+              <Text style={[s.teacherName, !params.teacher && { color: "#9CA3AF", fontStyle: "italic" }]}>
+                {params.teacher || "Não atribuído"}
+              </Text>
             </View>
+            {params.teacher && (
+              <View style={adHero.profStatusDot} />
+            )}
           </View>
         )}
 
-        <View style={s.durationRow}>
-          <Ionicons name="timer-outline" size={18} color="#888" />
-          <Text style={s.durationText}>Duração: {calcDuration(params.timeStart, params.timeEnd)}</Text>
-        </View>
-
+        {/* Excluir */}
         {!ehIntervalo && !ehReadOnly && (
-          <TouchableOpacity
-            onPress={handleExcluir}
-            style={{ marginTop: 16, padding: 14, backgroundColor: "#fee2e2", borderRadius: 12, alignItems: "center" }}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: "#dc2626", fontWeight: "700", fontSize: 15 }}>🗑️ Excluir este horário</Text>
+          <TouchableOpacity onPress={handleExcluir} style={s.deleteBtn} activeOpacity={0.8}>
+            <Ionicons name="trash-outline" size={17} color="#ef4444" />
+            <Text style={s.deleteBtnText}>Excluir este horário</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </ScrollView>
+
+      {/* Modal informação */}
+      <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
+        <View style={adModal.overlay}>
+          <View style={adModal.box}>
+            <View style={[adModal.iconWrap, { backgroundColor: modalInfo.tipo === "erro" ? "#FEE2E2" : modalInfo.tipo === "sucesso" ? "#e8f5ea" : "#FEF3C7" }]}>
+              <Ionicons name={modalInfo.tipo === "erro" ? "alert-circle" : modalInfo.tipo === "sucesso" ? "checkmark-circle" : "information-circle"} size={32} color={modalInfo.tipo === "erro" ? "#ef4444" : modalInfo.tipo === "sucesso" ? "#3a7d44" : "#f59e0b"} />
+            </View>
+            <Text style={adModal.titulo}>{modalInfo.titulo}</Text>
+            <Text style={adModal.mensagem}>{modalInfo.mensagem}</Text>
+            <TouchableOpacity style={[adModal.btn, { backgroundColor: modalInfo.tipo === "erro" ? "#ef4444" : "#3a7d44" }]} onPress={() => setModalInfo(p => ({ ...p, visivel: false }))} activeOpacity={0.85}>
+              <Text style={adModal.btnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal confirmação exclusão */}
+      <Modal visible={modalConfirmar} transparent animationType="fade" onRequestClose={() => setModalConfirmar(false)}>
+        <View style={adModal.overlay}>
+          <View style={adModal.box}>
+            <View style={[adModal.iconWrap, { backgroundColor: "#FEE2E2" }]}>
+              <Ionicons name="trash-outline" size={32} color="#ef4444" />
+            </View>
+            <Text style={adModal.titulo}>Excluir horário</Text>
+            <Text style={adModal.mensagem}>Tem certeza? Esta ação não pode ser desfeita.</Text>
+            <View style={adModal.botoesRow}>
+              <TouchableOpacity style={adModal.btnCancelar} onPress={() => setModalConfirmar(false)} activeOpacity={0.8}>
+                <Text style={adModal.cancelarText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[adModal.btn, { backgroundColor: "#ef4444", flex: 1 }]} onPress={confirmarExclusao} activeOpacity={0.85}>
+                <Text style={adModal.btnText}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const adHero = StyleSheet.create({
+  banner: {
+    backgroundColor: "#fff", borderRadius: 20, overflow: "hidden",
+    flexDirection: "row", alignItems: "center", gap: 14,
+    paddingVertical: 18, paddingRight: 18, paddingLeft: 0,
+    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  accent: { width: 5, alignSelf: "stretch" },
+  iconWrap: {
+    width: 56, height: 56, borderRadius: 16,
+    alignItems: "center", justifyContent: "center",
+    marginLeft: 14,
+  },
+  label: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 4 },
+  subject: { fontSize: 20, fontWeight: "800", color: "#111827", lineHeight: 26 },
+  smallIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  durationBar: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12,
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  durationIcon: { width: 32, height: 32, borderRadius: 9, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center" },
+  durationLabel: { fontSize: 13, color: "#6B7280", fontWeight: "600", flex: 1 },
+  durationValue: { fontSize: 14, fontWeight: "800", color: "#111827" },
+  profInitial: {
+    width: 52, height: 52, borderRadius: 16, backgroundColor: "#3a7d44",
+    alignItems: "center", justifyContent: "center",
+  },
+  profInitialText: { fontSize: 20, fontWeight: "800", color: "#fff" },
+  profStatusDot: {
+    width: 10, height: 10, borderRadius: 5, backgroundColor: "#22C55E",
+    borderWidth: 2, borderColor: "#fff",
+  },
+});
 
 const adEd = StyleSheet.create({
   horarioBanner: {
@@ -410,4 +525,17 @@ const adInt = StyleSheet.create({
   },
   title: { fontSize: 20, fontWeight: "800", color: "#92400e" },
   sub: { fontSize: 13, color: "#b45309", marginTop: 4, fontWeight: "500" },
+});
+
+const adModal = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
+  box: { width: "100%", backgroundColor: "#fff", borderRadius: 20, padding: 24, alignItems: "center", gap: 8 },
+  iconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  titulo: { fontSize: 17, fontWeight: "800", color: "#1a1a2e", textAlign: "center" },
+  mensagem: { fontSize: 14, color: "#555", textAlign: "center", lineHeight: 21, marginBottom: 4 },
+  btn: { width: "100%", borderRadius: 14, paddingVertical: 14, alignItems: "center" },
+  btnText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+  botoesRow: { flexDirection: "row", gap: 10, width: "100%" },
+  btnCancelar: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: "#E0E0E0", alignItems: "center" },
+  cancelarText: { fontSize: 15, fontWeight: "600", color: "#555" },
 });

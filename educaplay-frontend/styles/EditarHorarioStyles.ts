@@ -2,219 +2,114 @@ import { Colors } from "@/src/constants/colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: "#F1F5F9" },
+
+  // ── Header ──────────────────────────────────────────────────
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#3a7d44",
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center", justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: Colors.textPrimary,
+    flex: 1, fontSize: 18, fontWeight: "800",
+    color: "#fff", textAlign: "center",
   },
   saveBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 2,
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.22)",
+    borderWidth: 1, borderColor: "rgba(255,255,255,0.4)",
+    alignItems: "center", justifyContent: "center",
   },
-  saveBtnText: {
-    fontSize: 18,
-    color: Colors.textOnPrimary,
-  },
+  saveBtnText: { fontSize: 18, color: "#fff" },
 
-  // --- Scroll ---
+  // ── Scroll ───────────────────────────────────────────────────
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 40,
-    gap: 20,
+    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 48, gap: 16,
   },
 
-  // --- Horário info (topo) ---
+  // ── Horário info ─────────────────────────────────────────────
   horarioBanner: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
-    elevation: 2,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
+    backgroundColor: "#fff", borderRadius: 16, padding: 16,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    borderLeftWidth: 4, borderLeftColor: "#3a7d44",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
   },
-  horarioBannerTime: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: Colors.textPrimary,
-  },
-  horarioBannerSub: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
+  horarioBannerTime: { fontSize: 20, fontWeight: "800", color: "#111827" },
+  horarioBannerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
 
-  // --- Seção ---
-  section: {
-    gap: 10,
-  },
+  // ── Seção ────────────────────────────────────────────────────
+  section: { gap: 10 },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    marginBottom: 4,
+    fontSize: 12, fontWeight: "700", color: "#9CA3AF",
+    textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 2,
   },
 
-  // --- Toggle Aula / Intervalo ---
+  // ── Toggle Aula / Intervalo ──────────────────────────────────
   toggleRow: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    padding: 4,
-    gap: 4,
+    flexDirection: "row", backgroundColor: "#fff",
+    borderRadius: 16, padding: 4, gap: 4,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
   },
   toggleBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
+    flex: 1, paddingVertical: 11, borderRadius: 13,
+    alignItems: "center", justifyContent: "center",
   },
   toggleBtnActive: {
-    backgroundColor: Colors.primary,
-    elevation: 2,
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    backgroundColor: "#3a7d44", elevation: 3,
+    shadowColor: "#3a7d44", shadowOpacity: 0.28, shadowRadius: 6,
   },
-  toggleBtnText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.textMuted,
-  },
-  toggleBtnTextActive: {
-    color: Colors.textOnPrimary,
-  },
+  toggleBtnText: { fontSize: 14, fontWeight: "600", color: "#9CA3AF" },
+  toggleBtnTextActive: { color: "#fff", fontWeight: "700" },
 
-  // --- Matéria input ---
+  // ── Input matéria ────────────────────────────────────────────
   inputCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: Colors.textPrimary,
-    fontWeight: "500",
-    elevation: 1,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    backgroundColor: "#fff", borderRadius: 16,
+    paddingHorizontal: 16, paddingVertical: 15,
+    fontSize: 16, color: "#111827", fontWeight: "500",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+    borderWidth: 1, borderColor: "#F1F5F9",
   },
 
-  // --- Professor list ---
+  // ── Professor cards ──────────────────────────────────────────
   professorCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    elevation: 1,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    borderWidth: 2,
-    borderColor: "transparent",
+    backgroundColor: "#fff", borderRadius: 16,
+    paddingHorizontal: 14, paddingVertical: 12,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    borderWidth: 2, borderColor: "transparent",
+    marginBottom: 8,
   },
   professorCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primarySurface,
+    borderColor: "#3a7d44", backgroundColor: "#F0FDF4",
+    shadowColor: "#3a7d44", shadowOpacity: 0.15, elevation: 4,
   },
   professorAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primarySurface,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 44, height: 44, borderRadius: 14,
+    backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center",
   },
-  professorAvatarText: {
-    fontSize: 20,
-  },
-  professorInfo: {
-    flex: 1,
-  },
-  professorNome: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.textPrimary,
-  },
-  professorMaterias: {
-    fontSize: 12,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  professorCheckmark: {
-    fontSize: 18,
-    color: Colors.primary,
-    fontWeight: "700",
-  },
+  professorAvatarText: { fontSize: 18, fontWeight: "700" },
+  professorInfo: { flex: 1 },
+  professorNome: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  professorMaterias: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  professorCheckmark: { fontSize: 18, color: "#3a7d44", fontWeight: "800" },
 
-  // --- Empty state professores ---
-  emptyProfessores: {
-    alignItems: "center",
-    paddingVertical: 24,
-    gap: 8,
-  },
-  emptyProfessoresText: {
-    fontSize: 13,
-    color: Colors.textMuted,
-    textAlign: "center",
-  },
+  // ── Empty states ─────────────────────────────────────────────
+  emptyProfessores: { alignItems: "center", paddingVertical: 28, gap: 8 },
+  emptyProfessoresText: { fontSize: 13, color: "#9CA3AF", textAlign: "center" },
 
-  // --- Intervalo info ---
+  // ── Intervalo banner ─────────────────────────────────────────
   intervaloBanner: {
-    backgroundColor: Colors.warningBg,
-    borderRadius: 14,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.warningBorder,
+    backgroundColor: "#FFFBEB", borderRadius: 14, padding: 16,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    borderWidth: 1.5, borderColor: "#FDE68A",
   },
   intervaloBannerText: {
-    fontSize: 14,
-    color: Colors.warningText,
-    fontWeight: "500",
-    flex: 1,
+    fontSize: 14, color: "#92400e", fontWeight: "500", flex: 1,
   },
 });
