@@ -431,26 +431,26 @@ export default function AulaDetalheScreen() {
 const adHero = StyleSheet.create({
   // Hero banner
   heroBg: {
-    width: 120, paddingVertical: 24, paddingHorizontal: 14,
-    alignItems: "center", justifyContent: "center", gap: 10, overflow: "hidden",
+    width: 120, paddingVertical: 28, paddingHorizontal: 14,
+    alignItems: "center", justifyContent: "center", gap: 14, overflow: "hidden",
   },
-  heroTimeBox: { alignItems: "center", gap: 4 },
-  heroTimeStart: { fontSize: 24, fontWeight: "800", color: "#fff", lineHeight: 28 },
+  heroTimeBox: { alignItems: "center", gap: 6 },
+  heroTimeStart: { fontSize: 26, fontWeight: "800", color: "#fff", lineHeight: 30 },
   heroTimeSep: { width: 24, height: 2, backgroundColor: "rgba(255,255,255,0.4)", borderRadius: 1 },
   heroTimeEnd: { fontSize: 14, fontWeight: "600", color: "rgba(255,255,255,0.8)" },
   heroTurnoPill: {
     flexDirection: "row", alignItems: "center", gap: 4,
     backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20,
-    paddingHorizontal: 9, paddingVertical: 4,
+    paddingHorizontal: 10, paddingVertical: 5,
   },
   heroTurnoText: { fontSize: 10, fontWeight: "700", color: "rgba(255,255,255,0.92)" },
-  heroContent: { flex: 1, paddingVertical: 20, paddingRight: 18, gap: 8 },
-  heroLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.7 },
-  heroSubject: { fontSize: 20, fontWeight: "800", color: "#111827", lineHeight: 26 },
+  heroContent: { flex: 1, paddingVertical: 22, paddingRight: 18, paddingLeft: 14, justifyContent: "center", gap: 10 },
+  heroLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.8 },
+  heroSubject: { fontSize: 20, fontWeight: "800", color: "#111827", lineHeight: 27, marginTop: 2 },
   heroDiaPill: {
     flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start",
-    backgroundColor: "#F9FAFB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4,
-    borderWidth: 1, borderColor: "#E5E7EB",
+    backgroundColor: "#F1F5F9", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: 1, borderColor: "#E5E7EB", marginTop: 2,
   },
   heroDiaText: { fontSize: 12, fontWeight: "700" },
 
