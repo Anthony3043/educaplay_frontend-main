@@ -19,7 +19,8 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
   const [biometriaOk, setBiometriaOk]   = useState(false);
-  const [jsSplashOk, setJsSplashOk]     = useState(false); // timer mínimo da splash JS
+  const [jsSplashOk, setJsSplashOk]     = useState(false);
+  const [splashMounted, setSplashMounted] = useState(true); // controla unmount após fade-out
   const biometriaVerificada = useRef(false);
   const [splashPronto, setSplashPronto] = useState(false);
   const splashStartTime = useRef(Date.now());
@@ -103,12 +104,19 @@ function RootNavigator() {
     }
   }, [usuario, carregando, segments, biometriaOk, router]);
 
-  // Mostra splash enquanto biometria não confirmou OU timer mínimo não passou
-  if (!biometriaOk || !jsSplashOk) {
-    return <AppSplashScreen />;
-  }
+  const splashVisible = !biometriaOk || !jsSplashOk;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <Stack screenOptions={{ headerShown: false }} />
+      {splashMounted && (
+        <AppSplashScreen
+          visible={splashVisible}
+          onDismiss={() => setSplashMounted(false)}
+        />
+      )}
+    </>
+  );
 }
 
 export default function RootLayout() {
