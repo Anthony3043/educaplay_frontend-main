@@ -72,6 +72,9 @@ export default function AulaDetalheScreen() {
   const [salvando, setSalvando] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [professores, setProfessores] = useState<Professor[]>([]);
+  const [profFoto, setProfFoto] = useState<string | null>(
+    params.teacherFoto && params.teacherFoto.length > 0 ? params.teacherFoto : null
+  );
 
   const [modalInfo, setModalInfo] = useState<{ visivel: boolean; titulo: string; mensagem: string; tipo: "erro" | "aviso" | "sucesso" }>({ visivel: false, titulo: "", mensagem: "", tipo: "aviso" });
   const [modalConfirmar, setModalConfirmar] = useState(false);
@@ -105,6 +108,15 @@ export default function AulaDetalheScreen() {
   useEffect(() => {
     if (editando) carregarOpcoes();
   }, [editando, carregarOpcoes]);
+
+  // Busca foto do professor se não veio como parâmetro
+  useEffect(() => {
+    if (!profFoto && params.professorId) {
+      api.get(`/professores/${params.professorId}`)
+        .then((res) => { if (res.data?.foto) setProfFoto(res.data.foto); })
+        .catch(() => {});
+    }
+  }, [params.professorId]);
 
   const handleSalvar = async () => {
     if (!subject.trim()) {
@@ -359,9 +371,9 @@ export default function AulaDetalheScreen() {
         {!ehIntervalo && (
           <View style={s.teacherCard}>
             <View style={s.teacherAvatar}>
-              {params.teacherFoto ? (
+              {profFoto ? (
                 <Image
-                  source={{ uri: params.teacherFoto }}
+                  source={{ uri: profFoto }}
                   style={{ width: 56, height: 56, borderRadius: 18 }}
                   resizeMode="cover"
                 />
