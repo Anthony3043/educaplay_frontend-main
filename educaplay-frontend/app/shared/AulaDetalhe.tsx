@@ -431,28 +431,28 @@ export default function AulaDetalheScreen() {
 const adHero = StyleSheet.create({
   // Hero banner
   heroBg: {
-    width: 110, paddingVertical: 20, paddingHorizontal: 12,
-    alignItems: "center", justifyContent: "center", gap: 8, overflow: "hidden",
+    width: 120, paddingVertical: 24, paddingHorizontal: 14,
+    alignItems: "center", justifyContent: "center", gap: 10, overflow: "hidden",
   },
-  heroTimeBox: { alignItems: "center", gap: 2 },
-  heroTimeStart: { fontSize: 22, fontWeight: "800", color: "#fff", lineHeight: 26 },
-  heroTimeSep: { width: 20, height: 1.5, backgroundColor: "rgba(255,255,255,0.4)", borderRadius: 1 },
-  heroTimeEnd: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.8)" },
+  heroTimeBox: { alignItems: "center", gap: 4 },
+  heroTimeStart: { fontSize: 24, fontWeight: "800", color: "#fff", lineHeight: 28 },
+  heroTimeSep: { width: 24, height: 2, backgroundColor: "rgba(255,255,255,0.4)", borderRadius: 1 },
+  heroTimeEnd: { fontSize: 14, fontWeight: "600", color: "rgba(255,255,255,0.8)" },
   heroTurnoPill: {
     flexDirection: "row", alignItems: "center", gap: 4,
     backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20,
-    paddingHorizontal: 8, paddingVertical: 3,
+    paddingHorizontal: 9, paddingVertical: 4,
   },
   heroTurnoText: { fontSize: 10, fontWeight: "700", color: "rgba(255,255,255,0.92)" },
-  heroContent: { flex: 1, paddingVertical: 16, paddingRight: 16, gap: 6 },
-  heroLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6 },
-  heroSubject: { fontSize: 19, fontWeight: "800", color: "#111827", lineHeight: 25 },
+  heroContent: { flex: 1, paddingVertical: 20, paddingRight: 18, gap: 8 },
+  heroLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.7 },
+  heroSubject: { fontSize: 20, fontWeight: "800", color: "#111827", lineHeight: 26 },
   heroDiaPill: {
-    flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start",
-    backgroundColor: "#F9FAFB", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+    flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start",
+    backgroundColor: "#F9FAFB", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4,
     borderWidth: 1, borderColor: "#E5E7EB",
   },
-  heroDiaText: { fontSize: 11, fontWeight: "700" },
+  heroDiaText: { fontSize: 12, fontWeight: "700" },
 
   smallIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   durationBar: {

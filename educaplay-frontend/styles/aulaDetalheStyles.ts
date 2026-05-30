@@ -27,13 +27,13 @@ export const styles = StyleSheet.create({
   },
 
   // ── Scroll ───────────────────────────────────────────────────
-  content: { padding: 16, paddingBottom: 40, gap: 12 },
+  content: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 48, gap: 16 },
 
   // ── Banner matéria ───────────────────────────────────────────
   subjectBanner: {
     backgroundColor: "#fff", borderRadius: 22, overflow: "hidden",
     flexDirection: "row", alignItems: "stretch",
-    shadowColor: "#000", shadowOpacity: 0.09, shadowRadius: 14, elevation: 5,
+    shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 16, elevation: 6,
   },
   subjectEmoji: { fontSize: 36 },
   subjectTitle: {
@@ -42,11 +42,11 @@ export const styles = StyleSheet.create({
   },
 
   // ── Grid cards ───────────────────────────────────────────────
-  infoGrid: { flexDirection: "row", gap: 10 },
+  infoGrid: { flexDirection: "row", gap: 12 },
   infoCard: {
-    flex: 1, backgroundColor: "#fff", borderRadius: 18, padding: 16,
-    alignItems: "center", gap: 6,
-    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+    flex: 1, backgroundColor: "#fff", borderRadius: 20, padding: 20,
+    alignItems: "center", gap: 8,
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 4,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
   infoCardIcon: { fontSize: 24 },
@@ -59,39 +59,39 @@ export const styles = StyleSheet.create({
 
   // ── Professor / Sala ─────────────────────────────────────────
   teacherCard: {
-    backgroundColor: "#fff", borderRadius: 18, padding: 16,
-    flexDirection: "row", alignItems: "center", gap: 14,
-    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+    backgroundColor: "#fff", borderRadius: 20, padding: 20,
+    flexDirection: "row", alignItems: "center", gap: 16,
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 4,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
   teacherAvatar: {
-    width: 52, height: 52, borderRadius: 16,
+    width: 56, height: 56, borderRadius: 18,
     backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center",
     borderWidth: 1.5, borderColor: "#BBF7D0",
   },
-  teacherInfo: { flex: 1 },
+  teacherInfo: { flex: 1, gap: 4 },
   teacherLabel: {
     fontSize: 10, color: "#9CA3AF", fontWeight: "700",
-    textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4,
+    textTransform: "uppercase", letterSpacing: 0.5,
   },
-  teacherName: { fontSize: 15, fontWeight: "700", color: "#111827" },
+  teacherName: { fontSize: 16, fontWeight: "700", color: "#111827" },
 
   // ── Duração ──────────────────────────────────────────────────
   durationRow: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    backgroundColor: "#fff", borderRadius: 14,
-    paddingHorizontal: 16, paddingVertical: 12,
-    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: "#fff", borderRadius: 16,
+    paddingHorizontal: 18, paddingVertical: 14,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
   durationIcon: { fontSize: 18 },
-  durationText: { fontSize: 14, color: "#374151", fontWeight: "600" },
+  durationText: { fontSize: 15, color: "#374151", fontWeight: "600" },
 
   // ── Deletar ──────────────────────────────────────────────────
   deleteBtn: {
-    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
-    backgroundColor: "#FEF2F2", borderRadius: 16, paddingVertical: 15,
-    borderWidth: 1.5, borderColor: "#FECACA", marginTop: 4,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
+    backgroundColor: "#FEF2F2", borderRadius: 18, paddingVertical: 17,
+    borderWidth: 1.5, borderColor: "#FECACA",
   },
-  deleteBtnText: { fontSize: 14, fontWeight: "700", color: "#ef4444" },
+  deleteBtnText: { fontSize: 15, fontWeight: "700", color: "#ef4444" },
 });
