@@ -436,7 +436,7 @@ export default function AulaDetalheScreen() {
 }
 
 const ad = StyleSheet.create({
-  scroll: { paddingBottom: 48 },
+  scroll: { paddingBottom: 56, gap: 14 },
 
   // ── Intervalo hero ────────────────────────────────────────
   intervaloHero: {
