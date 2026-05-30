@@ -109,11 +109,14 @@ export default function AulaDetalheScreen() {
     if (editando) carregarOpcoes();
   }, [editando, carregarOpcoes]);
 
-  // Busca foto do professor se não veio como parâmetro
+  // Busca foto do professor via lista /professores
   useEffect(() => {
     if (!profFoto && params.professorId) {
-      api.get(`/professores/${params.professorId}`)
-        .then((res) => { if (res.data?.foto) setProfFoto(res.data.foto); })
+      api.get("/professores")
+        .then((res) => {
+          const prof = (res.data as any[]).find((p) => p.id === params.professorId);
+          if (prof?.foto) setProfFoto(prof.foto);
+        })
         .catch(() => {});
     }
   }, [params.professorId]);
