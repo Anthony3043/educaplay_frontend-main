@@ -1,132 +1,88 @@
-import { Colors } from "@/src/constants/colors";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
+  container: { flex: 1, backgroundColor: "#F1F5F9" },
+
+  // ── Header ──────────────────────────────────────────────────
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    flexDirection: "row", alignItems: "center", gap: 12,
     backgroundColor: "#3a7d44",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: 16, paddingVertical: 14,
+    borderBottomLeftRadius: 24, borderBottomRightRadius: 24,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 40, height: 40, borderRadius: 12,
     backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
   },
-  backArrow: {
-    fontSize: 20,
-    color: "#fff",
-  },
+  backArrow: { fontSize: 20, color: "#fff" },
   headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#fff",
-    textAlign: "center",
+    flex: 1, fontSize: 18, fontWeight: "800",
+    color: "#fff", textAlign: "center",
   },
-  scrollContent: {
-    paddingBottom: 20,
+
+  // ── Scroll ───────────────────────────────────────────────────
+  scrollContent: { paddingTop: 20, paddingBottom: 40 },
+
+  // ── Seção label ──────────────────────────────────────────────
+  sectionLabel: {
+    fontSize: 11, fontWeight: "700", color: "#9CA3AF",
+    textTransform: "uppercase", letterSpacing: 0.8,
+    paddingHorizontal: 20, marginBottom: 8,
   },
+
+  // ── Seção card agrupado ───────────────────────────────────────
   section: {
-    paddingHorizontal: 16,
-    marginVertical: 16,
+    marginHorizontal: 16, marginBottom: 24,
+    backgroundColor: "#fff", borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
+    borderWidth: 1, borderColor: "#F1F5F9",
   },
+
+  // ── Item de config ────────────────────────────────────────────
   configItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 15, gap: 14,
+  },
+  configItemBorder: {
+    borderBottomWidth: 1, borderBottomColor: "#F9FAFB",
   },
   configIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: Colors.primarySurface,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
+    width: 42, height: 42, borderRadius: 13,
+    alignItems: "center", justifyContent: "center",
   },
-  configIconText: {
-    fontSize: 20,
-  },
-  configContent: {
-    flex: 1,
-  },
-  configTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.textPrimary,
-    marginBottom: 2,
-  },
-  configSubtitle: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  configArrow: {
-    fontSize: 18,
-    color: Colors.textMuted,
+  configContent: { flex: 1, gap: 2 },
+  configTitle: { fontSize: 15, fontWeight: "700", color: "#111827" },
+  configSubtitle: { fontSize: 12, color: "#9CA3AF" },
+  configArrow: { fontSize: 18, color: "#D1D5DB" },
+
+  // ── Logout ────────────────────────────────────────────────────
+  logoutSection: {
+    marginHorizontal: 16, marginBottom: 24,
+    backgroundColor: "#fff", borderRadius: 20,
+    overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    borderWidth: 1, borderColor: "#FEE2E2",
   },
   btnLogout: {
-    marginHorizontal: 16,
-    marginTop: 20,
-    backgroundColor: Colors.error,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
+    flexDirection: "row", alignItems: "center", gap: 14,
+    paddingHorizontal: 16, paddingVertical: 15,
   },
-  btnLogoutText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.textOnPrimary,
+  btnLogoutIcon: {
+    width: 42, height: 42, borderRadius: 13,
+    backgroundColor: "#FEF2F2", alignItems: "center", justifyContent: "center",
   },
-  // Tab Bar
+  btnLogoutText: { fontSize: 15, fontWeight: "700", color: "#ef4444", flex: 1 },
+
+  // ── Tab Bar ───────────────────────────────────────────────────
   tabBar: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    elevation: 8,
-    shadowColor: Colors.shadow,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    flexDirection: "row", backgroundColor: "#fff",
+    borderTopWidth: 1, borderTopColor: "#F1F5F9",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, elevation: 5,
+    paddingBottom: 8, paddingTop: 8,
   },
-  tabItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-  },
-  tabIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-    color: Colors.textMuted,
-  },
-  tabIconActive: {
-    color: Colors.primary,
-  },
-  tabLabel: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    fontWeight: "500",
-  },
-  tabLabelActive: {
-    color: Colors.primary,
-    fontWeight: "700",
-  },
+  tabItem: { flex: 1, alignItems: "center", justifyContent: "center", gap: 3 },
+  tabLabel: { fontSize: 10, color: "#9CA3AF", fontWeight: "600" },
+  tabLabelActive: { color: "#3a7d44", fontWeight: "700" },
 });

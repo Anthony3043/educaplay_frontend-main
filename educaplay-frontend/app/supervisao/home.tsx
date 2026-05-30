@@ -49,14 +49,14 @@ const TABS = [
 ];
 
 const DRAWER_ITEMS = [
-  { ionicon: "home-outline" as const, label: "Home", route: "/supervisao/home" },
-  { ionicon: "calendar-outline" as const, label: "Cronogramas", route: "/supervisao/cronogramas" },
-  { ionicon: "people-outline" as const, label: "Professores", route: "/supervisao/professores" },
-  { ionicon: "grid-outline" as const, label: "Salas", route: "/supervisao/salas" },
-  { ionicon: "location-outline" as const, label: "Local da Escola", route: "/supervisao/configuracao-escola" },
-  { ionicon: "finger-print-outline" as const, label: "Pontos do Dia", route: "/supervisao/pontos-dia" },
-  { ionicon: "person-outline" as const, label: "Perfil", route: "/shared/perfil" },
-  { ionicon: "settings-outline" as const, label: "Configurações", route: "/shared/configuracoes" },
+  { ionicon: "home-outline" as const,          label: "Home",            route: "/supervisao/home",                 color: "#3a7d44", bg: "#F0FDF4" },
+  { ionicon: "calendar-outline" as const,      label: "Cronogramas",     route: "/supervisao/cronogramas",         color: "#3b82f6", bg: "#EFF6FF" },
+  { ionicon: "people-outline" as const,        label: "Professores",     route: "/supervisao/professores",         color: "#8b5cf6", bg: "#F5F3FF" },
+  { ionicon: "grid-outline" as const,          label: "Salas",           route: "/supervisao/salas",               color: "#f59e0b", bg: "#FFFBEB" },
+  { ionicon: "location-outline" as const,      label: "Local da Escola", route: "/supervisao/configuracao-escola", color: "#0891b2", bg: "#ECFEFF" },
+  { ionicon: "finger-print-outline" as const,  label: "Pontos do Dia",   route: "/supervisao/pontos-dia",          color: "#ef4444", bg: "#FEF2F2" },
+  { ionicon: "person-outline" as const,        label: "Perfil",          route: "/shared/perfil",                  color: "#3a7d44", bg: "#F0FDF4" },
+  { ionicon: "settings-outline" as const,      label: "Configurações",   route: "/shared/configuracoes",           color: "#6B7280", bg: "#F9FAFB" },
 ];
 
 export default function HomeScreen() {
@@ -378,35 +378,52 @@ export default function HomeScreen() {
           </TouchableWithoutFeedback>
 
           <Animated.View style={[s.drawer, { transform: [{ translateX: drawerX }] }]}>
-            {/* Cabeçalho do drawer */}
+            {/* Header */}
             <View style={s.drawerHeader}>
+              <View style={s.drawerHeaderDeco1} />
+              <View style={s.drawerHeaderDeco2} />
               {usuario?.foto ? (
                 <Image source={{ uri: usuario.foto }} style={s.drawerAvatar} resizeMode="cover" />
               ) : (
-                <View style={[s.drawerAvatar, { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.2)" }]}>
-                  <Ionicons name="person-outline" size={28} color="#fff" />
+                <View style={s.drawerAvatarPlaceholder}>
+                  <Ionicons name="person-outline" size={26} color="#fff" />
                 </View>
               )}
               <Text style={s.drawerTitle}>{userName}</Text>
-              <Text style={s.drawerSubtitle}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel ?? ""}</Text>
+              <View style={s.drawerRolePill}>
+                <Text style={s.drawerSubtitle}>{usuario?.papel === "Supervisao" ? "Supervisão" : usuario?.papel ?? ""}</Text>
+              </View>
             </View>
 
-            <View style={s.drawerDivider} />
+            {/* Itens com icon wrap colorido */}
+            <ScrollView style={s.drawerScroll} showsVerticalScrollIndicator={false}>
+              {DRAWER_ITEMS.map((item) => (
+                <TouchableOpacity
+                  key={item.route}
+                  style={s.drawerItem}
+                  onPress={() => handleDrawerNav(item.route)}
+                  activeOpacity={0.72}
+                >
+                  <View style={[s.drawerItemIconWrap, { backgroundColor: item.bg }]}>
+                    <Ionicons name={item.ionicon} size={18} color={item.color} />
+                  </View>
+                  <Text style={s.drawerItemLabel}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
 
-            {/* Itens do drawer */}
-            {DRAWER_ITEMS.map((item) => (
-              <TouchableOpacity key={item.route} style={s.drawerItem} onPress={() => handleDrawerNav(item.route)} activeOpacity={0.7}>
-                <Ionicons name={item.ionicon} size={22} color="#1a1a2e" style={s.drawerItemIcon} />
-                <Text style={s.drawerItemLabel}>{item.label}</Text>
+              <View style={s.drawerDivider} />
+
+              <TouchableOpacity
+                style={s.drawerLogout}
+                onPress={() => { closeDrawer(); setTimeout(() => router.replace("/auth/Login"), 260); }}
+                activeOpacity={0.72}
+              >
+                <View style={s.drawerLogoutIconWrap}>
+                  <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                </View>
+                <Text style={[s.drawerItemLabel, { color: "#ef4444" }]}>Sair</Text>
               </TouchableOpacity>
-            ))}
-
-            <View style={s.drawerDivider} />
-
-            <TouchableOpacity style={s.drawerLogout} onPress={() => { closeDrawer(); setTimeout(() => router.replace("/auth/Login"), 260); }} activeOpacity={0.7}>
-              <Ionicons name="log-out-outline" size={22} color="#ef4444" style={s.drawerItemIcon} />
-              <Text style={[s.drawerItemLabel, { color: "#ef4444" }]}>Sair</Text>
-            </TouchableOpacity>
+            </ScrollView>
           </Animated.View>
         </>
       )}

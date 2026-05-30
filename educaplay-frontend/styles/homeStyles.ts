@@ -425,75 +425,86 @@ export const homeStyles = StyleSheet.create({
 
   // ── Drawer lateral ───────────────────────────────────────
   drawerOverlay: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    zIndex: 10,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(15,20,15,0.55)', zIndex: 10,
   },
   drawer: {
-    position: 'absolute',
-    top: 0, left: 0, bottom: 0,
-    width: width * 0.72,
-    backgroundColor: '#fff',
+    position: 'absolute', top: 0, left: 0, bottom: 0,
+    width: width * 0.76,
+    backgroundColor: '#F8FAF8',
     zIndex: 11,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    elevation: 16,
+    shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 20, elevation: 20,
   },
+
+  // Header verde com avatar quadrado
   drawerHeader: {
     backgroundColor: '#3a7d44',
-    paddingTop: 48,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    gap: 4,
+    paddingTop: 52, paddingHorizontal: 20, paddingBottom: 22,
+    gap: 6, overflow: 'hidden',
+  },
+  drawerHeaderDeco1: {
+    position: 'absolute', width: 140, height: 140, borderRadius: 70,
+    backgroundColor: 'rgba(255,255,255,0.07)', top: -60, right: -20,
+  },
+  drawerHeaderDeco2: {
+    position: 'absolute', width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.06)', bottom: -30, left: 20,
   },
   drawerAvatar: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-    marginBottom: 12,
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.5)',
+    width: 64, height: 64, borderRadius: 20,
+    marginBottom: 10, borderWidth: 2.5,
+    borderColor: 'rgba(255,255,255,0.45)',
   },
-  drawerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
+  drawerAvatarPlaceholder: {
+    width: 64, height: 64, borderRadius: 20,
+    marginBottom: 10, borderWidth: 2.5,
+    borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  drawerSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
-    fontWeight: '500',
+  drawerTitle: { fontSize: 20, fontWeight: '800', color: '#fff', letterSpacing: -0.3 },
+  drawerRolePill: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    marginTop: 2,
   },
-  drawerDivider: {
-    height: 1,
-    backgroundColor: '#F0F0F0',
-    marginHorizontal: 16,
-    marginVertical: 6,
+  drawerSubtitle: { fontSize: 12, fontWeight: '700', color: 'rgba(255,255,255,0.92)' },
+
+  // Itens com icon wrap colorido
+  drawerScroll: { flex: 1, paddingTop: 10 },
+  drawerSectionLabel: {
+    fontSize: 10, fontWeight: '700', color: '#9CA3AF',
+    textTransform: 'uppercase', letterSpacing: 0.8,
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 4,
   },
   drawerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 22,
-    paddingVertical: 13,
-    gap: 14,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 11, gap: 12,
+    marginHorizontal: 8, borderRadius: 14, marginBottom: 2,
   },
-  drawerItemIcon: {
-    width: 28,
-    textAlign: 'center',
+  drawerItemActive: {
+    backgroundColor: '#F0FDF4',
   },
-  drawerItemLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1a1a2e',
+  drawerItemIconWrap: {
+    width: 38, height: 38, borderRadius: 11,
+    alignItems: 'center', justifyContent: 'center',
   },
+  drawerItemIcon: { width: 28, textAlign: 'center' },
+  drawerItemLabel: { fontSize: 15, fontWeight: '600', color: '#1a1a2e', flex: 1 },
+  drawerItemLabelActive: { color: '#3a7d44', fontWeight: '700' },
+
+  drawerDivider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 20, marginVertical: 4 },
+
+  // Logout
   drawerLogout: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 22,
-    paddingVertical: 13,
-    gap: 14,
-    marginTop: 4,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 11, gap: 12,
+    marginHorizontal: 8, borderRadius: 14, marginBottom: 16,
+  },
+  drawerLogoutIconWrap: {
+    width: 38, height: 38, borderRadius: 11,
+    backgroundColor: '#FEF2F2', alignItems: 'center', justifyContent: 'center',
   },
 });

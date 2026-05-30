@@ -14,46 +14,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 const TABS = [
-  { id: "home", ionicon: "home-outline" as const, label: "Home" },
-  { id: "cronograma", ionicon: "calendar-outline" as const, label: "Cronograma" },
-  { id: "configuracoes", ionicon: "settings-outline" as const, label: "Configurações" },
+  { id: "home",          ionicon: "home-outline"     as const, label: "Home" },
+  { id: "cronograma",    ionicon: "calendar-outline"  as const, label: "Cronograma" },
+  { id: "configuracoes", ionicon: "settings-outline"  as const, label: "Configurações" },
 ];
 
 const CONFIG_ITEMS: {
-  id: string;
-  title: string;
-  subtitle: string;
+  id: string; title: string; subtitle: string;
   ionicon: "person-outline" | "notifications-outline" | "lock-closed-outline" | "information-circle-outline";
+  color: string; bg: string;
   route?: Href;
 }[] = [
-  {
-    id: "perfil",
-    title: "Meu Perfil",
-    subtitle: "Editar informações pessoais",
-    ionicon: "person-outline",
-    route: "/shared/perfil",
-  },
-  {
-    id: "notificacoes",
-    title: "Notificações",
-    subtitle: "Gerenciar preferências",
-    ionicon: "notifications-outline",
-    route: "/shared/notificacoes",
-  },
-  {
-    id: "privacidade",
-    title: "Privacidade",
-    subtitle: "Controlar acesso",
-    ionicon: "lock-closed-outline",
-    route: "/shared/privacidade",
-  },
-  {
-    id: "sobre",
-    title: "Sobre",
-    subtitle: "Versão e informações",
-    ionicon: "information-circle-outline",
-    route: "/shared/sobre",
-  },
+  { id: "perfil",        title: "Meu Perfil",   subtitle: "Editar informações pessoais",  ionicon: "person-outline",               color: "#3a7d44", bg: "#F0FDF4", route: "/shared/perfil" },
+  { id: "notificacoes",  title: "Notificações", subtitle: "Gerenciar preferências",       ionicon: "notifications-outline",        color: "#3b82f6", bg: "#EFF6FF", route: "/shared/notificacoes" },
+  { id: "privacidade",   title: "Privacidade",  subtitle: "Controlar acesso",             ionicon: "lock-closed-outline",          color: "#8b5cf6", bg: "#F5F3FF", route: "/shared/privacidade" },
+  { id: "sobre",         title: "Sobre",        subtitle: "Versão e informações",         ionicon: "information-circle-outline",   color: "#6B7280", bg: "#F9FAFB", route: "/shared/sobre" },
 ];
 
 export default function ConfiguracoesScreen() {
@@ -64,18 +39,14 @@ export default function ConfiguracoesScreen() {
 
   const handleTabPress = (tabId: string) => {
     setActiveTab(tabId);
-    if (tabId === "home") {
-      router.push(isProfessor ? "/professor/home-professor" : "/supervisao/home");
-    } else if (tabId === "cronograma") {
-      router.push(isProfessor ? "/professor/cronogramas-professor" : "/supervisao/cronogramas");
-    }
+    if (tabId === "home") router.push(isProfessor ? "/professor/home-professor" : "/supervisao/home");
+    else if (tabId === "cronograma") router.push(isProfessor ? "/professor/cronogramas-professor" : "/supervisao/cronogramas");
   };
 
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
-      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
@@ -84,52 +55,57 @@ export default function ConfiguracoesScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={s.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Seção de Configurações */}
+      <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+
+        <Text style={s.sectionLabel}>Conta e preferências</Text>
+
+        {/* Itens agrupados num único card */}
         <View style={s.section}>
-          {CONFIG_ITEMS.map((item) => (
+          {CONFIG_ITEMS.map((item, idx) => (
             <TouchableOpacity
               key={item.id}
-              style={s.configItem}
-              activeOpacity={0.7}
+              style={[s.configItem, idx < CONFIG_ITEMS.length - 1 && s.configItemBorder]}
+              activeOpacity={0.72}
               onPress={() => item.route && router.push(item.route)}
             >
-              <View style={s.configIcon}>
-                <Ionicons name={item.ionicon} size={20} color="#1a1a2e" />
+              <View style={[s.configIcon, { backgroundColor: item.bg }]}>
+                <Ionicons name={item.ionicon} size={20} color={item.color} />
               </View>
               <View style={s.configContent}>
                 <Text style={s.configTitle}>{item.title}</Text>
                 <Text style={s.configSubtitle}>{item.subtitle}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#bbbcc8" />
+              <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Botão Sair */}
-        <TouchableOpacity style={s.btnLogout} activeOpacity={0.85} onPress={async () => { await logout(); router.replace("/auth/Login"); }}>
-          <Text style={s.btnLogoutText}>Sair</Text>
-        </TouchableOpacity>
+        <Text style={s.sectionLabel}>Sessão</Text>
+
+        {/* Logout — card próprio com destaque vermelho sutil */}
+        <View style={s.logoutSection}>
+          <TouchableOpacity
+            style={s.btnLogout}
+            activeOpacity={0.8}
+            onPress={async () => { await logout(); router.replace("/auth/Login"); }}
+          >
+            <View style={s.btnLogoutIcon}>
+              <Ionicons name="log-out-outline" size={20} color="#ef4444" />
+            </View>
+            <Text style={s.btnLogoutText}>Sair da conta</Text>
+            <Ionicons name="chevron-forward" size={18} color="#FECACA" />
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
 
-      {/* Tab Bar */}
       <View style={s.tabBar}>
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
-            <TouchableOpacity
-              key={tab.id}
-              style={s.tabItem}
-              onPress={() => handleTabPress(tab.id)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#888"} />
-              <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>
-                {tab.label}
-              </Text>
+            <TouchableOpacity key={tab.id} style={s.tabItem} onPress={() => handleTabPress(tab.id)} activeOpacity={0.7}>
+              <Ionicons name={tab.ionicon} size={22} color={isActive ? "#3a7d44" : "#9CA3AF"} />
+              <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{tab.label}</Text>
             </TouchableOpacity>
           );
         })}
