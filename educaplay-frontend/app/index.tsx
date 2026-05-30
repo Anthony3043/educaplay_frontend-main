@@ -86,6 +86,13 @@ export default function SplashScreen() {
 
       {/* ══ CAMADAS DE FUNDO ══════════════════════════════════ */}
 
+      {/* Padrão escolar */}
+      <Image
+        source={require("@/assets/images/school_pattern.png")}
+        style={s.schoolPattern}
+        resizeMode="cover"
+      />
+
       {/* Vinheta: bordas mais escuras */}
       <View style={s.vignette} />
 
@@ -158,6 +165,13 @@ const s = StyleSheet.create({
   },
 
   // ── Fundo ─────────────────────────────────────────────────
+  schoolPattern: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    opacity: 0.09,
+  },
+
   vignette: {
     position: "absolute",
     inset: 0,
