@@ -80,9 +80,12 @@ export default function HomeScreen() {
   // Modal substituto
   const [modalSubstituto, setModalSubstituto] = useState(false);
   const [alertaParaSubstituir, setAlertaParaSubstituir] = useState<any>(null);
-  const [aulasParaSubstituir, setAulasParaSubstituir] = useState<any[]>([]);
-  const [carregandoSubstituto, setCarregandoSubstituto] = useState(false);
+  // { [dia]: AulaItem[] } — aulas + disponíveis por dia
+  const [aulasPorDia, setAulasPorDia] = useState<Record<string, any[]>>({});
+  const [diaSelecionadoSub, setDiaSelecionadoSub] = useState<string>("");
+  const [carregandoDia, setCarregandoDia] = useState(false);
   const [salvandoSubstituto, setSalvandoSubstituto] = useState(false);
+  const DIAS_SEMANA_SUB = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
 
   const carregarNotifs = useCallback(async () => {
     try {
@@ -101,53 +104,70 @@ export default function HomeScreen() {
     return map[new Date().getDay()] ?? null;
   };
 
+  const carregarAulasDia = async (alerta: any, dia: string) => {
+    setCarregandoDia(true);
+    try {
+      const params: any = { professorAbsenteId: alerta.professor.id, diaSemana: dia };
+      if (alerta.horarioChegada) params.horarioChegada = alerta.horarioChegada;
+      const res = await api.get("/avisos-professor/professores-disponiveis", { params });
+      const aulas = res.data.map((a: any) => ({ ...a, substitutoEscolhido: null }));
+      setAulasPorDia(prev => ({ ...prev, [dia]: aulas }));
+    } catch {}
+    finally { setCarregandoDia(false); }
+  };
+
   const abrirSubstituto = async (alerta: any) => {
     if (!alerta.professor?.id) {
       alert("Não foi possível identificar o professor. Tente novamente.");
       return;
     }
     setAlertaParaSubstituir(alerta);
-    setAulasParaSubstituir([]);
-    setCarregandoSubstituto(true);
+    setAulasPorDia({});
+    const hoje = getDiaSemanaHoje() ?? "Segunda";
+    setDiaSelecionadoSub(hoje);
     setModalSubstituto(true);
-    try {
-      const params: any = {
-        professorAbsenteId: alerta.professor.id,
-        diaSemana: getDiaSemanaHoje(),
-      };
-      if (alerta.horarioChegada) params.horarioChegada = alerta.horarioChegada;
-      const res = await api.get("/avisos-professor/professores-disponiveis", { params });
-      setAulasParaSubstituir(res.data.map((a: any) => ({ ...a, substitutoEscolhido: null })));
-    } catch (err: any) {
-      alert(err?.response?.data?.error || "Erro ao carregar horários.");
-      setModalSubstituto(false);
-    } finally {
-      setCarregandoSubstituto(false);
+    await carregarAulasDia(alerta, hoje);
+  };
+
+  const mudarDiaSub = async (dia: string) => {
+    setDiaSelecionadoSub(dia);
+    if (!aulasPorDia[dia]) {
+      await carregarAulasDia(alertaParaSubstituir, dia);
     }
   };
 
-  const selecionarSubstituto = (aulaId: string, prof: any) => {
-    setAulasParaSubstituir(prev =>
-      prev.map(a => a.aulaId === aulaId
-        ? { ...a, substitutoEscolhido: a.substitutoEscolhido?.id === prof.id ? null : prof }
-        : a
-      )
-    );
+  const selecionarSubstituto = (dia: string, aulaId: string, prof: any) => {
+    setAulasPorDia(prev => ({
+      ...prev,
+      [dia]: (prev[dia] ?? []).map(a =>
+        a.aulaId === aulaId
+          ? { ...a, substitutoEscolhido: a.substitutoEscolhido?.id === prof.id ? null : prof }
+          : a
+      ),
+    }));
   };
 
   const confirmarSubstituto = async () => {
-    const algumSelecionado = aulasParaSubstituir.some(a => a.substitutoEscolhido);
-    if (!algumSelecionado) return;
+    // Coleta todas as substituições de todos os dias
+    const substituicoes: any[] = [];
+    Object.entries(aulasPorDia).forEach(([, aulas]) => {
+      aulas.filter(a => a.substitutoEscolhido).forEach(a => {
+        substituicoes.push({
+          aulaId: a.aulaId,
+          professorOriginalId: alertaParaSubstituir?.professor?.id,
+          professorSubstitutoId: a.substitutoEscolhido.id,
+        });
+      });
+    });
+    if (substituicoes.length === 0) return;
     setSalvandoSubstituto(true);
     try {
-      const substituicoes = aulasParaSubstituir.map(a => ({
-        aulaId: a.aulaId,
-        professorOriginalId: alertaParaSubstituir?.professor?.id,
-        professorSubstitutoId: a.substitutoEscolhido?.id ?? null,
-      }));
       const res = await api.post("/avisos-professor/substituir", { substituicoes });
       setModalSubstituto(false);
-      const nomes = [...new Set(aulasParaSubstituir.filter(a => a.substitutoEscolhido).map(a => a.substitutoEscolhido.nome.split(" ")[0]))].join(", ");
+      const nomes = [...new Set(substituicoes.map(s => {
+        const prof = Object.values(aulasPorDia).flat().find(a => a.aulaId === s.aulaId)?.substitutoEscolhido;
+        return prof?.nome?.split(" ")[0];
+      }).filter(Boolean))].join(", ");
       setSucessoSubstituto({ nome: nomes, aulas: res.data?.aulasSubstituidas ?? 0 });
     } catch (err: any) {
       alert(err?.response?.data?.error || "Erro ao substituir professor.");
@@ -473,23 +493,40 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={sb.sectionLabel}>Selecione um substituto para cada horário</Text>
+            {/* Abas de dia */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={sb.diasTabsRow}>
+              {DIAS_SEMANA_SUB.map(dia => {
+                const ativo = dia === diaSelecionadoSub;
+                const temSub = (aulasPorDia[dia] ?? []).some(a => a.substitutoEscolhido);
+                return (
+                  <TouchableOpacity
+                    key={dia}
+                    style={[sb.diaTab, ativo && sb.diaTabAtivo]}
+                    onPress={() => mudarDiaSub(dia)}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[sb.diaTabText, ativo && sb.diaTabTextAtivo]}>{dia.slice(0,3)}</Text>
+                    {temSub && <View style={sb.diaTabDot} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
 
             <ScrollView contentContainerStyle={sb.lista} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {carregandoSubstituto && (
+              {carregandoDia && (
                 <View style={sb.emptyWrap}>
                   <ActivityIndicator color="#3a7d44" />
-                  <Text style={sb.emptyText}>Carregando horários...</Text>
+                  <Text style={sb.emptyText}>Carregando...</Text>
                 </View>
               )}
-              {!carregandoSubstituto && aulasParaSubstituir.length === 0 && (
+              {!carregandoDia && (aulasPorDia[diaSelecionadoSub] ?? []).length === 0 && (
                 <View style={sb.emptyWrap}>
                   <Ionicons name="calendar-outline" size={32} color="#D1D5DB" />
-                  <Text style={sb.emptyText}>Nenhuma aula encontrada</Text>
-                  <Text style={sb.emptySub}>Esse professor não tem aulas hoje</Text>
+                  <Text style={sb.emptyText}>Sem aulas em {diaSelecionadoSub}</Text>
+                  <Text style={sb.emptySub}>Escolha outro dia</Text>
                 </View>
               )}
-              {aulasParaSubstituir.map((aula) => (
+              {!carregandoDia && (aulasPorDia[diaSelecionadoSub] ?? []).map((aula: any) => (
                 <View key={aula.aulaId} style={sb.aulaBloco}>
                   <View style={sb.aulaHeader}>
                     <View style={sb.aulaTimeBadge}>
@@ -507,7 +544,7 @@ export default function HomeScreen() {
                         const cor = CORES[idx % CORES.length];
                         const sel = aula.substitutoEscolhido?.id === prof.id;
                         return (
-                          <TouchableOpacity key={prof.id} style={[sb.profCard, sel && { borderColor: cor, backgroundColor: cor + "12" }]} onPress={() => selecionarSubstituto(aula.aulaId, prof)} activeOpacity={0.75}>
+                          <TouchableOpacity key={prof.id} style={[sb.profCard, sel && { borderColor: cor, backgroundColor: cor + "12" }]} onPress={() => selecionarSubstituto(diaSelecionadoSub, aula.aulaId, prof)} activeOpacity={0.75}>
                             <View style={[sb.profAvatar, { backgroundColor: cor + "22" }]}>
                               {prof.foto ? <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 11 }} resizeMode="cover" /> : <Text style={[sb.profInitial, { color: cor }]}>{prof.nome[0]?.toUpperCase()}</Text>}
                               {sel && <View style={[sb.profCheckBadge, { backgroundColor: cor }]}><Ionicons name="checkmark" size={9} color="#fff" /></View>}
@@ -527,9 +564,9 @@ export default function HomeScreen() {
                 <Text style={sb.cancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[sb.confirmBtn, (!aulasParaSubstituir.some(a => a.substitutoEscolhido) || salvandoSubstituto) && { opacity: 0.5 }]}
+                style={[sb.confirmBtn, (salvandoSubstituto || !Object.values(aulasPorDia).flat().some(a => a.substitutoEscolhido)) && { opacity: 0.5 }]}
                 onPress={confirmarSubstituto}
-                disabled={!aulasParaSubstituir.some(a => a.substitutoEscolhido) || salvandoSubstituto}
+                disabled={salvandoSubstituto || !Object.values(aulasPorDia).flat().some(a => a.substitutoEscolhido)}
                 activeOpacity={0.85}
               >
                 {salvandoSubstituto ? <ActivityIndicator color="#fff" size="small" /> : <><Ionicons name="checkmark-outline" size={18} color="#fff" /><Text style={sb.confirmText}>Confirmar</Text></>}
@@ -656,7 +693,13 @@ const sb = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
   headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
-  sectionLabel: { fontSize: 12, color: "#6B7280", paddingHorizontal: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  sectionLabel: { fontSize: 12, color: "#6B7280", paddingHorizontal: 20, paddingBottom: 8 },
+  diasTabsRow: { paddingHorizontal: 16, paddingVertical: 8, gap: 6, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  diaTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#F3F4F6", borderWidth: 1.5, borderColor: "transparent", alignItems: "center", gap: 3 },
+  diaTabAtivo: { backgroundColor: "#F0FDF4", borderColor: "#3a7d44" },
+  diaTabText: { fontSize: 12, fontWeight: "700", color: "#6B7280" },
+  diaTabTextAtivo: { color: "#3a7d44" },
+  diaTabDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#3a7d44" },
   lista: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16, gap: 6 },
   profRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "#F1F5F9", backgroundColor: "#fff" },
   profAvatar: { width: 44, height: 44, borderRadius: 13, alignItems: "center", justifyContent: "center" },
