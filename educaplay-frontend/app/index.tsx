@@ -294,15 +294,15 @@ const s = StyleSheet.create({
     zIndex: 4,
   },
   progressTrack: {
-    width: 140,
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.18)",
+    width: 160,
+    height: 4,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.28)",
     overflow: "hidden",
   },
   progressFill: {
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.85)",
+    height: 4,
+    borderRadius: 4,
+    backgroundColor: "#fff",
   },
 });
