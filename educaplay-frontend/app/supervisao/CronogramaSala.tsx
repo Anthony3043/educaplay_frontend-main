@@ -579,79 +579,58 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
     }
   };
 
-  const aulaCount = cronogramas[selectedTurno].filter(a => !a.isInterval && a.diaSemana).length;
-
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
-      {/* ── Header expandido com sala ── */}
-      <View style={sb.header}>
-        <TouchableOpacity style={sb.headerBack} onPress={() => router.back()} activeOpacity={0.7}>
-          <Ionicons name="arrow-back" size={20} color="#fff" />
+      <View style={s.header}>
+        <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
+          <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-        <View style={{ flex: 1, paddingHorizontal: 12 }}>
-          <Text style={sb.headerLabel}>Cronograma</Text>
-          <Text style={sb.headerSala} numberOfLines={1} adjustsFontSizeToFit minimumFontSize={13}>
+        <View style={{ flex: 1, alignItems: "center", paddingHorizontal: 4 }}>
+          <Text style={[s.headerTitle, { fontSize: 16 }]} numberOfLines={2} adjustsFontSizeToFit minimumFontSize={12}>
             {tituloSala}
           </Text>
         </View>
-        <TouchableOpacity style={sb.headerPdf} onPress={gerarPDF} disabled={exportando} activeOpacity={0.7}>
-          {exportando
-            ? <ActivityIndicator size={15} color="#fff" />
-            : <Ionicons name="document-text-outline" size={19} color="#fff" />}
+        <TouchableOpacity style={pdfSt.btn} onPress={gerarPDF} disabled={exportando} activeOpacity={0.7}>
+          {exportando ? <ActivityIndicator size={16} color="#fff" /> : <Ionicons name="document-text-outline" size={22} color="#fff" />}
         </TouchableOpacity>
       </View>
 
-      {/* ── Turno tabs FIXOS (fora do scroll) ── */}
-      <View style={sb.turnoBar}>
-        {TURNOS.map(turno => {
-          const ativo = selectedTurno === turno.id;
-          return (
-            <TouchableOpacity
-              key={turno.id}
-              style={[sb.turnoTab, ativo && sb.turnoTabActive]}
-              onPress={() => setSelectedTurno(turno.id)}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={turno.ionicon}
-                size={16}
-                color={ativo ? "#fff" : "#9CA3AF"}
-              />
-              <View>
-                <Text style={[sb.turnoTabLabel, ativo && sb.turnoTabLabelActive]}>{turno.label}</Text>
-                <Text style={[sb.turnoTabTime, ativo && { color: "rgba(255,255,255,0.7)" }]}>{turno.time}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
       {carregando ? (
-        <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
+        <ActivityIndicator style={{ flex: 1 }} size="large" color={Colors.primary} />
       ) : (
-        <ScrollView
-          scrollEnabled={!isDragging}
-          contentContainerStyle={sb.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* ── Info row ── */}
-          <View style={sb.infoRow}>
-            <View style={sb.infoChip}>
-              <View style={sb.infoChipDot} />
-              <Text style={sb.infoChipText}>
-                {aulaCount} {aulaCount === 1 ? "aula" : "aulas"} programadas
-              </Text>
-            </View>
-            <View style={sb.hintChip}>
-              <Ionicons name="hand-left-outline" size={12} color="#9CA3AF" />
-              <Text style={sb.hintChipText}>Toque + para criar</Text>
+        <ScrollView scrollEnabled={!isDragging} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+
+          {/* Seletor de turno */}
+          <View style={cs.turnoSection}>
+            <Text style={cs.turnoSectionLabel}>Selecione o turno</Text>
+            <View style={cs.turnoRow}>
+              {TURNOS.map((turno) => {
+                const ativo = selectedTurno === turno.id;
+                return (
+                  <TouchableOpacity
+                    key={turno.id}
+                    style={[cs.turnoCard, ativo && { borderColor: "#3a7d44", shadowColor: "#3a7d44", shadowOpacity: 0.25, elevation: 7 }]}
+                    onPress={() => setSelectedTurno(turno.id)}
+                    activeOpacity={0.82}
+                  >
+                    <Ionicons name={turno.ionicon} size={80} color={ativo ? "#3a7d4422" : "#00000008"} style={{ position: "absolute", top: -10, right: -10 }} />
+                    <View style={cs.turnoGlint} />
+                    <View style={[cs.turnoIconWrap, { backgroundColor: ativo ? "#e8f5ea" : "#F3F4F6" }]}>
+                      <Ionicons name={turno.ionicon} size={22} color={ativo ? "#3a7d44" : "#9CA3AF"} />
+                    </View>
+                    <Text style={[cs.turnoLabel, ativo && { color: "#3a7d44", fontWeight: "800" }]}>{turno.label}</Text>
+                    <Text style={cs.turnoTime}>{turno.time}</Text>
+                    {ativo && <View style={[cs.turnoDot, { backgroundColor: "#3a7d44" }]} />}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
-          {/* ── Grade ── */}
-          <View style={sb.gridWrap}>
+          {/* Calendário */}
+          <View style={[s.section, { paddingTop: 8 }]}>
             <CalendarioSemanal
               key={selectedTurno}
               aulas={cronogramas[selectedTurno]}
