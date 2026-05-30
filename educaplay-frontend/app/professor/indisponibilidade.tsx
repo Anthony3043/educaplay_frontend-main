@@ -91,8 +91,9 @@ export default function IndisponibilidadeScreen() {
       setHorarioChegada("");
       setTipoAviso("ausencia");
       mostrarAviso("sucesso", "Aviso enviado!", "A supervisão foi notificada sobre sua situação.");
-    } catch {
-      mostrarAviso("erro", "Erro", "Não foi possível enviar o aviso. Tente novamente.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || "Não foi possível enviar o aviso.";
+      mostrarAviso("erro", "Erro ao enviar", msg);
     } finally {
       setEnviandoAviso(false);
     }
