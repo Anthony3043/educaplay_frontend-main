@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   headerTitle: {
-    flex: 1, fontSize: 18, fontWeight: "800",
+    flex: 1, fontSize: 17, fontWeight: "800",
     color: "#fff", textAlign: "center",
   },
   headerRightBtn: {
@@ -27,39 +27,37 @@ export const styles = StyleSheet.create({
   },
 
   // ── Scroll ───────────────────────────────────────────────────
-  content: {
-    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40, gap: 12,
-  },
+  content: { padding: 16, paddingBottom: 40, gap: 12 },
 
-  // ── Banner de matéria ────────────────────────────────────────
+  // ── Banner matéria ───────────────────────────────────────────
   subjectBanner: {
-    backgroundColor: "#fff", borderRadius: 20, borderLeftWidth: 5,
-    paddingVertical: 20, paddingRight: 18, paddingLeft: 16,
-    flexDirection: "row", alignItems: "center", gap: 14,
-    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 10, elevation: 4,
+    backgroundColor: "#fff", borderRadius: 22, overflow: "hidden",
+    flexDirection: "row", alignItems: "stretch",
+    shadowColor: "#000", shadowOpacity: 0.09, shadowRadius: 14, elevation: 5,
   },
   subjectEmoji: { fontSize: 36 },
   subjectTitle: {
-    fontSize: 22, fontWeight: "800", color: "#111827", flexShrink: 1, lineHeight: 28,
+    fontSize: 22, fontWeight: "800", color: "#111827",
+    flexShrink: 1, lineHeight: 28,
   },
 
-  // ── Grid de informações ──────────────────────────────────────
+  // ── Grid cards ───────────────────────────────────────────────
   infoGrid: { flexDirection: "row", gap: 10 },
   infoCard: {
     flex: 1, backgroundColor: "#fff", borderRadius: 18, padding: 16,
-    alignItems: "center", gap: 4,
+    alignItems: "center", gap: 6,
     shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
-  infoCardIcon: { fontSize: 24, marginBottom: 2 },
+  infoCardIcon: { fontSize: 24 },
   infoCardLabel: {
     fontSize: 10, color: "#9CA3AF", fontWeight: "700",
     textTransform: "uppercase", letterSpacing: 0.6,
   },
   infoCardValue: { fontSize: 20, fontWeight: "800", color: "#111827" },
-  infoCardSub: { fontSize: 11, color: "#9CA3AF", marginTop: 1 },
+  infoCardSub: { fontSize: 11, color: "#9CA3AF" },
 
-  // ── Cards professor / sala ───────────────────────────────────
+  // ── Professor / Sala ─────────────────────────────────────────
   teacherCard: {
     backgroundColor: "#fff", borderRadius: 18, padding: 16,
     flexDirection: "row", alignItems: "center", gap: 14,
@@ -80,7 +78,7 @@ export const styles = StyleSheet.create({
 
   // ── Duração ──────────────────────────────────────────────────
   durationRow: {
-    flexDirection: "row", alignItems: "center", gap: 8,
+    flexDirection: "row", alignItems: "center", gap: 10,
     backgroundColor: "#fff", borderRadius: 14,
     paddingHorizontal: 16, paddingVertical: 12,
     shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,

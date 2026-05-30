@@ -282,55 +282,63 @@ export default function AulaDetalheScreen() {
             </View>
           </View>
         ) : (
-          /* Banner hero da matéria */
-          <View style={[adHero.banner]}>
-            <View style={[adHero.accent, { backgroundColor: turnoInfo.color }]} />
-            <View style={[adHero.iconWrap, { backgroundColor: turnoInfo.color + "18" }]}>
-              <Ionicons name="book-outline" size={28} color={turnoInfo.color} />
+          /* Banner hero dramático */
+          <View style={[s.subjectBanner]}>
+            {/* Fundo colorido à esquerda */}
+            <View style={[adHero.heroBg, { backgroundColor: turnoInfo.color }]}>
+              <Ionicons name={turnoInfo.ionicon} size={64} color="rgba(255,255,255,0.15)" style={{ position: "absolute", bottom: -8, right: -8 }} />
+              <View style={adHero.heroTimeBox}>
+                <Text style={adHero.heroTimeStart}>{params.timeStart}</Text>
+                <View style={adHero.heroTimeSep} />
+                <Text style={adHero.heroTimeEnd}>{params.timeEnd}</Text>
+              </View>
+              <View style={adHero.heroTurnoPill}>
+                <Ionicons name={turnoInfo.ionicon} size={10} color="rgba(255,255,255,0.9)" />
+                <Text style={adHero.heroTurnoText}>{turnoInfo.label}</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={adHero.label}>Matéria</Text>
-              <Text style={adHero.subject} numberOfLines={2}>{params.subject}</Text>
+            {/* Conteúdo direita */}
+            <View style={adHero.heroContent}>
+              <Text style={adHero.heroLabel}>Matéria</Text>
+              <Text style={adHero.heroSubject} numberOfLines={3}>{params.subject}</Text>
+              {params.diaSemana ? (
+                <View style={adHero.heroDiaPill}>
+                  <Ionicons name="calendar-outline" size={11} color={turnoInfo.color} />
+                  <Text style={[adHero.heroDiaText, { color: turnoInfo.color }]}>{params.diaSemana}</Text>
+                </View>
+              ) : null}
             </View>
           </View>
         )}
 
-        {/* Grid de info */}
-        <View style={s.infoGrid}>
-          <View style={s.infoCard}>
-            <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
-              <Ionicons name="time-outline" size={18} color="#3a7d44" />
-            </View>
-            <Text style={s.infoCardLabel}>Horário</Text>
-            <Text style={s.infoCardValue}>{params.timeStart}</Text>
-            <Text style={s.infoCardSub}>até {params.timeEnd}</Text>
-          </View>
-          <View style={s.infoCard}>
-            <View style={[adHero.smallIcon, { backgroundColor: turnoInfo.color + "18" }]}>
-              <Ionicons name={turnoInfo.ionicon} size={18} color={turnoInfo.color} />
-            </View>
-            <Text style={s.infoCardLabel}>Turno</Text>
-            <Text style={[s.infoCardValue, { color: turnoInfo.color, fontSize: 15 }]}>{turnoInfo.label}</Text>
-          </View>
-          {params.diaSemana ? (
-            <View style={[s.infoCard, { flex: 2 }]}>
+        {/* Grid de info — só mostra se não é intervalo (tempo já no banner) */}
+        {!ehIntervalo && (
+          <View style={s.infoGrid}>
+            <View style={s.infoCard}>
               <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
-                <Ionicons name="calendar-outline" size={18} color="#3a7d44" />
+                <Ionicons name="timer-outline" size={18} color="#3a7d44" />
               </View>
-              <Text style={s.infoCardLabel}>Dia</Text>
-              <Text style={[s.infoCardValue, { color: "#3a7d44", fontSize: 15 }]}>{params.diaSemana}</Text>
+              <Text style={s.infoCardLabel}>Duração</Text>
+              <Text style={[s.infoCardValue, { fontSize: 16 }]}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
             </View>
-          ) : null}
-        </View>
-
-        {/* Duração */}
-        <View style={adHero.durationBar}>
-          <View style={adHero.durationIcon}>
-            <Ionicons name="timer-outline" size={16} color="#3a7d44" />
+            <View style={s.infoCard}>
+              <View style={[adHero.smallIcon, { backgroundColor: turnoInfo.color + "18" }]}>
+                <Ionicons name={turnoInfo.ionicon} size={18} color={turnoInfo.color} />
+              </View>
+              <Text style={s.infoCardLabel}>Turno</Text>
+              <Text style={[s.infoCardValue, { color: turnoInfo.color, fontSize: 15 }]}>{turnoInfo.label}</Text>
+            </View>
+            {params.diaSemana ? (
+              <View style={[s.infoCard, { flex: 1.4 }]}>
+                <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
+                  <Ionicons name="calendar-outline" size={18} color="#3a7d44" />
+                </View>
+                <Text style={s.infoCardLabel}>Dia</Text>
+                <Text style={[s.infoCardValue, { color: "#3a7d44", fontSize: 14 }]}>{params.diaSemana}</Text>
+              </View>
+            ) : null}
           </View>
-          <Text style={adHero.durationLabel}>Duração</Text>
-          <Text style={adHero.durationValue}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
-        </View>
+        )}
 
         {/* Sala */}
         {!ehIntervalo && params.salaNome ? (
@@ -421,21 +429,31 @@ export default function AulaDetalheScreen() {
 }
 
 const adHero = StyleSheet.create({
-  banner: {
-    backgroundColor: "#fff", borderRadius: 20, overflow: "hidden",
-    flexDirection: "row", alignItems: "center", gap: 14,
-    paddingVertical: 18, paddingRight: 18, paddingLeft: 0,
-    shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, elevation: 4,
-    borderWidth: 1, borderColor: "#F1F5F9",
+  // Hero banner
+  heroBg: {
+    width: 110, paddingVertical: 20, paddingHorizontal: 12,
+    alignItems: "center", justifyContent: "center", gap: 8, overflow: "hidden",
   },
-  accent: { width: 5, alignSelf: "stretch" },
-  iconWrap: {
-    width: 56, height: 56, borderRadius: 16,
-    alignItems: "center", justifyContent: "center",
-    marginLeft: 14,
+  heroTimeBox: { alignItems: "center", gap: 2 },
+  heroTimeStart: { fontSize: 22, fontWeight: "800", color: "#fff", lineHeight: 26 },
+  heroTimeSep: { width: 20, height: 1.5, backgroundColor: "rgba(255,255,255,0.4)", borderRadius: 1 },
+  heroTimeEnd: { fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.8)" },
+  heroTurnoPill: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20,
+    paddingHorizontal: 8, paddingVertical: 3,
   },
-  label: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 4 },
-  subject: { fontSize: 20, fontWeight: "800", color: "#111827", lineHeight: 26 },
+  heroTurnoText: { fontSize: 10, fontWeight: "700", color: "rgba(255,255,255,0.92)" },
+  heroContent: { flex: 1, paddingVertical: 16, paddingRight: 16, gap: 6 },
+  heroLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6 },
+  heroSubject: { fontSize: 19, fontWeight: "800", color: "#111827", lineHeight: 25 },
+  heroDiaPill: {
+    flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start",
+    backgroundColor: "#F9FAFB", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+    borderWidth: 1, borderColor: "#E5E7EB",
+  },
+  heroDiaText: { fontSize: 11, fontWeight: "700" },
+
   smallIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   durationBar: {
     flexDirection: "row", alignItems: "center", gap: 10,

@@ -607,46 +607,52 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
           contentContainerStyle={s.scrollContent}
         >
           {/* Seletor de turno */}
-          <View style={s.section}>
-            <Text style={s.sectionTitle}>Selecione o Turno</Text>
-            <View style={s.turnoGrid}>
-              {TURNOS.map((turno) => (
-                <TouchableOpacity
-                  key={turno.id}
-                  style={[s.turnoCard, selectedTurno === turno.id && s.turnoCardSelected]}
-                  onPress={() => setSelectedTurno(turno.id)}
-                >
-                  <Ionicons
-                    name={turno.ionicon}
-                    size={24}
-                    color={selectedTurno === turno.id ? TURNO_COLORS[turno.id] : Colors.textPrimary}
-                  />
-                  <Text style={s.turnoLabel} numberOfLines={1}>{turno.label}</Text>
-                  <Text style={s.turnoTime} numberOfLines={1}>{turno.time}</Text>
-                </TouchableOpacity>
-              ))}
+          <View style={cs.turnoSection}>
+            <Text style={cs.turnoSectionLabel}>Selecione o turno</Text>
+            <View style={cs.turnoRow}>
+              {TURNOS.map((turno) => {
+                const ativo = selectedTurno === turno.id;
+                const cor = TURNO_COLORS[turno.id];
+                return (
+                  <TouchableOpacity
+                    key={turno.id}
+                    style={[cs.turnoCard, ativo && { borderColor: cor, shadowColor: cor, shadowOpacity: 0.28, elevation: 7 }]}
+                    onPress={() => setSelectedTurno(turno.id)}
+                    activeOpacity={0.82}
+                  >
+                    {/* Ghost icon */}
+                    <Ionicons name={turno.ionicon} size={80} color={ativo ? cor + "22" : "#00000008"} style={{ position: "absolute", top: -10, right: -10 }} />
+                    {/* Glint */}
+                    <View style={cs.turnoGlint} />
+                    {/* Icon wrap */}
+                    <View style={[cs.turnoIconWrap, { backgroundColor: ativo ? cor + "22" : "#F3F4F6" }]}>
+                      <Ionicons name={turno.ionicon} size={22} color={ativo ? cor : "#9CA3AF"} />
+                    </View>
+                    <Text style={[cs.turnoLabel, ativo && { color: cor, fontWeight: "800" }]}>{turno.label}</Text>
+                    <Text style={cs.turnoTime}>{turno.time}</Text>
+                    {ativo && <View style={[cs.turnoDot, { backgroundColor: cor }]} />}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
-          {/* Dica de uso */}
-          <View style={act.dicaBanner}>
-            <Ionicons name="hand-left-outline" size={15} color={Colors.primary} />
-            <Text style={act.dicaText}>
-              Toque numa célula vazia para criar um horário. Arraste os intervalos para reposicioná-los.
+          {/* Dica compacta */}
+          <View style={cs.dica}>
+            <Ionicons name="finger-print-outline" size={14} color={TURNO_COLORS[selectedTurno]} />
+            <Text style={[cs.dicaText, { color: TURNO_COLORS[selectedTurno] }]}>
+              Toque numa célula vazia para criar • Arraste intervalos para mover
             </Text>
           </View>
 
           {/* Calendário */}
-          <View style={s.section}>
-            <View style={act.calHeader}>
-              <Ionicons
-                name={TURNOS.find(t => t.id === selectedTurno)?.ionicon ?? "calendar-outline"}
-                size={16}
-                color={TURNO_COLORS[selectedTurno]}
-              />
-              <Text style={[s.sectionTitle, { marginBottom: 0 }]}>
-                {TURNOS.find(t => t.id === selectedTurno)?.label} — Horários
+          <View style={[s.section, { paddingTop: 14 }]}>
+            <View style={cs.calHeader}>
+              <View style={[cs.calHeaderDot, { backgroundColor: TURNO_COLORS[selectedTurno] }]} />
+              <Text style={[s.sectionTitle, { marginBottom: 0, flex: 1 }]}>
+                {TURNOS.find(t => t.id === selectedTurno)?.label}
               </Text>
+              <Text style={cs.calHeaderSub}>{TURNOS.find(t => t.id === selectedTurno)?.time}</Text>
             </View>
             <CalendarioSemanal
               key={selectedTurno}
@@ -743,6 +749,38 @@ const act = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.primaryLight,
   },
   dicaText: { fontSize: 12, color: Colors.primary, flex: 1, lineHeight: 18 },
+});
+
+const cs = StyleSheet.create({
+  turnoSection: { paddingHorizontal: 16, paddingTop: 4 },
+  turnoSectionLabel: { fontSize: 11, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 10 },
+  turnoRow: { flexDirection: "row", gap: 12 },
+  turnoCard: {
+    flex: 1, alignItems: "center", gap: 6,
+    backgroundColor: "#fff", borderRadius: 20,
+    paddingTop: 20, paddingBottom: 14, paddingHorizontal: 10,
+    borderWidth: 2, borderColor: "transparent", overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+  },
+  turnoGlint: {
+    position: "absolute", bottom: 0, left: 0, right: 0, height: 30,
+    backgroundColor: "rgba(255,255,255,0.5)",
+    borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
+  },
+  turnoIconWrap: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  turnoLabel: { fontSize: 13, fontWeight: "700", color: "#374151" },
+  turnoTime: { fontSize: 10, color: "#9CA3AF", fontWeight: "500" },
+  turnoDot: { width: 6, height: 6, borderRadius: 3, marginTop: 2 },
+  dica: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    marginHorizontal: 16, marginTop: 10, marginBottom: 4,
+    backgroundColor: "#F9FAFB", borderRadius: 12,
+    paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  dicaText: { fontSize: 11, fontWeight: "600", flex: 1 },
+  calHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 14 },
+  calHeaderDot: { width: 10, height: 10, borderRadius: 5 },
+  calHeaderSub: { fontSize: 12, color: "#9CA3AF", fontWeight: "600" },
 });
 
 const pdfSt = StyleSheet.create({
