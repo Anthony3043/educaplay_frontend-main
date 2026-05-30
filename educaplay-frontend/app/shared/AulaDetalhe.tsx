@@ -309,8 +309,7 @@ export default function AulaDetalheScreen() {
             <View style={ad.heroStripe}>
               <Ionicons name={turnoInfo.ionicon} size={120} color="rgba(255,255,255,0.06)" style={{ position: "absolute", right: -16, top: -16 }} />
               <View style={ad.heroStripeRow}>
-                {/* Acento do turno — apenas pill pequena */}
-                <View style={[ad.heroTurnoPill, { backgroundColor: turnoInfo.color }]}>
+                <View style={ad.heroTurnoPill}>
                   <Ionicons name={turnoInfo.ionicon} size={11} color="#fff" />
                   <Text style={ad.heroTurnoText}>{turnoInfo.label}</Text>
                 </View>
@@ -484,10 +483,10 @@ const ad = StyleSheet.create({
   heroStripeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   heroTurnoPill: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 20,
+    backgroundColor: "#3a7d44", borderRadius: 20,
     paddingHorizontal: 10, paddingVertical: 5,
   },
-  heroTurnoText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.95)" },
+  heroTurnoText: { fontSize: 11, fontWeight: "700", color: "#fff" },
   heroDiaPill: {
     flexDirection: "row", alignItems: "center", gap: 5,
     backgroundColor: "rgba(0,0,0,0.14)", borderRadius: 20,
