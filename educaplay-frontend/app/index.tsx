@@ -30,10 +30,8 @@ export default function SplashScreen() {
   const glowOp   = useSharedValue(0);
   const mascoteY = useSharedValue(80);
   const mascoteO = useSharedValue(0);
-  const dotsOp   = useSharedValue(0);
-  const d1 = useSharedValue(0.25);
-  const d2 = useSharedValue(0.25);
-  const d3 = useSharedValue(0.25);
+  const barWidth  = useSharedValue(0);
+  const barOp     = useSharedValue(0);
 
   useEffect(() => {
     // 1. Brand entra
@@ -48,20 +46,12 @@ export default function SplashScreen() {
     mascoteY.value = withDelay(200, withSpring(0, { damping: 18, stiffness: 130, mass: 1.1 }));
     mascoteO.value = withDelay(200, withTiming(1, { duration: 480 }));
 
-    // 4. Dots aparecem
-    dotsOp.value = withDelay(700, withTiming(1, { duration: 300 }));
-
-    // Pulse dos dots
-    const pulse = () =>
-      withRepeat(
-        withSequence(
-          withTiming(1,    { duration: 440 }),
-          withTiming(0.25, { duration: 440 }),
-        ), -1
-      );
-    d1.value = withDelay(750,  pulse());
-    d2.value = withDelay(950,  pulse());
-    d3.value = withDelay(1150, pulse());
+    // 4. Barra de progresso preenche ao longo do splash
+    barOp.value    = withDelay(500, withTiming(1, { duration: 300 }));
+    barWidth.value = withDelay(500, withTiming(140, {
+      duration: SPLASH - 600,
+      easing: Easing.out(Easing.cubic),
+    }));
 
     const t = setTimeout(() => {
       const u = ref.current;
@@ -76,10 +66,8 @@ export default function SplashScreen() {
   const brandStyle   = useAnimatedStyle(() => ({ opacity: brandOp.value, transform: [{ translateY: brandY.value }] }));
   const glowStyle    = useAnimatedStyle(() => ({ opacity: glowOp.value,  transform: [{ scale: glowS.value }] }));
   const mascoteStyle = useAnimatedStyle(() => ({ opacity: mascoteO.value, transform: [{ translateY: mascoteY.value }] }));
-  const dotsStyle    = useAnimatedStyle(() => ({ opacity: dotsOp.value }));
-  const d1s = useAnimatedStyle(() => ({ opacity: d1.value }));
-  const d2s = useAnimatedStyle(() => ({ opacity: d2.value }));
-  const d3s = useAnimatedStyle(() => ({ opacity: d3.value }));
+  const barStyle  = useAnimatedStyle(() => ({ opacity: barOp.value }));
+  const barFill   = useAnimatedStyle(() => ({ width: barWidth.value }));
 
   return (
     <View style={s.container}>
@@ -144,11 +132,11 @@ export default function SplashScreen() {
       {/* Arco de palco */}
       <View style={s.stageArc} />
 
-      {/* ══ DOTS ══════════════════════════════════════════════ */}
-      <Animated.View style={[s.dotsRow, dotsStyle]}>
-        <Animated.View style={[s.dot, d1s]} />
-        <Animated.View style={[s.dot, d2s]} />
-        <Animated.View style={[s.dot, d3s]} />
+      {/* ══ BARRA DE PROGRESSO ════════════════════════════════ */}
+      <Animated.View style={[s.progressWrap, barStyle]}>
+        <View style={s.progressTrack}>
+          <Animated.View style={[s.progressFill, barFill]} />
+        </View>
       </Animated.View>
 
     </View>
@@ -298,18 +286,23 @@ const s = StyleSheet.create({
     alignSelf: "center",
   },
 
-  // ── Dots ──────────────────────────────────────────────────
-  dotsRow: {
+  // ── Barra de progresso ────────────────────────────────────
+  progressWrap: {
     position: "absolute",
-    bottom: 40,
-    flexDirection: "row",
-    gap: 8,
+    bottom: 44,
     alignItems: "center",
     zIndex: 4,
   },
-  dot: {
-    width: 6, height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.8)",
+  progressTrack: {
+    width: 140,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: "rgba(255,255,255,0.85)",
   },
 });
