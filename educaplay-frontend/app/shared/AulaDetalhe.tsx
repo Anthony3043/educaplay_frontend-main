@@ -282,127 +282,115 @@ export default function AulaDetalheScreen() {
         )}
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={ad.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* ── HERO ────────────────────────────────────────── */}
         {ehIntervalo ? (
-          <View style={adInt.banner}>
-            <View style={adInt.iconBox}>
-              <Ionicons name="cafe-outline" size={32} color="#92400e" />
+          <View style={ad.intervaloHero}>
+            <View style={ad.intervaloIconWrap}>
+              <Ionicons name="cafe-outline" size={36} color="#92400e" />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={adInt.title}>Intervalo</Text>
-              <Text style={adInt.sub}>
-                {params.timeStart} – {params.timeEnd}
-                {params.diaSemana ? `  ·  ${params.diaSemana}` : "  ·  Todos os dias"}
-              </Text>
-            </View>
+            <Text style={ad.intervaloTitle}>Intervalo</Text>
+            <Text style={ad.intervaloTime}>{params.timeStart} – {params.timeEnd}</Text>
+            <Text style={ad.intervaloDia}>{params.diaSemana || "Todos os dias"}</Text>
           </View>
         ) : (
-          /* Banner hero dramático */
-          <View style={[s.subjectBanner]}>
-            {/* Fundo colorido à esquerda */}
-            <View style={[adHero.heroBg, { backgroundColor: turnoInfo.color }]}>
-              <Ionicons name={turnoInfo.ionicon} size={64} color="rgba(255,255,255,0.15)" style={{ position: "absolute", bottom: -8, right: -8 }} />
-              <View style={adHero.heroTimeBox}>
-                <Text style={adHero.heroTimeStart}>{params.timeStart}</Text>
-                <View style={adHero.heroTimeSep} />
-                <Text style={adHero.heroTimeEnd}>{params.timeEnd}</Text>
+          <View style={[ad.hero, { backgroundColor: turnoInfo.color }]}>
+            {/* Ghost icon de fundo */}
+            <Ionicons
+              name={turnoInfo.ionicon}
+              size={160}
+              color="rgba(255,255,255,0.08)"
+              style={{ position: "absolute", right: -30, bottom: -30 }}
+            />
+            {/* Linha superior: turno + dia */}
+            <View style={ad.heroTopRow}>
+              <View style={ad.heroTurnoPill}>
+                <Ionicons name={turnoInfo.ionicon} size={12} color="rgba(255,255,255,0.9)" />
+                <Text style={ad.heroTurnoText}>{turnoInfo.label}</Text>
               </View>
-              <View style={adHero.heroTurnoPill}>
-                <Ionicons name={turnoInfo.ionicon} size={10} color="rgba(255,255,255,0.9)" />
-                <Text style={adHero.heroTurnoText}>{turnoInfo.label}</Text>
-              </View>
-            </View>
-            {/* Conteúdo direita */}
-            <View style={adHero.heroContent}>
-              <Text style={adHero.heroLabel}>Matéria</Text>
-              <Text style={adHero.heroSubject} numberOfLines={3}>{params.subject}</Text>
               {params.diaSemana ? (
-                <View style={adHero.heroDiaPill}>
-                  <Ionicons name="calendar-outline" size={11} color={turnoInfo.color} />
-                  <Text style={[adHero.heroDiaText, { color: turnoInfo.color }]}>{params.diaSemana}</Text>
+                <View style={ad.heroDiaPill}>
+                  <Ionicons name="calendar-outline" size={11} color="rgba(255,255,255,0.85)" />
+                  <Text style={ad.heroDiaText}>{params.diaSemana}</Text>
                 </View>
               ) : null}
             </View>
-          </View>
-        )}
 
-        {/* Grid de info — só mostra se não é intervalo (tempo já no banner) */}
-        {!ehIntervalo && (
-          <View style={s.infoGrid}>
-            <View style={s.infoCard}>
-              <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
-                <Ionicons name="timer-outline" size={18} color="#3a7d44" />
+            {/* Matéria — destaque principal */}
+            <Text style={ad.heroSubject} numberOfLines={3}>{params.subject}</Text>
+
+            {/* Horário — linha inferior tipo ticket */}
+            <View style={ad.heroTimeRow}>
+              <View style={ad.heroTimeSide}>
+                <Text style={ad.heroTimeLabel}>INÍCIO</Text>
+                <Text style={ad.heroTimeBig}>{params.timeStart}</Text>
               </View>
-              <Text style={s.infoCardLabel}>Duração</Text>
-              <Text style={[s.infoCardValue, { fontSize: 16 }]}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
-            </View>
-            <View style={s.infoCard}>
-              <View style={[adHero.smallIcon, { backgroundColor: turnoInfo.color + "18" }]}>
-                <Ionicons name={turnoInfo.ionicon} size={18} color={turnoInfo.color} />
-              </View>
-              <Text style={s.infoCardLabel}>Turno</Text>
-              <Text style={[s.infoCardValue, { color: turnoInfo.color, fontSize: 15 }]}>{turnoInfo.label}</Text>
-            </View>
-            {params.diaSemana ? (
-              <View style={[s.infoCard, { flex: 1.4 }]}>
-                <View style={[adHero.smallIcon, { backgroundColor: "#F0FDF4" }]}>
-                  <Ionicons name="calendar-outline" size={18} color="#3a7d44" />
+              <View style={ad.heroTimeDivider}>
+                <View style={ad.heroTimeLine} />
+                <View style={ad.heroTimeDurationBadge}>
+                  <Text style={ad.heroTimeDuration}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
                 </View>
-                <Text style={s.infoCardLabel}>Dia</Text>
-                <Text style={[s.infoCardValue, { color: "#3a7d44", fontSize: 14 }]}>{params.diaSemana}</Text>
+                <View style={ad.heroTimeLine} />
               </View>
-            ) : null}
+              <View style={[ad.heroTimeSide, { alignItems: "flex-end" }]}>
+                <Text style={ad.heroTimeLabel}>FIM</Text>
+                <Text style={ad.heroTimeBig}>{params.timeEnd}</Text>
+              </View>
+            </View>
           </View>
         )}
 
-        {/* Sala */}
-        {!ehIntervalo && params.salaNome ? (
-          <View style={s.teacherCard}>
-            <View style={[s.teacherAvatar, { backgroundColor: "#EFF6FF", borderColor: "#BFDBFE" }]}>
-              <Ionicons name="business-outline" size={24} color="#3b82f6" />
-            </View>
-            <View style={s.teacherInfo}>
-              <Text style={s.teacherLabel}>Sala</Text>
-              <Text style={s.teacherName}>
-                {params.salaNome}{params.salaTurma ? ` — ${params.salaTurma}` : ""}
-              </Text>
-            </View>
-          </View>
-        ) : null}
-
-        {/* Professor */}
+        {/* ── PROFESSOR ───────────────────────────────────── */}
         {!ehIntervalo && (
-          <View style={s.teacherCard}>
-            <View style={s.teacherAvatar}>
+          <View style={ad.profCard}>
+            <View style={ad.profAvatarWrap}>
               {profFoto ? (
-                <Image
-                  source={{ uri: profFoto }}
-                  style={{ width: 56, height: 56, borderRadius: 18 }}
-                  resizeMode="cover"
-                />
+                <Image source={{ uri: profFoto }} style={ad.profAvatar} resizeMode="cover" />
               ) : params.teacher ? (
-                <View style={adHero.profInitial}>
-                  <Text style={adHero.profInitialText}>{params.teacher.trim()[0]?.toUpperCase() ?? "P"}</Text>
+                <View style={[ad.profInitial, { backgroundColor: turnoInfo.color }]}>
+                  <Text style={ad.profInitialText}>{params.teacher.trim()[0]?.toUpperCase()}</Text>
                 </View>
               ) : (
-                <Ionicons name="person-outline" size={24} color="#3a7d44" />
+                <View style={ad.profInitial}>
+                  <Ionicons name="person-outline" size={26} color="#9CA3AF" />
+                </View>
               )}
+              {params.teacher && <View style={ad.profOnlineDot} />}
             </View>
-            <View style={s.teacherInfo}>
-              <Text style={s.teacherLabel}>Professor(a)</Text>
-              <Text style={[s.teacherName, !params.teacher && { color: "#9CA3AF", fontStyle: "italic" }]}>
+            <View style={ad.profInfo}>
+              <Text style={ad.profLabel}>Professor(a)</Text>
+              <Text style={[ad.profName, !params.teacher && { color: "#9CA3AF", fontStyle: "italic" }]}>
                 {params.teacher || "Não atribuído"}
               </Text>
             </View>
-            {params.teacher && <View style={adHero.profStatusDot} />}
+            <View style={[ad.profBadge, { backgroundColor: turnoInfo.color + "18" }]}>
+              <Ionicons name="school-outline" size={16} color={turnoInfo.color} />
+            </View>
           </View>
         )}
 
-        {/* Excluir */}
+        {/* ── SALA ────────────────────────────────────────── */}
+        {!ehIntervalo && params.salaNome && (
+          <View style={ad.salaCard}>
+            <View style={ad.salaIconWrap}>
+              <Ionicons name="business-outline" size={22} color="#3b82f6" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={ad.salaLabel}>Sala</Text>
+              <Text style={ad.salaNome}>{params.salaNome}</Text>
+              {params.salaTurma ? <Text style={ad.salaTurma}>{params.salaTurma}</Text> : null}
+            </View>
+          </View>
+        )}
+
+        {/* ── EXCLUIR ─────────────────────────────────────── */}
         {!ehIntervalo && !ehReadOnly && (
-          <TouchableOpacity onPress={handleExcluir} style={s.deleteBtn} activeOpacity={0.8}>
-            <Ionicons name="trash-outline" size={17} color="#ef4444" />
-            <Text style={s.deleteBtnText}>Excluir este horário</Text>
+          <TouchableOpacity onPress={handleExcluir} style={ad.deleteBtn} activeOpacity={0.8}>
+            <View style={ad.deleteIconWrap}>
+              <Ionicons name="trash-outline" size={17} color="#ef4444" />
+            </View>
+            <Text style={ad.deleteBtnText}>Excluir este horário</Text>
           </TouchableOpacity>
         )}
       </ScrollView>
@@ -446,6 +434,114 @@ export default function AulaDetalheScreen() {
     </SafeAreaView>
   );
 }
+
+const ad = StyleSheet.create({
+  scroll: { paddingBottom: 48 },
+
+  // ── Intervalo hero ────────────────────────────────────────
+  intervaloHero: {
+    backgroundColor: "#FFF8F0", margin: 16, borderRadius: 24, padding: 28,
+    alignItems: "center", gap: 8,
+    borderWidth: 2, borderColor: "#FDE68A",
+    shadowColor: "#F59E0B", shadowOpacity: 0.15, shadowRadius: 12, elevation: 4,
+  },
+  intervaloIconWrap: {
+    width: 64, height: 64, borderRadius: 20,
+    backgroundColor: "#FEF3C7", alignItems: "center", justifyContent: "center",
+    marginBottom: 4, borderWidth: 2, borderColor: "#FDE68A",
+  },
+  intervaloTitle: { fontSize: 24, fontWeight: "800", color: "#92400e" },
+  intervaloTime: { fontSize: 17, fontWeight: "700", color: "#B45309" },
+  intervaloDia: { fontSize: 13, color: "#D97706", fontWeight: "500" },
+
+  // ── Hero aula ────────────────────────────────────────────
+  hero: {
+    margin: 16, borderRadius: 24, padding: 22, overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 16, elevation: 8,
+    gap: 16,
+  },
+  heroTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  heroTurnoPill: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
+  heroTurnoText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.95)" },
+  heroDiaPill: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "rgba(0,0,0,0.15)", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 5,
+  },
+  heroDiaText: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.9)" },
+
+  heroSubject: { fontSize: 26, fontWeight: "800", color: "#fff", lineHeight: 32, letterSpacing: -0.3 },
+
+  // Ticket de horário
+  heroTimeRow: { flexDirection: "row", alignItems: "center", gap: 0 },
+  heroTimeSide: { alignItems: "flex-start", minWidth: 72 },
+  heroTimeLabel: { fontSize: 9, fontWeight: "700", color: "rgba(255,255,255,0.6)", letterSpacing: 1, marginBottom: 2 },
+  heroTimeBig: { fontSize: 22, fontWeight: "800", color: "#fff" },
+  heroTimeDivider: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8 },
+  heroTimeLine: { flex: 1, height: 1.5, backgroundColor: "rgba(255,255,255,0.3)", borderRadius: 1 },
+  heroTimeDurationBadge: {
+    backgroundColor: "rgba(0,0,0,0.18)", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  heroTimeDuration: { fontSize: 11, fontWeight: "700", color: "rgba(255,255,255,0.9)" },
+
+  // ── Professor card ────────────────────────────────────────
+  profCard: {
+    flexDirection: "row", alignItems: "center", gap: 16,
+    backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 20, padding: 18,
+    shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 12, elevation: 4,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  profAvatarWrap: { position: "relative" },
+  profAvatar: { width: 60, height: 60, borderRadius: 20 },
+  profInitial: {
+    width: 60, height: 60, borderRadius: 20,
+    backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center",
+  },
+  profInitialText: { fontSize: 24, fontWeight: "800", color: "#fff" },
+  profOnlineDot: {
+    position: "absolute", bottom: 1, right: 1,
+    width: 14, height: 14, borderRadius: 7,
+    backgroundColor: "#22C55E", borderWidth: 2.5, borderColor: "#fff",
+  },
+  profInfo: { flex: 1, gap: 4 },
+  profLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6 },
+  profName: { fontSize: 17, fontWeight: "800", color: "#111827" },
+  profBadge: { width: 40, height: 40, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+
+  // ── Sala card ─────────────────────────────────────────────
+  salaCard: {
+    flexDirection: "row", alignItems: "center", gap: 14,
+    backgroundColor: "#fff", marginHorizontal: 16, borderRadius: 18, padding: 16,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
+    borderWidth: 1, borderColor: "#F1F5F9",
+  },
+  salaIconWrap: {
+    width: 46, height: 46, borderRadius: 14,
+    backgroundColor: "#EFF6FF", alignItems: "center", justifyContent: "center",
+    borderWidth: 1.5, borderColor: "#BFDBFE",
+  },
+  salaLabel: { fontSize: 10, fontWeight: "700", color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 },
+  salaNome: { fontSize: 15, fontWeight: "700", color: "#111827" },
+  salaTurma: { fontSize: 12, color: "#6B7280", marginTop: 2 },
+
+  // ── Delete ────────────────────────────────────────────────
+  deleteBtn: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    marginHorizontal: 16, marginTop: 4,
+    backgroundColor: "#FEF2F2", borderRadius: 18, padding: 16,
+    borderWidth: 1.5, borderColor: "#FECACA",
+  },
+  deleteIconWrap: {
+    width: 36, height: 36, borderRadius: 11,
+    backgroundColor: "#fee2e2", alignItems: "center", justifyContent: "center",
+  },
+  deleteBtnText: { fontSize: 15, fontWeight: "700", color: "#ef4444", flex: 1 },
+});
 
 const adHero = StyleSheet.create({
   // Hero banner
