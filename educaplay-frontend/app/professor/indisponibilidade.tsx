@@ -68,6 +68,8 @@ export default function IndisponibilidadeScreen() {
   const [horarioChegada, setHorarioChegada] = useState("");
   const [motivoAviso, setMotivoAviso] = useState("");
   const [enviandoAviso, setEnviandoAviso] = useState(false);
+  // Dias selecionados (multi-select)
+  const [diasSelecionados, setDiasSelecionados] = useState<string[]>([]);
   // Substituto
   const [professoresDisponiveis, setProfessoresDisponiveis] = useState<{id:string;nome:string;foto?:string|null}[]>([]);
   const [substitutoSelecionado, setSubstitutoSelecionado] = useState<{id:string;nome:string} | null>(null);
@@ -75,10 +77,20 @@ export default function IndisponibilidadeScreen() {
 
   const { usuario } = useAuth();
 
-  // Dias da semana para enviar ao backend
-  const getDiaSemanaHoje = (): string | null => {
+  const TODOS_DIAS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+
+  // Abre modal com o dia atual pré-selecionado
+  const abrirModalAvisar = () => {
     const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
-    return map[new Date().getDay()] ?? null;
+    const hoje = map[new Date().getDay()];
+    setDiasSelecionados(hoje ? [hoje] : []);
+    setModalAvisar(true);
+  };
+
+  const toggleDia = (dia: string) => {
+    setDiasSelecionados(prev =>
+      prev.includes(dia) ? prev.filter(d => d !== dia) : [...prev, dia]
+    );
   };
 
   // Carrega professores ao abrir modal
@@ -98,6 +110,10 @@ export default function IndisponibilidadeScreen() {
     setModalAviso({ visivel: true, tipo, titulo, mensagem });
 
   const handleEnviarAviso = async () => {
+    if (diasSelecionados.length === 0) {
+      mostrarAviso("aviso", "Selecione os dias", "Escolha pelo menos um dia de falta.");
+      return;
+    }
     if (!motivoAviso.trim()) {
       mostrarAviso("aviso", "Motivo obrigatório", "Informe o motivo do aviso à supervisão.");
       return;
@@ -108,23 +124,26 @@ export default function IndisponibilidadeScreen() {
     }
     setEnviandoAviso(true);
     try {
-      const res = await api.post("/avisos-professor", {
-        tipo: tipoAviso,
-        horarioChegada: tipoAviso === "atraso" ? horarioChegada.trim() : null,
-        motivo: motivoAviso.trim(),
-        professorSubstitutoId: substitutoSelecionado?.id ?? null,
-        diaSemana: getDiaSemanaHoje(),
-      });
+      // Envia um aviso por dia selecionado
+      await Promise.all(
+        diasSelecionados.map(dia =>
+          api.post("/avisos-professor", {
+            tipo: tipoAviso,
+            horarioChegada: tipoAviso === "atraso" ? horarioChegada.trim() : null,
+            motivo: motivoAviso.trim(),
+            professorSubstitutoId: substitutoSelecionado?.id ?? null,
+            diaSemana: dia,
+          })
+        )
+      );
       setModalAvisar(false);
       setMotivoAviso("");
       setHorarioChegada("");
       setTipoAviso("ausencia");
       setSubstitutoSelecionado(null);
-      const aulas = res.data?.aulasSubstituidas ?? 0;
-      const subMsg = substitutoSelecionado && aulas > 0
-        ? `\n${aulas} aula(s) transferida(s) para ${substitutoSelecionado.nome}.`
-        : "";
-      mostrarAviso("sucesso", "Aviso enviado!", `A supervisão foi notificada.${subMsg}`);
+      setDiasSelecionados([]);
+      const diasStr = diasSelecionados.join(", ");
+      mostrarAviso("sucesso", "Aviso enviado!", `Supervisão notificada para: ${diasStr}.`);
     } catch (err: any) {
       const msg = err?.response?.data?.error || err?.message || "Não foi possível enviar o aviso.";
       mostrarAviso("erro", "Erro ao enviar", msg);
@@ -220,7 +239,7 @@ export default function IndisponibilidadeScreen() {
             {carregando ? "Carregando..." : totalAtivos === 0 ? "Nenhum bloqueio cadastrado" : `${totalAtivos} bloqueio${totalAtivos > 1 ? "s" : ""} ativo${totalAtivos > 1 ? "s" : ""}`}
           </Text>
         </View>
-        <TouchableOpacity style={s.avisoBtn} onPress={() => setModalAvisar(true)} activeOpacity={0.8}>
+        <TouchableOpacity style={s.avisoBtn} onPress={abrirModalAvisar} activeOpacity={0.8}>
           <Ionicons name="alert-circle-outline" size={15} color="#3a7d44" />
           <Text style={s.avisoBtnText}>Avisar</Text>
         </TouchableOpacity>
@@ -446,6 +465,36 @@ export default function IndisponibilidadeScreen() {
               </View>
 
               <ScrollView style={{ flex: 1 }} contentContainerStyle={av.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+
+                {/* Seletor de dias — multi-select */}
+                <Text style={av.label}>
+                  Quais dias você vai faltar? <Text style={{ color: "#ef4444" }}>*</Text>
+                </Text>
+                <View style={av.diasGrid}>
+                  {TODOS_DIAS.map(dia => {
+                    const sel = diasSelecionados.includes(dia);
+                    return (
+                      <TouchableOpacity
+                        key={dia}
+                        style={[av.diaChip, sel && av.diaChipSel]}
+                        onPress={() => toggleDia(dia)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[av.diaChipText, sel && av.diaChipTextSel]}>
+                          {dia.slice(0, 3)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                {diasSelecionados.length > 0 && (
+                  <Text style={av.diasSelecionadosHint}>
+                    {diasSelecionados.length === 1
+                      ? diasSelecionados[0]
+                      : `${diasSelecionados.length} dias selecionados`}
+                  </Text>
+                )}
+
                 {/* Toggle tipo */}
                 <Text style={av.label}>O que deseja informar?</Text>
                 <View style={av.tipoRow}>
@@ -882,7 +931,19 @@ const av = StyleSheet.create({
     backgroundColor: "#F0F0F0", alignItems: "center", justifyContent: "center",
   },
   scroll: { paddingHorizontal: 20, paddingBottom: 40 },
-  label: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 12 },
+  label: { fontSize: 13, fontWeight: "700", color: "#1a1a2e", marginBottom: 10 },
+  diasGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 6 },
+  diaChip: {
+    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 20,
+    backgroundColor: "#F3F4F6", borderWidth: 1.5, borderColor: "transparent",
+  },
+  diaChipSel: {
+    backgroundColor: "#3a7d44", borderColor: "#2d6a4f",
+    shadowColor: "#3a7d44", shadowOpacity: 0.25, shadowRadius: 4, elevation: 3,
+  },
+  diaChipText: { fontSize: 13, fontWeight: "700", color: "#6B7280" },
+  diaChipTextSel: { color: "#fff" },
+  diasSelecionadosHint: { fontSize: 11, color: "#3a7d44", fontWeight: "600", marginBottom: 16 },
   tipoRow: { flexDirection: "row", gap: 12, marginBottom: 24 },
   tipoBtn: {
     flex: 1, alignItems: "center", gap: 10,
