@@ -214,16 +214,16 @@ const s = StyleSheet.create({
     zIndex: 2,
   },
 
-  // Logo — dois anéis concêntricos
+  // Logo — quadrado arredondado igual ao ícone
   logoCircle: {
-    width: 72, height: 72, borderRadius: 36,
+    width: 76, height: 76, borderRadius: 22,
     backgroundColor: "rgba(255,255,255,0.15)",
     alignItems: "center", justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.25)",
   },
   logoInner: {
-    width: 58, height: 58, borderRadius: 29,
+    width: 62, height: 62, borderRadius: 18,
     backgroundColor: "#fff",
     alignItems: "center", justifyContent: "center",
     shadowColor: "#000",
@@ -232,7 +232,7 @@ const s = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
-  logoImg: { width: 38, height: 38 },
+  logoImg: { width: 42, height: 42 },
 
   // Tipografia — contraste de peso extremo
   nameBlock: { alignItems: "center", gap: -6 },
