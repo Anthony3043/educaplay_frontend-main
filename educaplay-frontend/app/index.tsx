@@ -89,12 +89,6 @@ export default function SplashScreen() {
       {/* Vinheta: bordas mais escuras */}
       <View style={s.vignette} />
 
-      {/* Textura botânica */}
-      <Image
-        source={require("@/assets/images/botanical_texture.png")}
-        style={s.botanicalTexture}
-        resizeMode="cover"
-      />
 
       {/* Linha diagonal sutil */}
       <View style={s.diagLine} />
@@ -175,13 +169,6 @@ const s = StyleSheet.create({
     shadowRadius: width * 0.5,
     shadowOpacity: 0.35,
     elevation: 0,
-  },
-
-  botanicalTexture: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-    opacity: 0.1,
   },
 
   diagLine: {
