@@ -1,0 +1,31 @@
+appId: com.anonymous.educaplayfrontend
+name: "Login - Supervisão"
+tags:
+  - auth
+  - supervisor
+
+---
+- launchApp
+
+# Aguarda tela de login carregar
+- waitForAnimationToEnd
+
+# Verifica que está na tela de login
+- assertVisible: "Bem-vindo de volta!"
+
+# Preenche e-mail
+- tapOn: "Digite seu e-mail"
+- inputText: "supervisor@escola.com"
+
+# Preenche senha
+- tapOn: "Digite sua senha"
+- inputText: "123456"
+
+# Toca em Entrar
+- tapOn: "Entrar"
+
+# Aguarda navegação para home
+- waitForAnimationToEnd
+
+# Verifica que chegou na home da supervisão
+- assertVisible: "Menu Principal"

@@ -1,0 +1,56 @@
+appId: com.anonymous.educaplayfrontend
+name: "Supervisão - Criar sala e horário"
+tags:
+  - supervisor
+  - salas
+  - cronograma
+
+---
+- launchApp
+- waitForAnimationToEnd
+
+# Login
+- tapOn: "Digite seu e-mail"
+- inputText: "supervisor@escola.com"
+- tapOn: "Digite sua senha"
+- inputText: "123456"
+- tapOn: "Entrar"
+- waitForAnimationToEnd
+
+# Vai para Salas
+- tapOn: "Salas"
+- waitForAnimationToEnd
+
+# Cria nova sala
+- tapOn:
+    point: "95%, 7%"  # botão + no header
+- waitForAnimationToEnd
+
+- tapOn: "Ex: Sala 01, Laboratório..."
+- inputText: "Sala Teste"
+
+- tapOn: "Ex: 3º A, 2º B, 1º Ano..."
+- inputText: "1° A"
+
+- tapOn: "Ex: 35"
+- inputText: "30"
+
+- tapOn: "Criar Sala"
+- waitForAnimationToEnd
+
+# Verifica criação
+- assertVisible: "Sala Teste"
+
+# Vai para Cronogramas
+- tapOn:
+    point: "5%, 5%"  # voltar
+- waitForAnimationToEnd
+- tapOn: "Cronogramas"
+- waitForAnimationToEnd
+
+# Seleciona a sala criada
+- tapOn: "Sala Teste"
+- waitForAnimationToEnd
+
+# Toca em célula vazia para criar horário
+- assertVisible: "Matutino"

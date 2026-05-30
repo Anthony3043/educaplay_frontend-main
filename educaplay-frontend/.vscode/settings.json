@@ -3,5 +3,41 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
+  },
+
+  // ── REST Client ────────────────────────────────────────────
+  "rest-client.environmentVariables": {
+    "$shared": {
+      "baseUrl": "http://localhost:3000"
+    },
+    "development": {
+      "baseUrl": "http://localhost:3000",
+      "token": ""
+    },
+    "production": {
+      "baseUrl": "https://sua-api.com",
+      "token": ""
+    }
+  },
+  "rest-client.previewOption": "body",
+
+  // ── Console Ninja ──────────────────────────────────────────
+  "console-ninja.featureSet": "Community",
+  "console-ninja.outputMode": "Beside File",
+
+  // ── React Native / Expo ────────────────────────────────────
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // ── Maestro ────────────────────────────────────────────────
+  "files.associations": {
+    "*.yaml": "yaml",
+    "*.http": "http"
   }
 }

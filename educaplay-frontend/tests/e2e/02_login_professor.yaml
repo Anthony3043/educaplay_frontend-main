@@ -1,0 +1,23 @@
+appId: com.anonymous.educaplayfrontend
+name: "Login - Professor"
+tags:
+  - auth
+  - professor
+
+---
+- launchApp
+- waitForAnimationToEnd
+
+- assertVisible: "Bem-vindo de volta!"
+
+- tapOn: "Digite seu e-mail"
+- inputText: "professor@escola.com"
+
+- tapOn: "Digite sua senha"
+- inputText: "123456"
+
+- tapOn: "Entrar"
+- waitForAnimationToEnd
+
+# Professor vai para home do professor
+- assertVisible: "Meu Cronograma"

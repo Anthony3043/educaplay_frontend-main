@@ -1,1 +1,30 @@
-{ "recommendations": ["expo.vscode-expo-tools"] }
+{
+  "recommendations": [
+    // ── Expo / React Native ─────────────────────────────────
+    "expo.vscode-expo-tools",
+    "msjsdiag.vscode-react-native",
+
+    // ── Teste de API (Backend Express/Node.js) ──────────────
+    "rangav.vscode-thunder-client",
+    "humao.rest-client",
+
+    // ── Teste E2E Mobile ────────────────────────────────────
+    "mobile.vscode-maestro",
+
+    // ── Visualização / Simuladores ──────────────────────────
+    "inferrinizzard.mobile-preview",
+
+    // ── Produtividade e Logs ────────────────────────────────
+    "dsznajder.es7-react-js-snippets",
+    "wallabyjs.console-ninja",
+
+    // ── Qualidade de código ─────────────────────────────────
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+
+    // ── Prisma / Banco de dados ─────────────────────────────
+    "prisma.prisma"
+  ]
+}

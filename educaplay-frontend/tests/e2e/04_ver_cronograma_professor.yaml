@@ -1,0 +1,37 @@
+appId: com.anonymous.educaplayfrontend
+name: "Professor visualiza cronograma e bate ponto"
+tags:
+  - professor
+  - ponto
+  - cronograma
+
+---
+- launchApp
+- waitForAnimationToEnd
+
+# Login professor
+- tapOn: "Digite seu e-mail"
+- inputText: "professor@escola.com"
+- tapOn: "Digite sua senha"
+- inputText: "123456"
+- tapOn: "Entrar"
+- waitForAnimationToEnd
+
+# Acessa Cronogramas
+- tapOn: "Cronogramas"
+- waitForAnimationToEnd
+
+# Seleciona turno
+- tapOn: "Matutino"
+- waitForAnimationToEnd
+
+# Seleciona dia da semana
+- tapOn: "SEG"
+- waitForAnimationToEnd
+
+# Verifica que aparece a aula
+- assertVisible: "Bater Ponto"
+
+# Tenta bater ponto
+- tapOn: "Bater Ponto"
+- waitForAnimationToEnd

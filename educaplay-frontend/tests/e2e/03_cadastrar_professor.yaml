@@ -1,0 +1,42 @@
+appId: com.anonymous.educaplayfrontend
+name: "Cadastrar Professor (Supervisão)"
+tags:
+  - supervisor
+  - professores
+
+---
+- launchApp
+- waitForAnimationToEnd
+
+# Login supervisor
+- tapOn: "Digite seu e-mail"
+- inputText: "supervisor@escola.com"
+- tapOn: "Digite sua senha"
+- inputText: "123456"
+- tapOn: "Entrar"
+- waitForAnimationToEnd
+
+# Navega para Professores
+- tapOn: "Professores"
+- waitForAnimationToEnd
+
+# Abre cadastro
+- tapOn: "Cadastrar"
+- waitForAnimationToEnd
+
+# Preenche dados
+- tapOn: "Nome e sobrenome"
+- inputText: "Maria Professora"
+
+- tapOn: "email@escola.com"
+- inputText: "maria@escola.com"
+
+- tapOn: "Mínimo 6 caracteres"
+- inputText: "senha123"
+
+# Submete
+- tapOn: "Criar Professor"
+- waitForAnimationToEnd
+
+# Confirma sucesso
+- assertVisible: "Professor cadastrado!"
