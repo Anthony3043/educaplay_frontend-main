@@ -40,6 +40,8 @@ export const homeStyles = StyleSheet.create({
   headerLogoImage: {
     width: 34,
     height: 34,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   headerLogoText: {
     fontSize: 21,
