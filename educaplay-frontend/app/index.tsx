@@ -16,26 +16,6 @@ import Animated, {
 const { width, height } = Dimensions.get("window");
 const SPLASH = 3600;
 
-// ─── Folha decorativa ────────────────────────────────────────
-// Elipse rotacionada simula silhueta de folha tropical
-function Leaf({
-  x, y, w, h, rotate, opacity,
-}: {
-  x: number; y: number; w: number; h: number; rotate: string; opacity: number;
-}) {
-  return (
-    <View
-      style={{
-        position: "absolute",
-        left: x, top: y, width: w, height: h,
-        borderRadius: w * 0.5,
-        borderWidth: 1,
-        borderColor: `rgba(255,255,255,${opacity})`,
-        transform: [{ rotate }],
-      }}
-    />
-  );
-}
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -109,17 +89,12 @@ export default function SplashScreen() {
       {/* Vinheta: bordas mais escuras */}
       <View style={s.vignette} />
 
-      {/* Folhas decorativas — cantos */}
-      {/* topo esquerdo */}
-      <Leaf x={-30}      y={height * 0.02}  w={120} h={60}  rotate="-35deg" opacity={0.12} />
-      <Leaf x={-12}      y={height * 0.06}  w={80}  h={40}  rotate="-20deg" opacity={0.08} />
-      {/* topo direito */}
-      <Leaf x={width-90} y={height * 0.03}  w={110} h={55}  rotate="30deg"  opacity={0.10} />
-      <Leaf x={width-60} y={height * 0.08}  w={70}  h={35}  rotate="18deg"  opacity={0.07} />
-      {/* lateral esquerda */}
-      <Leaf x={-20}      y={height * 0.35}  w={90}  h={45}  rotate="-55deg" opacity={0.07} />
-      {/* lateral direita */}
-      <Leaf x={width-50} y={height * 0.40}  w={80}  h={40}  rotate="50deg"  opacity={0.06} />
+      {/* Textura botânica */}
+      <Image
+        source={require("@/assets/images/botanical_texture.png")}
+        style={s.botanicalTexture}
+        resizeMode="cover"
+      />
 
       {/* Linha diagonal sutil */}
       <View style={s.diagLine} />
@@ -200,6 +175,13 @@ const s = StyleSheet.create({
     shadowRadius: width * 0.5,
     shadowOpacity: 0.35,
     elevation: 0,
+  },
+
+  botanicalTexture: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    opacity: 0.1,
   },
 
   diagLine: {
