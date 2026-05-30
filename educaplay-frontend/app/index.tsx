@@ -232,7 +232,7 @@ const s = StyleSheet.create({
     shadowRadius: 12,
     elevation: 10,
   },
-  logoImg: { width: 42, height: 42 },
+  logoImg: { width: 42, height: 42, borderRadius: 12, overflow: "hidden" },
 
   // Tipografia — contraste de peso extremo
   nameBlock: { alignItems: "center", gap: -6 },
