@@ -768,7 +768,7 @@ const av = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
   sheet: {
     backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    maxHeight: "92%", paddingTop: 12,
+    height: "82%", paddingTop: 12,
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E0E0E0", alignSelf: "center", marginBottom: 16 },
   header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, marginBottom: 20 },
