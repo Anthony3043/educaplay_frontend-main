@@ -256,33 +256,27 @@ function CalendarioSemanal({
                         {aula ? (
                           <TouchableOpacity
                             style={[cal.aulaCard, {
-                              backgroundColor: cor + "14",
-                              borderColor: cor + "45",
+                              backgroundColor: cor + "12",
+                              borderColor: cor + "40",
                             }]}
                             onPress={() => onPress(aula)}
                             activeOpacity={0.8}
                           >
-                            {/* Accent top bar */}
+                            {/* Accent bar top */}
                             <View style={[cal.aulaAccentBar, { backgroundColor: cor }]} />
+                            {/* Corpo simplificado */}
                             <View style={cal.aulaBody}>
-                              {/* Horário */}
-                              <View style={[cal.aulaTimePill, { backgroundColor: cor + "25" }]}>
-                                <Text style={[cal.aulaTimePillText, { color: cor }]}>{item.start}</Text>
-                              </View>
-                              {/* Matéria */}
-                              <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
-                              {/* Professor — initial badge */}
-                              {aula.teacher ? (
-                                <View style={[cal.aulaTeacherBadge, { backgroundColor: cor + "22" }]}>
-                                  <Text style={[cal.aulaTeacherInitial, { color: cor }]}>
-                                    {aula.teacher.trim()[0]?.toUpperCase() ?? "P"}
-                                  </Text>
-                                  <Text style={[cal.aulaTeacherName, { color: cor }]} numberOfLines={1}>
-                                    {aula.teacher.split(" ")[0]}
-                                  </Text>
-                                </View>
-                              ) : null}
+                              <Text style={[cal.aulaTime, { color: cor }]}>{item.start}</Text>
+                              <Text style={cal.aulaSubject} numberOfLines={3}>{aula.subject}</Text>
                             </View>
+                            {/* Inicial do professor — canto inferior direito, absoluto */}
+                            {aula.teacher ? (
+                              <View style={[cal.aulaCorner, { backgroundColor: cor }]}>
+                                <Text style={cal.aulaCornerText}>
+                                  {aula.teacher.trim()[0]?.toUpperCase() ?? "P"}
+                                </Text>
+                              </View>
+                            ) : null}
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity
@@ -682,27 +676,28 @@ const cal = StyleSheet.create({
 
   // ── Aula card ────────────────────────────────────────────────
   aulaCard: {
-    flex: 1, borderRadius: 12, borderWidth: 1.5, overflow: "hidden",
-    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
+    flex: 1, borderRadius: 10, borderWidth: 1.5, overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+    position: "relative",
   },
   aulaAccentBar: { height: 3, width: "100%" },
-  aulaBody: { flex: 1, padding: 7, gap: 4 },
-  aulaTimePill: {
-    alignSelf: "flex-start", borderRadius: 6,
-    paddingHorizontal: 5, paddingVertical: 2,
+  aulaBody: { flex: 1, paddingHorizontal: 6, paddingTop: 5, paddingBottom: 4 },
+  aulaTime: { fontSize: 9, fontWeight: "700", color: "#3a7d44", marginBottom: 3 },
+  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", lineHeight: 13 },
+  // Inicial do professor no canto — não ocupa espaço vertical
+  aulaCorner: {
+    position: "absolute", bottom: 4, right: 4,
+    width: 16, height: 16, borderRadius: 8,
+    alignItems: "center", justifyContent: "center",
   },
-  aulaTimePillText: { fontSize: 9, fontWeight: "800" },
-  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", lineHeight: 14, flex: 1 },
-  aulaTeacherBadge: {
-    flexDirection: "row", alignItems: "center", gap: 4,
-    borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2,
-    alignSelf: "flex-start",
-  },
-  aulaTeacherInitial: { fontSize: 9, fontWeight: "800" },
-  aulaTeacherName: { fontSize: 8, fontWeight: "600", flex: 1 },
+  aulaCornerText: { fontSize: 8, fontWeight: "800", color: "#fff" },
 
-  // Aliases mantidos por compatibilidade
-  aulaTime: { fontSize: 10, fontWeight: "800" },
+  // Aliases mantidos
+  aulaTimePill: {},
+  aulaTimePillText: {},
+  aulaTeacherBadge: {},
+  aulaTeacherInitial: {},
+  aulaTeacherName: {},
   detail: { flexDirection: "row", alignItems: "center", gap: 3 },
   detailText: { fontSize: 9, color: "#9CA3AF", flex: 1 },
 
