@@ -210,21 +210,21 @@ function CalendarioSemanal({
         horizontal
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled
-        contentContainerStyle={{ paddingBottom: 8 }}
+        contentContainerStyle={{ paddingBottom: 12, paddingTop: 4 }}
       >
         <View>
           {/* Cabeçalho dos dias */}
-          <View style={{ flexDirection: "row", marginBottom: 6 }}>
+          <View style={{ flexDirection: "row", marginBottom: 8 }}>
             {DIAS_SEMANA.map(dia => (
               <View key={dia} style={{ width: COL_W, paddingHorizontal: 3 }}>
-                <View style={cal.dayHeader}>
-                  <Text style={cal.dayHeaderText}>{dia.slice(0, 3).toUpperCase()}</Text>
+                <View style={[cal.dayHeader, { backgroundColor: cor + "18", borderColor: cor + "35" }]}>
+                  <Text style={[cal.dayHeaderAbrev, { color: cor }]}>{dia.slice(0, 3).toUpperCase()}</Text>
                 </View>
               </View>
             ))}
           </View>
 
-          {/* Colunas por dia — cada uma com seu próprio schedule */}
+          {/* Grade por dia */}
           <View style={{ flexDirection: "row" }}>
             {DIAS_SEMANA.map(dia => {
               const dg = dayGaps[dia];
@@ -240,52 +240,59 @@ function CalendarioSemanal({
                           key={item.key}
                           style={[
                             cal.intervaloCelula,
-                            {
-                              marginBottom: 6,
-                              zIndex: 5,
-                              elevation: 5,
-                              transform: [{ translateY: animRefs.current[panKey] }],
-                            },
+                            { marginBottom: 5, zIndex: 5, elevation: 5, transform: [{ translateY: animRefs.current[panKey] }] },
                           ]}
                           {...pansRef.current[panKey].panHandlers}
                         >
-                          <Text style={cal.intervaloCelulaText} numberOfLines={1}>
-                            {item.start}–{item.end}
-                          </Text>
-                          <Ionicons name="reorder-three-outline" size={18} color={Colors.warningText} />
+                          <Ionicons name="cafe-outline" size={11} color="#92400e" />
+                          <Text style={cal.intervaloCelulaText} numberOfLines={1}>{item.start}</Text>
+                          <Ionicons name="reorder-three-outline" size={14} color="#D97706" />
                         </Animated.View>
                       );
                     }
-                    // Lookup by slot index so moving intervals doesn't break existing aulas
                     const aula = item.slotIndex !== undefined ? lookup[`${dia}_${item.slotIndex}`] : undefined;
                     return (
-                      <View key={item.key} style={{ marginBottom: 6, height: SLOT_H, overflow: "hidden" }}>
+                      <View key={item.key} style={{ marginBottom: 5, height: SLOT_H, overflow: "hidden" }}>
                         {aula ? (
                           <TouchableOpacity
-                            style={[cal.aulaCard, { borderLeftColor: cor }]}
+                            style={[cal.aulaCard, {
+                              backgroundColor: cor + "14",
+                              borderColor: cor + "45",
+                            }]}
                             onPress={() => onPress(aula)}
-                            activeOpacity={0.82}
+                            activeOpacity={0.8}
                           >
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginBottom: 4 }}>
-                              <Text style={[cal.aulaTime, { color: cor }]}>{item.start}</Text>
-                              <Text style={{ fontSize: 8, color: cor, opacity: 0.7 }}>–</Text>
-                              <Text style={[cal.aulaTime, { color: cor }]}>{item.end}</Text>
-                            </View>
-                            <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
-                            {aula.teacher ? (
-                              <View style={cal.detail}>
-                                <Ionicons name="person-outline" size={10} color="#888" />
-                                <Text style={cal.detailText} numberOfLines={1}>{aula.teacher}</Text>
+                            {/* Accent top bar */}
+                            <View style={[cal.aulaAccentBar, { backgroundColor: cor }]} />
+                            <View style={cal.aulaBody}>
+                              {/* Horário */}
+                              <View style={[cal.aulaTimePill, { backgroundColor: cor + "25" }]}>
+                                <Text style={[cal.aulaTimePillText, { color: cor }]}>{item.start}</Text>
                               </View>
-                            ) : null}
+                              {/* Matéria */}
+                              <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
+                              {/* Professor — initial badge */}
+                              {aula.teacher ? (
+                                <View style={[cal.aulaTeacherBadge, { backgroundColor: cor + "22" }]}>
+                                  <Text style={[cal.aulaTeacherInitial, { color: cor }]}>
+                                    {aula.teacher.trim()[0]?.toUpperCase() ?? "P"}
+                                  </Text>
+                                  <Text style={[cal.aulaTeacherName, { color: cor }]} numberOfLines={1}>
+                                    {aula.teacher.split(" ")[0]}
+                                  </Text>
+                                </View>
+                              ) : null}
+                            </View>
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity
                             style={cal.emptyCell}
                             onPress={() => onPressEmpty(dia, item.start, item.end)}
-                            activeOpacity={0.6}
+                            activeOpacity={0.5}
                           >
-                            <Ionicons name="add-circle-outline" size={20} color="#ddd" />
+                            <View style={cal.emptyCellInner}>
+                              <Ionicons name="add" size={16} color="#D1D5DB" />
+                            </View>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -302,30 +309,30 @@ function CalendarioSemanal({
       {semDia.length > 0 && (
         <View style={{ marginTop: 20 }}>
           <View style={cal.sectionHeader}>
-            <Ionicons name="time-outline" size={13} color="#888" />
+            <View style={[cal.sectionHeaderDot, { backgroundColor: cor }]} />
             <Text style={cal.sectionHeaderText}>Sem dia específico</Text>
+            <View style={[cal.sectionHeaderLine, { backgroundColor: cor + "25" }]} />
           </View>
           {semDia.map(a => (
             <TouchableOpacity
               key={a.id}
-              style={cal.rowCard}
+              style={[cal.rowCard, { borderLeftColor: cor }]}
               onPress={() => onPress(a)}
               activeOpacity={0.8}
             >
-              <View style={cal.rowTimeBox}>
-                <Text style={cal.rowTimeStart}>{a.timeStart}</Text>
-                <Text style={cal.rowTimeEnd}>{a.timeEnd}</Text>
+              <View style={[cal.rowTimeBox, { backgroundColor: cor + "14" }]}>
+                <Text style={[cal.rowTimeStart, { color: cor }]}>{a.timeStart}</Text>
+                <Text style={[cal.rowTimeEnd, { color: cor }]}>{a.timeEnd}</Text>
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, paddingLeft: 2 }}>
                 <Text style={cal.rowSubject}>{a.subject}</Text>
                 {a.teacher ? (
-                  <View style={cal.detail}>
-                    <Ionicons name="person-outline" size={11} color="#aaa" />
-                    <Text style={[cal.detailText, { fontSize: 11 }]} numberOfLines={1}>{a.teacher}</Text>
-                  </View>
+                  <Text style={cal.rowTeacher} numberOfLines={1}>{a.teacher}</Text>
                 ) : null}
               </View>
-              <Ionicons name="chevron-forward" size={16} color="#ccc" />
+              <View style={[cal.rowArrow, { backgroundColor: cor + "18" }]}>
+                <Ionicons name="chevron-forward" size={13} color={cor} />
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -699,48 +706,88 @@ const inf = StyleSheet.create({
 });
 
 const cal = StyleSheet.create({
+  // ── Day header ──────────────────────────────────────────────
   dayHeader: {
-    backgroundColor: "#1C2B3A", borderRadius: 12, paddingVertical: 10, alignItems: "center",
-    marginBottom: 2,
+    borderRadius: 12, paddingVertical: 9, alignItems: "center",
+    borderWidth: 1.5, marginBottom: 2,
   },
-  dayHeaderText: { fontSize: 11, fontWeight: "800", color: "rgba(255,255,255,0.85)", letterSpacing: 1.2 },
+  dayHeaderAbrev: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2 },
 
+  // ── Aula card ────────────────────────────────────────────────
   aulaCard: {
-    backgroundColor: "#fff", borderRadius: 12, borderLeftWidth: 3, padding: 9, flex: 1,
-    shadowColor: "#000", shadowOpacity: 0.09, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    flex: 1, borderRadius: 12, borderWidth: 1.5, overflow: "hidden",
+    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
   },
+  aulaAccentBar: { height: 3, width: "100%" },
+  aulaBody: { flex: 1, padding: 7, gap: 4 },
+  aulaTimePill: {
+    alignSelf: "flex-start", borderRadius: 6,
+    paddingHorizontal: 5, paddingVertical: 2,
+  },
+  aulaTimePillText: { fontSize: 9, fontWeight: "800" },
+  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", lineHeight: 14, flex: 1 },
+  aulaTeacherBadge: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2,
+    alignSelf: "flex-start",
+  },
+  aulaTeacherInitial: { fontSize: 9, fontWeight: "800" },
+  aulaTeacherName: { fontSize: 8, fontWeight: "600", flex: 1 },
+
+  // Aliases mantidos por compatibilidade
   aulaTime: { fontSize: 10, fontWeight: "800" },
-  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", marginBottom: 4, lineHeight: 15 },
-  detail: { flexDirection: "row", alignItems: "center", gap: 3, marginTop: 2 },
+  detail: { flexDirection: "row", alignItems: "center", gap: 3 },
   detailText: { fontSize: 9, color: "#9CA3AF", flex: 1 },
 
+  // ── Empty cell ───────────────────────────────────────────────
   emptyCell: {
-    flex: 1, borderWidth: 1.5, borderColor: "#E5E7EB",
-    borderRadius: 12, borderStyle: "dashed", backgroundColor: "#F9FAFB",
+    flex: 1, borderWidth: 1, borderColor: "#E9EBF0",
+    borderRadius: 12, borderStyle: "dashed",
+    backgroundColor: "#FAFBFC",
+    alignItems: "center", justifyContent: "center",
+  },
+  emptyCellInner: {
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: "#F1F3F5",
     alignItems: "center", justifyContent: "center",
   },
 
+  // ── Intervalo ────────────────────────────────────────────────
   intervaloCelula: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
     height: INT_H,
-    backgroundColor: "#FFFBEB", borderRadius: 12, paddingVertical: 8, paddingHorizontal: 8,
+    backgroundColor: "#FFFBEB", borderRadius: 10,
+    paddingVertical: 6, paddingHorizontal: 7,
     borderWidth: 1.5, borderColor: "#FDE68A",
-    shadowColor: "#F59E0B", shadowOpacity: 0.12, shadowRadius: 4, elevation: 1,
+    shadowColor: "#F59E0B", shadowOpacity: 0.1, shadowRadius: 4, elevation: 1,
+    gap: 3,
   },
-  intervaloCelulaText: { fontSize: 10, color: "#92400e", fontWeight: "700", flex: 1, marginRight: 2 },
+  intervaloCelulaText: { fontSize: 9, color: "#92400e", fontWeight: "800", flex: 1 },
 
-  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, marginTop: 8 },
-  sectionHeaderText: { fontSize: 12, fontWeight: "700", color: "#6B7280", textTransform: "uppercase", letterSpacing: 0.6 },
+  // ── Sem dia ──────────────────────────────────────────────────
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, marginTop: 4 },
+  sectionHeaderDot: { width: 8, height: 8, borderRadius: 4 },
+  sectionHeaderText: { fontSize: 12, fontWeight: "700", color: "#374151", textTransform: "uppercase", letterSpacing: 0.6 },
+  sectionHeaderLine: { flex: 1, height: 1.5, borderRadius: 1 },
 
   rowCard: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#fff", borderRadius: 18,
-    padding: 14, marginBottom: 10, borderWidth: 1, borderColor: "#F1F5F9", gap: 12,
-    shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3,
+    flexDirection: "row", alignItems: "center", backgroundColor: "#fff",
+    borderRadius: 16, padding: 14, marginBottom: 10,
+    borderWidth: 1, borderColor: "#F1F5F9", borderLeftWidth: 4, gap: 12,
+    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 3,
   },
-  rowTimeBox: { alignItems: "center", width: 50, gap: 2 },
-  rowTimeStart: { fontSize: 14, fontWeight: "800", color: "#111827" },
-  rowTimeEnd: { fontSize: 11, color: "#9CA3AF" },
+  rowTimeBox: {
+    alignItems: "center", width: 52, borderRadius: 10,
+    paddingVertical: 8, paddingHorizontal: 4, gap: 3,
+  },
+  rowTimeStart: { fontSize: 14, fontWeight: "800" },
+  rowTimeEnd: { fontSize: 11, fontWeight: "600" },
   rowSubject: { fontSize: 14, fontWeight: "700", color: "#111827", marginBottom: 3 },
+  rowTeacher: { fontSize: 12, color: "#9CA3AF", fontWeight: "500" },
+  rowArrow: {
+    width: 28, height: 28, borderRadius: 8,
+    alignItems: "center", justifyContent: "center",
+  },
 });
 
 const act = StyleSheet.create({
