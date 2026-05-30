@@ -265,14 +265,13 @@ export default function AulaDetalheScreen() {
 
   return (
     <SafeAreaView style={s.container}>
-      <StatusBar barStyle="light-content" backgroundColor={ehIntervalo ? "#92400e" : turnoInfo.color} />
+      <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
 
-      {/* Header na cor do turno — sem clash */}
-      <View style={[s.header, { backgroundColor: ehIntervalo ? "#92400e" : turnoInfo.color, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }]}>
+      <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()} activeOpacity={0.7}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
-        <Text style={s.headerTitle} numberOfLines={1}>{ehIntervalo ? "Intervalo" : params.subject}</Text>
+        <Text style={s.headerTitle}>{ehIntervalo ? "Detalhe do Intervalo" : "Detalhe da Aula"}</Text>
         {ehReadOnly ? (
           <View style={{ width: 40 }} />
         ) : (
@@ -306,17 +305,18 @@ export default function AulaDetalheScreen() {
           </View>
         ) : (
           <View style={ad.heroWrap}>
-            {/* Faixa colorida */}
-            <View style={[ad.heroStripe, { backgroundColor: turnoInfo.color }]}>
-              <Ionicons name={turnoInfo.ionicon} size={120} color="rgba(255,255,255,0.1)" style={{ position: "absolute", right: -16, top: -16 }} />
+            {/* Faixa escura neutra — não conflita com header verde */}
+            <View style={ad.heroStripe}>
+              <Ionicons name={turnoInfo.ionicon} size={120} color="rgba(255,255,255,0.06)" style={{ position: "absolute", right: -16, top: -16 }} />
               <View style={ad.heroStripeRow}>
-                <View style={ad.heroTurnoPill}>
-                  <Ionicons name={turnoInfo.ionicon} size={11} color="rgba(255,255,255,0.92)" />
+                {/* Acento do turno — apenas pill pequena */}
+                <View style={[ad.heroTurnoPill, { backgroundColor: turnoInfo.color }]}>
+                  <Ionicons name={turnoInfo.ionicon} size={11} color="#fff" />
                   <Text style={ad.heroTurnoText}>{turnoInfo.label}</Text>
                 </View>
                 {params.diaSemana ? (
                   <View style={ad.heroDiaPill}>
-                    <Ionicons name="calendar-outline" size={11} color="rgba(255,255,255,0.85)" />
+                    <Ionicons name="calendar-outline" size={11} color="rgba(255,255,255,0.75)" />
                     <Text style={ad.heroDiaText}>{params.diaSemana}</Text>
                   </View>
                 ) : null}
@@ -334,22 +334,22 @@ export default function AulaDetalheScreen() {
             {/* Parte branca: horários */}
             <View style={ad.ticketBody}>
               <View style={ad.ticketTimeCol}>
-                <Text style={[ad.ticketTimeLabel, { color: turnoInfo.color }]}>INÍCIO</Text>
-                <Text style={[ad.ticketTimeBig, { color: turnoInfo.color }]}>{params.timeStart}</Text>
+                <Text style={ad.ticketTimeLabel}>INÍCIO</Text>
+                <Text style={ad.ticketTimeBig}>{params.timeStart}</Text>
               </View>
               <View style={ad.ticketMid}>
-                <View style={[ad.ticketDot, { backgroundColor: turnoInfo.color }]} />
-                <View style={[ad.ticketLine, { backgroundColor: turnoInfo.color + "40" }]} />
-                <View style={[ad.ticketDurBadge, { backgroundColor: turnoInfo.color + "18", borderColor: turnoInfo.color + "40" }]}>
-                  <Ionicons name="timer-outline" size={11} color={turnoInfo.color} />
-                  <Text style={[ad.ticketDurText, { color: turnoInfo.color }]}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
+                <View style={ad.ticketDot} />
+                <View style={ad.ticketLine} />
+                <View style={ad.ticketDurBadge}>
+                  <Ionicons name="timer-outline" size={11} color="#3a7d44" />
+                  <Text style={ad.ticketDurText}>{calcDuration(params.timeStart, params.timeEnd)}</Text>
                 </View>
-                <View style={[ad.ticketLine, { backgroundColor: turnoInfo.color + "40" }]} />
-                <View style={[ad.ticketDot, { backgroundColor: turnoInfo.color }]} />
+                <View style={ad.ticketLine} />
+                <View style={ad.ticketDot} />
               </View>
               <View style={[ad.ticketTimeCol, { alignItems: "flex-end" }]}>
-                <Text style={[ad.ticketTimeLabel, { color: turnoInfo.color }]}>FIM</Text>
-                <Text style={[ad.ticketTimeBig, { color: turnoInfo.color }]}>{params.timeEnd}</Text>
+                <Text style={ad.ticketTimeLabel}>FIM</Text>
+                <Text style={ad.ticketTimeBig}>{params.timeEnd}</Text>
               </View>
             </View>
           </View>
@@ -480,7 +480,7 @@ const ad = StyleSheet.create({
     backgroundColor: "#fff",
     shadowColor: "#000", shadowOpacity: 0.14, shadowRadius: 18, elevation: 8,
   },
-  heroStripe: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, overflow: "hidden", gap: 14 },
+  heroStripe: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24, overflow: "hidden", gap: 14, backgroundColor: "#1C2B3A" },
   heroStripeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   heroTurnoPill: {
     flexDirection: "row", alignItems: "center", gap: 5,
@@ -516,17 +516,17 @@ const ad = StyleSheet.create({
     paddingHorizontal: 22, paddingVertical: 20, gap: 0,
   },
   ticketTimeCol: { alignItems: "flex-start", minWidth: 68 },
-  ticketTimeLabel: { fontSize: 9, fontWeight: "800", letterSpacing: 1.2, marginBottom: 4 },
-  ticketTimeBig: { fontSize: 26, fontWeight: "800", lineHeight: 30 },
+  ticketTimeLabel: { fontSize: 9, fontWeight: "800", letterSpacing: 1.2, marginBottom: 4, color: "#6B7280" },
+  ticketTimeBig: { fontSize: 26, fontWeight: "800", lineHeight: 30, color: "#111827" },
   ticketMid: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8 },
-  ticketLine: { flex: 1, height: 1.5, borderRadius: 1 },
-  ticketDot: { width: 8, height: 8, borderRadius: 4 },
+  ticketLine: { flex: 1, height: 1.5, borderRadius: 1, backgroundColor: "#E5E7EB" },
+  ticketDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#D1D5DB" },
   ticketDurBadge: {
     flexDirection: "row", alignItems: "center", gap: 4,
-    borderRadius: 20, borderWidth: 1.5,
-    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 20, borderWidth: 1.5, borderColor: "#BBF7D0",
+    paddingHorizontal: 8, paddingVertical: 4, backgroundColor: "#F0FDF4",
   },
-  ticketDurText: { fontSize: 11, fontWeight: "700" },
+  ticketDurText: { fontSize: 11, fontWeight: "700", color: "#3a7d44" },
 
   // ── Professor ─────────────────────────────────────────────
   profCard: {
