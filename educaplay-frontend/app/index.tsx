@@ -14,74 +14,89 @@ import Animated, {
 } from "react-native-reanimated";
 
 const { width, height } = Dimensions.get("window");
-const SPLASH_DURATION = 3600;
+const SPLASH = 3600;
 
-// ─── Partícula decorativa ────────────────────────────────────
-function Particle({ x, y, size, opacity }: { x: number; y: number; size: number; opacity: number }) {
+// ─── Folha decorativa ────────────────────────────────────────
+// Elipse rotacionada simula silhueta de folha tropical
+function Leaf({
+  x, y, w, h, rotate, opacity,
+}: {
+  x: number; y: number; w: number; h: number; rotate: string; opacity: number;
+}) {
   return (
     <View
       style={{
         position: "absolute",
-        left: x,
-        top: y,
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: `rgba(255,255,255,${opacity})`,
+        left: x, top: y, width: w, height: h,
+        borderRadius: w * 0.5,
+        borderWidth: 1,
+        borderColor: `rgba(255,255,255,${opacity})`,
+        transform: [{ rotate }],
       }}
     />
   );
 }
 
-// ─── Splash principal ────────────────────────────────────────
 export default function SplashScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
-  const usuarioRef = useRef(usuario);
-  useEffect(() => { usuarioRef.current = usuario; }, [usuario]);
+  const ref = useRef(usuario);
+  useEffect(() => { ref.current = usuario; }, [usuario]);
 
-  // Animações
-  const topOpacity  = useSharedValue(0);
-  const topY        = useSharedValue(-16);
-  const mascoteY    = useSharedValue(60);
-  const mascoteOp   = useSharedValue(0);
-  const d1 = useSharedValue(0.2);
-  const d2 = useSharedValue(0.2);
-  const d3 = useSharedValue(0.2);
+  // Valores animados
+  const brandOp  = useSharedValue(0);
+  const brandY   = useSharedValue(-20);
+  const glowS    = useSharedValue(0.6);
+  const glowOp   = useSharedValue(0);
+  const mascoteY = useSharedValue(80);
+  const mascoteO = useSharedValue(0);
+  const dotsOp   = useSharedValue(0);
+  const d1 = useSharedValue(0.25);
+  const d2 = useSharedValue(0.25);
+  const d3 = useSharedValue(0.25);
 
   useEffect(() => {
-    // Topo entra primeiro
-    topOpacity.value = withTiming(1,  { duration: 500, easing: Easing.out(Easing.cubic) });
-    topY.value       = withTiming(0,  { duration: 500, easing: Easing.out(Easing.cubic) });
+    // 1. Brand entra
+    brandOp.value = withTiming(1, { duration: 560, easing: Easing.out(Easing.cubic) });
+    brandY.value  = withTiming(0, { duration: 560, easing: Easing.out(Easing.cubic) });
 
-    // Mascote sobe logo depois
-    mascoteY.value   = withDelay(220, withSpring(0, { damping: 16, stiffness: 120 }));
-    mascoteOp.value  = withDelay(220, withTiming(1, { duration: 500 }));
+    // 2. Glow expande
+    glowS.value  = withDelay(100, withTiming(1,   { duration: 800, easing: Easing.out(Easing.cubic) }));
+    glowOp.value = withDelay(100, withTiming(0.9, { duration: 600 }));
 
-    // Dots
+    // 3. Mascote sobe com bounce suave
+    mascoteY.value = withDelay(200, withSpring(0, { damping: 18, stiffness: 130, mass: 1.1 }));
+    mascoteO.value = withDelay(200, withTiming(1, { duration: 480 }));
+
+    // 4. Dots aparecem
+    dotsOp.value = withDelay(700, withTiming(1, { duration: 300 }));
+
+    // Pulse dos dots
     const pulse = () =>
       withRepeat(
         withSequence(
-          withTiming(1,   { duration: 420 }),
-          withTiming(0.2, { duration: 420 }),
+          withTiming(1,    { duration: 440 }),
+          withTiming(0.25, { duration: 440 }),
         ), -1
       );
-    d1.value = withDelay(700, pulse());
-    d2.value = withDelay(700 + 180, pulse());
-    d3.value = withDelay(700 + 360, pulse());
+    d1.value = withDelay(750,  pulse());
+    d2.value = withDelay(950,  pulse());
+    d3.value = withDelay(1150, pulse());
 
     const t = setTimeout(() => {
-      const u = usuarioRef.current;
+      const u = ref.current;
       router.replace(
         u ? (u.papel === "Professor" ? "/professor/home-professor" : "/supervisao/home")
           : "/auth/Login"
       );
-    }, SPLASH_DURATION);
+    }, SPLASH);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line
 
-  const topStyle      = useAnimatedStyle(() => ({ opacity: topOpacity.value, transform: [{ translateY: topY.value }] }));
-  const mascoteStyle  = useAnimatedStyle(() => ({ opacity: mascoteOp.value,  transform: [{ translateY: mascoteY.value }] }));
+  const brandStyle   = useAnimatedStyle(() => ({ opacity: brandOp.value, transform: [{ translateY: brandY.value }] }));
+  const glowStyle    = useAnimatedStyle(() => ({ opacity: glowOp.value,  transform: [{ scale: glowS.value }] }));
+  const mascoteStyle = useAnimatedStyle(() => ({ opacity: mascoteO.value, transform: [{ translateY: mascoteY.value }] }));
+  const dotsStyle    = useAnimatedStyle(() => ({ opacity: dotsOp.value }));
   const d1s = useAnimatedStyle(() => ({ opacity: d1.value }));
   const d2s = useAnimatedStyle(() => ({ opacity: d2.value }));
   const d3s = useAnimatedStyle(() => ({ opacity: d3.value }));
@@ -89,66 +104,76 @@ export default function SplashScreen() {
   return (
     <View style={s.container}>
 
-      {/* ── Fundo: grande círculo claro atrás ── */}
-      <View style={s.bgGlow} />
+      {/* ══ CAMADAS DE FUNDO ══════════════════════════════════ */}
 
-      {/* ── Partículas espalhadas ── */}
-      <Particle x={width * 0.08}  y={height * 0.07}  size={6}  opacity={0.18} />
-      <Particle x={width * 0.85}  y={height * 0.06}  size={4}  opacity={0.14} />
-      <Particle x={width * 0.72}  y={height * 0.15}  size={8}  opacity={0.10} />
-      <Particle x={width * 0.12}  y={height * 0.22}  size={5}  opacity={0.12} />
-      <Particle x={width * 0.88}  y={height * 0.28}  size={6}  opacity={0.10} />
-      <Particle x={width * 0.05}  y={height * 0.42}  size={4}  opacity={0.10} />
-      <Particle x={width * 0.92}  y={height * 0.48}  size={5}  opacity={0.08} />
+      {/* Vinheta: bordas mais escuras */}
+      <View style={s.vignette} />
 
-      {/* ── IDENTIDADE (terço superior) ── */}
-      <Animated.View style={[s.identidade, topStyle]}>
+      {/* Folhas decorativas — cantos */}
+      {/* topo esquerdo */}
+      <Leaf x={-30}      y={height * 0.02}  w={120} h={60}  rotate="-35deg" opacity={0.12} />
+      <Leaf x={-12}      y={height * 0.06}  w={80}  h={40}  rotate="-20deg" opacity={0.08} />
+      {/* topo direito */}
+      <Leaf x={width-90} y={height * 0.03}  w={110} h={55}  rotate="30deg"  opacity={0.10} />
+      <Leaf x={width-60} y={height * 0.08}  w={70}  h={35}  rotate="18deg"  opacity={0.07} />
+      {/* lateral esquerda */}
+      <Leaf x={-20}      y={height * 0.35}  w={90}  h={45}  rotate="-55deg" opacity={0.07} />
+      {/* lateral direita */}
+      <Leaf x={width-50} y={height * 0.40}  w={80}  h={40}  rotate="50deg"  opacity={0.06} />
 
-        {/* Logo como ícone de app */}
-        <View style={s.logoBadge}>
-          <Image
-            source={require("@/assets/images/logo_icon.png")}
-            style={s.logoImg}
-            resizeMode="contain"
-          />
-        </View>
+      {/* Linha diagonal sutil */}
+      <View style={s.diagLine} />
 
-        {/* Nome */}
-        <Text style={s.appName}>
-          Educa<Text style={s.appNamePlay}>Play</Text>
-        </Text>
+      {/* ══ HOLOFOTE por trás do mascote ═══════════════════════ */}
+      <Animated.View style={[s.spotlight, glowStyle]} />
 
-        {/* Separador e tagline */}
-        <View style={s.taglineBlock}>
-          <View style={s.taglineDots}>
-            <View style={s.tDot} />
-            <View style={[s.tDot, { width: 20 }]} />
-            <View style={s.tDot} />
+      {/* ══ IDENTIDADE ════════════════════════════════════════ */}
+      <Animated.View style={[s.brand, brandStyle]}>
+
+        {/* Logo — círculo branco, mais refinado */}
+        <View style={s.logoCircle}>
+          <View style={s.logoInner}>
+            <Image
+              source={require("@/assets/images/logo_icon.png")}
+              style={s.logoImg}
+              resizeMode="contain"
+            />
           </View>
-          <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
         </View>
+
+        {/* Tipografia com contraste extremo de peso */}
+        <View style={s.nameBlock}>
+          <Text style={s.nameEduca}>EDUCA</Text>
+          <Text style={s.namePlay}>Play</Text>
+        </View>
+
+        {/* Regra + tagline */}
+        <View style={s.tagRow}>
+          <View style={s.rule} />
+          <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
+          <View style={s.rule} />
+        </View>
+
       </Animated.View>
 
-      {/* ── MASCOTE (herói — ocupa 2/3 inferiores) ── */}
-      <Animated.View style={[s.mascoteArea, mascoteStyle]}>
+      {/* ══ MASCOTE ═══════════════════════════════════════════ */}
+      <Animated.View style={[s.mascoteWrap, mascoteStyle]}>
         <Image
           source={require("@/assets/images/ze_bloco.png")}
           style={s.mascote}
           resizeMode="contain"
         />
-        {/* Sombra elíptica natural */}
-        <View style={s.mascoteShadow} />
       </Animated.View>
 
-      {/* ── Arco de "palco" curvado ── */}
-      <View style={s.stage} />
+      {/* Arco de palco */}
+      <View style={s.stageArc} />
 
-      {/* ── Dots ── */}
-      <View style={s.dotsRow}>
+      {/* ══ DOTS ══════════════════════════════════════════════ */}
+      <Animated.View style={[s.dotsRow, dotsStyle]}>
         <Animated.View style={[s.dot, d1s]} />
         <Animated.View style={[s.dot, d2s]} />
         <Animated.View style={[s.dot, d3s]} />
-      </View>
+      </Animated.View>
 
     </View>
   );
@@ -163,110 +188,145 @@ const s = StyleSheet.create({
     overflow: "hidden",
   },
 
-  // Glow de fundo
-  bgGlow: {
+  // ── Fundo ─────────────────────────────────────────────────
+  vignette: {
+    position: "absolute",
+    inset: 0,
+    // Borda escura: gradiente simulado com View grande
+    width: "100%", height: "100%",
+    borderRadius: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: width * 0.5,
+    shadowOpacity: 0.35,
+    elevation: 0,
+  },
+
+  diagLine: {
     position: "absolute",
     width: width * 1.8,
-    height: width * 1.8,
-    borderRadius: width * 0.9,
-    backgroundColor: "rgba(255,255,255,0.055)",
-    top: -width * 0.7,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    top: height * 0.36,
+    left: -width * 0.4,
+    transform: [{ rotate: "-12deg" }],
+  },
+
+  // Holofote
+  spotlight: {
+    position: "absolute",
+    width: width * 0.95,
+    height: width * 0.95,
+    borderRadius: width * 0.475,
+    backgroundColor: "rgba(255,255,255,0.07)",
+    bottom: height * 0.06,
     alignSelf: "center",
   },
 
   // ── Identidade ────────────────────────────────────────────
-  identidade: {
+  brand: {
     alignItems: "center",
-    paddingTop: height * 0.10,
-    gap: 10,
+    paddingTop: height * 0.095,
+    gap: 14,
     zIndex: 2,
   },
 
-  logoBadge: {
-    width: 68,
-    height: 68,
-    borderRadius: 20,
+  // Logo — dois anéis concêntricos
+  logoCircle: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  logoInner: {
+    width: 58, height: 58, borderRadius: 29,
     backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: "center", justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-    elevation: 12,
-    marginBottom: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 10,
   },
-  logoImg: { width: 44, height: 44 },
+  logoImg: { width: 38, height: 38 },
 
-  appName: {
-    fontSize: 46,
+  // Tipografia — contraste de peso extremo
+  nameBlock: { alignItems: "center", gap: -6 },
+  nameEduca: {
+    fontSize: 15,
+    fontWeight: "400",
+    color: "rgba(255,255,255,0.65)",
+    letterSpacing: 8,
+    textTransform: "uppercase",
+  },
+  namePlay: {
+    fontSize: 56,
     fontWeight: "800",
-    color: "#fff",
-    letterSpacing: -1.8,
-    lineHeight: 50,
-  },
-  appNamePlay: {
-    color: "rgba(255,255,255,0.75)",
+    color: "#ffffff",
+    letterSpacing: -2,
+    lineHeight: 58,
+    marginTop: -2,
   },
 
-  taglineBlock: { alignItems: "center", gap: 7, marginTop: 2 },
-  taglineDots: { flexDirection: "row", alignItems: "center", gap: 4 },
-  tDot: {
-    width: 4, height: 4,
-    borderRadius: 2,
-    backgroundColor: "rgba(255,255,255,0.35)",
+  // Regra horizontal com tagline
+  tagRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 24,
+  },
+  rule: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 1,
   },
   tagline: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.58)",
-    letterSpacing: 0.2,
+    fontSize: 11.5,
+    color: "rgba(255,255,255,0.55)",
+    letterSpacing: 0.3,
     textAlign: "center",
+    flexShrink: 1,
   },
 
   // ── Mascote ───────────────────────────────────────────────
-  mascoteArea: {
+  mascoteWrap: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
-    paddingBottom: 72,
     zIndex: 3,
     width: "100%",
+    paddingBottom: 56,
   },
   mascote: {
-    width: width * 0.78,
-    height: width * 0.78,
-  },
-  mascoteShadow: {
-    width: width * 0.42,
-    height: 14,
-    borderRadius: 50,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    marginTop: -8,
+    width: width * 0.82,
+    height: width * 0.82,
   },
 
-  // Palco curvado
-  stage: {
+  // Arco de palco curvado
+  stageArc: {
     position: "absolute",
-    bottom: -height * 0.08,
-    width: width * 1.5,
-    height: width * 1.5,
-    borderRadius: width * 0.75,
-    backgroundColor: "rgba(0,0,0,0.09)",
+    bottom: -height * 0.12,
+    width: width * 1.6,
+    height: width * 1.6,
+    borderRadius: width * 0.8,
+    backgroundColor: "rgba(0,0,0,0.12)",
     alignSelf: "center",
   },
 
   // ── Dots ──────────────────────────────────────────────────
   dotsRow: {
     position: "absolute",
-    bottom: 44,
+    bottom: 40,
     flexDirection: "row",
-    gap: 9,
+    gap: 8,
     alignItems: "center",
     zIndex: 4,
   },
   dot: {
-    width: 7, height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "rgba(255,255,255,0.85)",
+    width: 6, height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(255,255,255,0.8)",
   },
 });
