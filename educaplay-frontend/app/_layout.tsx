@@ -2,10 +2,11 @@ import 'react-native-reanimated';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
+import AppSplashScreen from '../components/AppSplashScreen';
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
 const MIN_SPLASH_MS = 400; // tempo mínimo da splash nativa antes de revelar a JS
@@ -95,11 +96,7 @@ function RootNavigator() {
   }, [usuario, carregando, segments, biometriaOk, router]);
 
   if (!biometriaOk) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#3a7d44' }}>
-        <ActivityIndicator size="large" color="#ffffff" />
-      </View>
-    );
+    return <AppSplashScreen />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
