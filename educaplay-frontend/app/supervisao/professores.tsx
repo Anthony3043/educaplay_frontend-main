@@ -945,7 +945,7 @@ const em = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.65)", justifyContent: "flex-end" },
   sheet: {
     backgroundColor: "#F8F9FA", borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    maxHeight: "85%", paddingTop: 12,
+    height: "85%", paddingTop: 12,
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
   header: {
