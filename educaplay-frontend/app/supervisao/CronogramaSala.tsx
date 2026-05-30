@@ -717,11 +717,11 @@ const cal = StyleSheet.create({
   // ── Intervalo ────────────────────────────────────────────────
   intervaloCelula: {
     flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    height: INT_H,
+    height: SLOT_H,
     backgroundColor: "#FFFBEB", borderRadius: 10,
     paddingVertical: 6, paddingHorizontal: 7,
-    borderWidth: 1.5, borderColor: "#FDE68A",
-    shadowColor: "#F59E0B", shadowOpacity: 0.1, shadowRadius: 4, elevation: 1,
+    borderWidth: 1, borderColor: "#FDE68A",
+    elevation: 0,
     gap: 3,
   },
   intervaloCelulaText: { fontSize: 9, color: "#92400e", fontWeight: "800", flex: 1 },
