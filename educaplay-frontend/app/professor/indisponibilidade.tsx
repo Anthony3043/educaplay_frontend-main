@@ -186,7 +186,7 @@ export default function IndisponibilidadeScreen() {
           </Text>
         </View>
         <TouchableOpacity style={s.avisoBtn} onPress={() => setModalAvisar(true)} activeOpacity={0.8}>
-          <Ionicons name="alert-circle-outline" size={16} color="#fff" />
+          <Ionicons name="alert-circle-outline" size={15} color="#3a7d44" />
           <Text style={s.avisoBtnText}>Avisar</Text>
         </TouchableOpacity>
       </View>
@@ -605,11 +605,11 @@ const s = StyleSheet.create({
   headerSub: { fontSize: 12, color: "rgba(255,255,255,0.75)", marginTop: 1, fontWeight: "500" },
   avisoBtn: {
     flexDirection: "row", alignItems: "center", gap: 5,
-    backgroundColor: "rgba(249,115,22,0.28)", borderRadius: 10,
-    paddingHorizontal: 10, paddingVertical: 7,
-    borderWidth: 1, borderColor: "rgba(249,115,22,0.45)",
+    backgroundColor: "#fff", borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 7,
+    shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 6, elevation: 3,
   },
-  avisoBtnText: { fontSize: 13, fontWeight: "700", color: "#fff" },
+  avisoBtnText: { fontSize: 13, fontWeight: "700", color: "#3a7d44" },
 
   scroll: { padding: 16, paddingBottom: 48, gap: 14 },
 
