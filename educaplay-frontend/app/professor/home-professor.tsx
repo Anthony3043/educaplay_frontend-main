@@ -157,8 +157,8 @@ export default function HomeProfessorScreen() {
 
       {/* Header */}
       <View style={s.header}>
-        <TouchableOpacity style={{ position: "absolute", left: 16 }} onPress={openDrawer}>
-          <Ionicons name="menu" size={26} color="#1a1a2e" />
+        <TouchableOpacity style={s.headerIconBtn} onPress={openDrawer} activeOpacity={0.7}>
+          <Ionicons name="menu" size={22} color="#1a1a2e" />
         </TouchableOpacity>
 
         <View style={s.headerLogo}>
@@ -168,8 +168,8 @@ export default function HomeProfessorScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity style={{ position: "absolute", right: 16 }} onPress={() => router.push("/shared/notificacoes")}>
-          <Ionicons name="notifications-outline" size={24} color="#1a1a2e" />
+        <TouchableOpacity style={s.headerIconBtn} onPress={() => router.push("/shared/notificacoes")} activeOpacity={0.7}>
+          <Ionicons name="notifications-outline" size={22} color="#1a1a2e" />
           {naoLidas > 0 && (
             <View style={s.notifBadge}>
               <Text style={s.notifBadgeText}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
@@ -181,10 +181,16 @@ export default function HomeProfessorScreen() {
       <ScrollView contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Banner */}
         <View style={s.banner}>
+          <View style={s.bannerDeco1} />
+          <View style={s.bannerDeco2} />
           <View style={s.bannerTextArea}>
+            <View style={s.bannerBadge}>
+              <Ionicons name="school-outline" size={12} color="rgba(255,255,255,0.92)" />
+              <Text style={s.bannerBadgeText}>Professor</Text>
+            </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Text style={s.bannerGreeting}>Olá, {userName}!</Text>
-              <Text style={{ fontSize: 20 }}>✨</Text>
+              <Text style={{ fontSize: 22 }}>✨</Text>
             </View>
             <Text style={s.bannerSubtitle}>
               Que bom ver você por aqui.{"\n"}
@@ -198,49 +204,71 @@ export default function HomeProfessorScreen() {
         {/* Menu Principal */}
         <View style={[s.section, { paddingHorizontal: 0 }]}>
           <Text style={[s.sectionTitle, { paddingHorizontal: 18 }]}>Menu Principal</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[s.menuGrid, { paddingLeft: 18 }]}
-          >
-            {MENU_ITEMS.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                style={[s.menuCard, { backgroundColor: item.color, shadowColor: item.color }]}
-                onPress={() => router.push(item.route as any)}
-                activeOpacity={0.82}
-              >
-                <View style={s.menuCardTop}>
-                  <View style={s.menuCardIcon}>
-                    <Ionicons name={item.ionicon} size={28} color="#fff" />
+          <View style={s.menuBentoGrid}>
+            {/* Card destaque */}
+            <TouchableOpacity
+              style={[s.menuCardFeatured, { backgroundColor: MENU_ITEMS[0].color, shadowColor: MENU_ITEMS[0].color }]}
+              onPress={() => router.push(MENU_ITEMS[0].route as any)}
+              activeOpacity={0.84}
+            >
+              <Ionicons name={MENU_ITEMS[0].ionicon} size={130} color="rgba(255,255,255,0.08)" style={s.menuCardGhostIcon} />
+              <View style={s.menuFeaturedIconWrap}>
+                <Ionicons name={MENU_ITEMS[0].ionicon} size={30} color="#fff" />
+              </View>
+              <View style={s.menuFeaturedBody}>
+                <Text style={s.menuFeaturedTitle}>{MENU_ITEMS[0].title}</Text>
+                <Text style={s.menuFeaturedSubtitle}>{MENU_ITEMS[0].subtitle}</Text>
+              </View>
+              <View style={s.menuFeaturedArrow}>
+                <Ionicons name="chevron-forward" size={14} color="rgba(255,255,255,0.9)" />
+              </View>
+            </TouchableOpacity>
+
+            {/* Linha: Cronogramas + Mapa de Sala */}
+            <View style={s.menuBentoRow}>
+              {MENU_ITEMS.slice(1).map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[s.menuCard, { backgroundColor: item.color, shadowColor: item.color }]}
+                  onPress={() => router.push(item.route as any)}
+                  activeOpacity={0.84}
+                >
+                  <Ionicons name={item.ionicon} size={96} color="rgba(255,255,255,0.09)" style={s.menuCardGhostIcon} />
+                  <View style={s.menuCardGlint} />
+                  <View style={s.menuCardArrowBadge}>
+                    <Ionicons name="chevron-forward" size={11} color="rgba(255,255,255,0.9)" />
                   </View>
-                </View>
-                <View style={s.menuCardBody}>
-                  <Text style={s.menuCardTitle}>{item.title}</Text>
-                  <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={13} color="rgba(255,255,255,0.45)" style={s.menuCardArrow} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                  <View style={s.menuCardIconWrap}>
+                    <Ionicons name={item.ionicon} size={26} color="#fff" />
+                  </View>
+                  <View style={s.menuCardBody}>
+                    <Text style={s.menuCardTitle}>{item.title}</Text>
+                    <Text style={s.menuCardSubtitle}>{item.subtitle}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </View>
 
-        {/* Botão Ver Cronograma */}
-        <TouchableOpacity style={s.btnCriar} onPress={() => router.push("/professor/cronogramas-professor")} activeOpacity={0.85}>
-          <Ionicons name="calendar-outline" size={22} color="#fff" />
-          <Text style={s.btnCriarText}>Ver Cronograma</Text>
-        </TouchableOpacity>
-
         {/* Dica do Zé Bloquinho */}
-        <TouchableOpacity style={s.dicaCard} onPress={handleDicaPress} activeOpacity={0.85}>
-          <Image source={require("@/assets/images/ze_bloco_dicas.png")} style={s.dicaMascote} resizeMode="contain" />
+        <TouchableOpacity style={s.dicaCard} onPress={handleDicaPress} activeOpacity={0.88}>
+          <View style={s.dicaMascoteWrap}>
+            <Image source={require("@/assets/images/ze_bloco_dicas.png")} style={s.dicaMascote} resizeMode="contain" />
+          </View>
           <View style={s.dicaTextArea}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Text style={s.dicaTitle}>Dica do Zé Bloquinho</Text>
-              <Ionicons name="bulb-outline" size={16} color="#f59e0b" />
+            <View style={s.dicaBadgeRow}>
+              <View style={s.dicaBadge}>
+                <Ionicons name="bulb-outline" size={12} color="#d97706" />
+                <Text style={s.dicaBadgeText}>Dica do Zé</Text>
+              </View>
+              <Text style={s.dicaCounter}>{dicaIndex + 1}/{DICAS.length}</Text>
             </View>
             <Animated.Text style={[s.dicaText, { opacity: dicaOpacity }]}>{dicaTexto}</Animated.Text>
-            <Text style={{ fontSize: 10, color: "#aaa", marginTop: 6 }}>Toque para ver outra dica →</Text>
+            <View style={s.dicaFooter}>
+              <Ionicons name="finger-print-outline" size={10} color="#f59e0b" />
+              <Text style={s.dicaFooterText}>Toque para outra dica</Text>
+            </View>
           </View>
         </TouchableOpacity>
       </ScrollView>
