@@ -184,24 +184,6 @@ export default function AulaDetalheScreen() {
             </View>
 
             <View style={es.section}>
-              <Text style={es.sectionTitle}>Dia da semana <Text style={{ fontWeight: "400", color: "#aaa" }}>(opcional)</Text></Text>
-              <View style={adDs.diasRow}>
-                {DIAS.map((dia) => (
-                  <TouchableOpacity
-                    key={dia}
-                    style={[adDs.chip, diaSemana === dia && adDs.chipActive]}
-                    onPress={() => setDiaSemana(diaSemana === dia ? null : dia)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[adDs.chipText, diaSemana === dia && adDs.chipTextActive]}>
-                      {dia.slice(0, 3)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={es.section}>
               <Text style={es.sectionTitle}>Professor</Text>
               {professores.map((prof, idx) => {
                 const sel = professorSelecionado?.id === prof.id;
