@@ -78,12 +78,24 @@ export default function IndisponibilidadeScreen() {
   const { usuario } = useAuth();
 
   const TODOS_DIAS = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
+  const MAP_DIA: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
+  const HORA_FIM_AULAS = 19 * 60; // 19:00 — após este horário o dia está encerrado
 
-  // Abre modal com o dia atual pré-selecionado
+  const minutosAgora = () => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  };
+
+  // Dia atual está encerrado se for depois das 19h
+  const diahoje = MAP_DIA[new Date().getDay()] ?? null;
+  const diaEncerrado = minutosAgora() >= HORA_FIM_AULAS;
+
+  // Chip desabilitado: é hoje E já passou das 19h
+  const diaDesabilitado = (dia: string) => dia === diahoje && diaEncerrado;
+
+  // Abre modal — pré-seleciona hoje SÓ se as aulas ainda não encerraram
   const abrirModalAvisar = () => {
-    const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
-    const hoje = map[new Date().getDay()];
-    setDiasSelecionados(hoje ? [hoje] : []);
+    setDiasSelecionados(diahoje && !diaEncerrado ? [diahoje] : []);
     setModalAvisar(true);
   };
 
@@ -473,16 +485,18 @@ export default function IndisponibilidadeScreen() {
                 <View style={av.diasGrid}>
                   {TODOS_DIAS.map(dia => {
                     const sel = diasSelecionados.includes(dia);
+                    const desab = diaDesabilitado(dia);
                     return (
                       <TouchableOpacity
                         key={dia}
-                        style={[av.diaChip, sel && av.diaChipSel]}
-                        onPress={() => toggleDia(dia)}
-                        activeOpacity={0.75}
+                        style={[av.diaChip, sel && av.diaChipSel, desab && av.diaChipDesab]}
+                        onPress={() => !desab && toggleDia(dia)}
+                        activeOpacity={desab ? 1 : 0.75}
                       >
-                        <Text style={[av.diaChipText, sel && av.diaChipTextSel]}>
+                        <Text style={[av.diaChipText, sel && av.diaChipTextSel, desab && { color: "#D1D5DB" }]}>
                           {dia.slice(0, 3)}
                         </Text>
+                        {desab && <Text style={av.diaChipEncerrado}>encerrado</Text>}
                       </TouchableOpacity>
                     );
                   })}
@@ -943,6 +957,8 @@ const av = StyleSheet.create({
   },
   diaChipText: { fontSize: 13, fontWeight: "700", color: "#6B7280" },
   diaChipTextSel: { color: "#fff" },
+  diaChipDesab: { backgroundColor: "#F9FAFB", borderColor: "#F3F4F6", opacity: 0.6 },
+  diaChipEncerrado: { fontSize: 8, color: "#D1D5DB", fontWeight: "600", marginTop: 1 },
   diasSelecionadosHint: { fontSize: 11, color: "#3a7d44", fontWeight: "600", marginBottom: 16 },
   tipoRow: { flexDirection: "row", gap: 12, marginBottom: 24 },
   tipoBtn: {
