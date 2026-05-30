@@ -2,14 +2,12 @@ import 'react-native-reanimated';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
-import AppSplashScreen from '../components/AppSplashScreen';
 
 const BIOMETRIA_KEY = "@educaplay_biometria";
-const MIN_JS_SPLASH = 2600; // a JS splash cuida do tempo mínimo
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,30 +15,15 @@ function RootNavigator() {
   const { usuario, carregando, logout } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-  const [biometriaOk, setBiometriaOk]     = useState(false);
-  const [jsSplashOk, setJsSplashOk]       = useState(false);
-  const [splashMounted, setSplashMounted] = useState(true);
+  const [biometriaOk, setBiometriaOk] = useState(false);
   const biometriaVerificada = useRef(false);
-  const [splashPronto, setSplashPronto]   = useState(false);
 
-  // Esconde splash nativa imediatamente (JS splash cuida do tempo)
+  // Esconde splash nativa assim que o app estiver pronto
   useEffect(() => {
-    const t = setTimeout(() => setSplashPronto(true), 0);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Timer mínimo da splash JS animada (2.6s)
-  useEffect(() => {
-    const t = setTimeout(() => setJsSplashOk(true), MIN_JS_SPLASH);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Esconde a splash NATIVA assim que o JS estiver pronto — a animada cuida do resto
-  useEffect(() => {
-    if (splashPronto) {
+    if (biometriaOk) {
       SplashScreen.hideAsync();
     }
-  }, [splashPronto]);
+  }, [biometriaOk]);
 
   useEffect(() => {
     if (carregando) return;
@@ -76,7 +59,6 @@ function RootNavigator() {
   useEffect(() => {
     if (carregando || !biometriaOk) return;
 
-    // segments[0] agora é o nome da pasta: 'auth', 'supervisao', 'professor', 'shared' ou 'index'
     const grupo = (segments[0] as string) ?? 'index';
     const estaEmRotaPublica = grupo === 'auth' || grupo === 'index';
 
@@ -100,19 +82,15 @@ function RootNavigator() {
     }
   }, [usuario, carregando, segments, biometriaOk, router]);
 
-  const splashVisible = !biometriaOk || !jsSplashOk;
+  if (!biometriaOk) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#3a7d44' }}>
+        <ActivityIndicator size="large" color="#ffffff" />
+      </View>
+    );
+  }
 
-  return (
-    <>
-      <Stack screenOptions={{ headerShown: false }} />
-      {splashMounted && (
-        <AppSplashScreen
-          visible={splashVisible}
-          onDismiss={() => setSplashMounted(false)}
-        />
-      )}
-    </>
-  );
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 export default function RootLayout() {
