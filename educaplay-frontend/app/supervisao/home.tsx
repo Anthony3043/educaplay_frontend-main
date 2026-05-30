@@ -86,6 +86,7 @@ export default function HomeScreen() {
 
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
+  // Verifica avisos ao focar E a cada 30s enquanto a tela está ativa
   useFocusEffect(useCallback(() => {
     const carregarAlertas = async () => {
       try {
@@ -98,6 +99,9 @@ export default function HomeScreen() {
       } catch {}
     };
     carregarAlertas();
+    // Poll a cada 30 segundos para pop-up em tempo real
+    const intervalo = setInterval(carregarAlertas, 30000);
+    return () => clearInterval(intervalo);
   }, []));
 
   // Botão voltar do Android → só sai do app quando esta tela está em foco
