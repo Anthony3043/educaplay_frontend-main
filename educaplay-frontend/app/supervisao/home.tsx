@@ -80,8 +80,8 @@ export default function HomeScreen() {
   // Modal substituto
   const [modalSubstituto, setModalSubstituto] = useState(false);
   const [alertaParaSubstituir, setAlertaParaSubstituir] = useState<any>(null);
-  // Array de { aulaId, timeStart, timeEnd, subject, professoresDisponiveis[], substitutoEscolhido }
   const [aulasParaSubstituir, setAulasParaSubstituir] = useState<any[]>([]);
+  const [carregandoSubstituto, setCarregandoSubstituto] = useState(false);
   const [salvandoSubstituto, setSalvandoSubstituto] = useState(false);
 
   const carregarNotifs = useCallback(async () => {
@@ -102,19 +102,28 @@ export default function HomeScreen() {
   };
 
   const abrirSubstituto = async (alerta: any) => {
+    if (!alerta.professor?.id) {
+      alert("Não foi possível identificar o professor. Tente novamente.");
+      return;
+    }
     setAlertaParaSubstituir(alerta);
     setAulasParaSubstituir([]);
+    setCarregandoSubstituto(true);
     setModalSubstituto(true);
     try {
       const params: any = {
-        professorAbsenteId: alerta.professor?.id,
+        professorAbsenteId: alerta.professor.id,
         diaSemana: getDiaSemanaHoje(),
       };
       if (alerta.horarioChegada) params.horarioChegada = alerta.horarioChegada;
       const res = await api.get("/avisos-professor/professores-disponiveis", { params });
-      // Adiciona campo substitutoEscolhido a cada aula
       setAulasParaSubstituir(res.data.map((a: any) => ({ ...a, substitutoEscolhido: null })));
-    } catch {}
+    } catch (err: any) {
+      alert(err?.response?.data?.error || "Erro ao carregar horários.");
+      setModalSubstituto(false);
+    } finally {
+      setCarregandoSubstituto(false);
+    }
   };
 
   const selecionarSubstituto = (aulaId: string, prof: any) => {
@@ -467,10 +476,17 @@ export default function HomeScreen() {
             <Text style={sb.sectionLabel}>Selecione um substituto para cada horário</Text>
 
             <ScrollView contentContainerStyle={sb.lista} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              {aulasParaSubstituir.length === 0 && (
+              {carregandoSubstituto && (
                 <View style={sb.emptyWrap}>
                   <ActivityIndicator color="#3a7d44" />
                   <Text style={sb.emptyText}>Carregando horários...</Text>
+                </View>
+              )}
+              {!carregandoSubstituto && aulasParaSubstituir.length === 0 && (
+                <View style={sb.emptyWrap}>
+                  <Ionicons name="calendar-outline" size={32} color="#D1D5DB" />
+                  <Text style={sb.emptyText}>Nenhuma aula encontrada</Text>
+                  <Text style={sb.emptySub}>Esse professor não tem aulas hoje</Text>
                 </View>
               )}
               {aulasParaSubstituir.map((aula) => (
