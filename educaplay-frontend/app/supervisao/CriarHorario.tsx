@@ -71,7 +71,7 @@ export default function CriarHorarioScreen() {
   const carregarDados = useCallback(async () => {
     try {
       const [resProfessores, resCronogramas] = await Promise.all([
-        api.get("/professores"),
+        api.get("/professores?apenasAtivos=true"),
         api.get("/cronogramas"),
       ]);
 
@@ -202,7 +202,17 @@ export default function CriarHorarioScreen() {
         onPress={bloqueado ? undefined : () => {
           const novo = selected ? null : prof;
           setProfessorSelecionado(novo);
-          if (novo && profMaterias.length > 0 && !materia.trim()) setMateria(profMaterias[0]);
+          if (novo && profMaterias.length > 0) {
+            // Se há filtro ativo (2+ chars), preenche com a matéria que bateu no filtro
+            const filtro = normalizar(materia.trim());
+            if (filtro.length >= 2) {
+              const match = profMaterias.find(m => normalizar(m).includes(filtro));
+              if (match) setMateria(match);
+            } else if (!materia.trim()) {
+              // Campo vazio: preenche com a primeira matéria do professor
+              setMateria(profMaterias[0]);
+            }
+          }
         }}
         activeOpacity={bloqueado ? 1 : 0.75}
       >

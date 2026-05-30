@@ -92,7 +92,7 @@ export default function AulaDetalheScreen() {
   const carregarOpcoes = useCallback(async () => {
     setCarregando(true);
     try {
-      const rp = await api.get("/professores");
+      const rp = await api.get("/professores?apenasAtivos=true");
       setProfessores(rp.data);
       if (params.professorId) {
         const p = rp.data.find((x: Professor) => x.id === params.professorId);
@@ -112,7 +112,7 @@ export default function AulaDetalheScreen() {
   // Busca foto do professor via lista /professores
   useEffect(() => {
     if (!profFoto && params.professorId) {
-      api.get("/professores")
+      api.get("/professores?apenasAtivos=true")
         .then((res) => {
           const prof = (res.data as any[]).find((p) => p.id === params.professorId);
           if (prof?.foto) setProfFoto(prof.foto);

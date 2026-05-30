@@ -958,7 +958,7 @@ const em = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
   headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "#E5E7EB" },
-  scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 56 },
 
   emptyWrap: {
     alignItems: "center", paddingVertical: 32, gap: 10,
@@ -1148,7 +1148,7 @@ const inf = StyleSheet.create({
 
 const m = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.6)", justifyContent: "flex-end" },
-  sheet: { backgroundColor: "#F8F9FA", borderTopLeftRadius: 28, borderTopRightRadius: 28, height: "88%", paddingTop: 12 },
+  sheet: { backgroundColor: "#F8F9FA", borderTopLeftRadius: 28, borderTopRightRadius: 28, height: "85%", paddingTop: 12 },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 0 },
 
   // Profile header

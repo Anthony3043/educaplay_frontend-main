@@ -49,7 +49,7 @@ export default function EditarHorarioScreen() {
   const mostrar = (titulo: string, mensagem: string, tipo: "erro" | "aviso" = "aviso") => setModalInfo({ visivel: true, titulo, mensagem, tipo });
 
   useEffect(() => {
-    api.get("/professores")
+    api.get("/professores?apenasAtivos=true")
       .then((rp) => setProfessores(rp.data))
       .catch(() => mostrar("Erro", "Não foi possível carregar os professores.", "erro"))
       .finally(() => setCarregando(false));

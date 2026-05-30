@@ -109,7 +109,7 @@ export default function IndisponibilidadeScreen() {
   useEffect(() => {
     if (!modalAvisar) return;
     setCarregandoProfs(true);
-    api.get("/professores")
+    api.get("/professores?apenasAtivos=true")
       .then(res => {
         // Exclui o próprio professor da lista
         setProfessoresDisponiveis(res.data.filter((p: any) => p.id !== usuario?.id && p.ativo !== false));
