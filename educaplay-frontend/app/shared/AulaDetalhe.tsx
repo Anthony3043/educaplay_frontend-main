@@ -363,7 +363,7 @@ export default function AulaDetalheScreen() {
               {profFoto ? (
                 <Image source={{ uri: profFoto }} style={ad.profAvatar} resizeMode="cover" />
               ) : params.teacher ? (
-                <View style={[ad.profInitial, { backgroundColor: turnoInfo.color }]}>
+                <View style={[ad.profInitial, { backgroundColor: "#3a7d44" }]}>
                   <Text style={ad.profInitialText}>{params.teacher.trim()[0]?.toUpperCase()}</Text>
                 </View>
               ) : (
@@ -381,8 +381,8 @@ export default function AulaDetalheScreen() {
                 {params.teacher || "Não atribuído"}
               </Text>
               {params.teacher && (
-                <View style={[ad.profChip, { backgroundColor: turnoInfo.color + "15" }]}>
-                  <Text style={[ad.profChipText, { color: turnoInfo.color }]}>Responsável pela aula</Text>
+                <View style={ad.profChip}>
+                  <Text style={ad.profChipText}>Responsável pela aula</Text>
                 </View>
               )}
             </View>
@@ -553,8 +553,9 @@ const ad = StyleSheet.create({
   profChip: {
     alignSelf: "flex-start", borderRadius: 8,
     paddingHorizontal: 9, paddingVertical: 3, marginTop: 2,
+    backgroundColor: "#F0FDF4",
   },
-  profChipText: { fontSize: 11, fontWeight: "600" },
+  profChipText: { fontSize: 11, fontWeight: "600", color: "#3a7d44" },
 
   // ── Meta (sala) ───────────────────────────────────────────
   metaCard: {
