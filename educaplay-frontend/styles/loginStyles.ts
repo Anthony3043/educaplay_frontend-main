@@ -54,11 +54,29 @@ export const loginStyles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 0,
   },
+  // Halo grande e suave atrás do mascote
+  mascoteHalo: {
+    position: 'absolute',
+    width: width * 0.82,
+    height: width * 0.72,
+    borderRadius: width * 0.41,
+    backgroundColor: '#f0fdf4',
+    opacity: 0.55,
+    alignSelf: 'center',
+    bottom: 10,
+    zIndex: 0,
+  },
+  // Dot decorativo assimétrico
+  mascoteDot: {
+    position: 'absolute',
+    borderRadius: 99,
+    zIndex: 1,
+  },
   mascoteSparkle: {
     position: 'absolute',
     color: '#f59e0b',
     fontWeight: '800',
-    zIndex: 2,
+    zIndex: 3,
   },
   mascoteImage: {
     width: width * 0.64,

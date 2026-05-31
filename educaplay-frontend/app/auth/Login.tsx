@@ -66,9 +66,17 @@ export default function LoginScreen() {
           </View>
 
           <View style={s.mascoteSection}>
-            <Text style={[s.mascoteSparkle, { top: 18, right: "23%", fontSize: 15 }]}>✦</Text>
-            <Text style={[s.mascoteSparkle, { top: 8,  left: "22%", fontSize: 10 }]}>✦</Text>
-            <Text style={[s.mascoteSparkle, { top: 52, right: "13%", fontSize: 12 }]}>✦</Text>
+            {/* Halo de fundo suave */}
+            <View style={s.mascoteHalo} />
+            {/* Dots assimétricos decorativos */}
+            <View style={[s.mascoteDot, { width: 10, height: 10, top: 20, left: "16%",  backgroundColor: "#86efac", opacity: 0.55 }]} />
+            <View style={[s.mascoteDot, { width:  5, height:  5, top: 10, right: "18%", backgroundColor: "#4ade80", opacity: 0.38 }]} />
+            <View style={[s.mascoteDot, { width:  7, height:  7, top: 68, right: "12%", backgroundColor: "#bbf7d0", opacity: 0.50 }]} />
+            <View style={[s.mascoteDot, { width:  4, height:  4, top: 42, left: "10%",  backgroundColor: "#fde68a", opacity: 0.65 }]} />
+            <View style={[s.mascoteDot, { width:  6, height:  6, top: 85, left: "28%",  backgroundColor: "#86efac", opacity: 0.30 }]} />
+            {/* Sparkles dourados */}
+            <Text style={[s.mascoteSparkle, { top: 16, right: "24%", fontSize: 14 }]}>✦</Text>
+            <Text style={[s.mascoteSparkle, { top:  7, left:  "23%", fontSize:  9 }]}>✦</Text>
             <Image source={require("@/assets/ze_bloquinho_auth.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 

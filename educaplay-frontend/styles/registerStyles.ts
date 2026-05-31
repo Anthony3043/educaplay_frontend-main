@@ -74,6 +74,28 @@ export const registerStyles = StyleSheet.create({
     justifyContent: "flex-end",
     position: "relative",
   },
+  mascoteHalo: {
+    position: "absolute",
+    width: width * 0.54,
+    height: width * 0.54,
+    borderRadius: width * 0.27,
+    backgroundColor: "#f0fdf4",
+    opacity: 0.55,
+    bottom: 10,
+    right: 0,
+    zIndex: 0,
+  },
+  mascoteDot: {
+    position: "absolute",
+    borderRadius: 99,
+    zIndex: 1,
+  },
+  mascoteSparkle: {
+    position: "absolute",
+    color: "#f59e0b",
+    fontWeight: "800",
+    zIndex: 3,
+  },
   mascoteImage: {
     width: width * 0.50,
     height: width * 0.56,
