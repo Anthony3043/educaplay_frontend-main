@@ -57,13 +57,13 @@ export const loginStyles = StyleSheet.create({
   // Halo grande e suave atrás do mascote
   mascoteHalo: {
     position: 'absolute',
-    width: width * 0.82,
-    height: width * 0.72,
-    borderRadius: width * 0.41,
+    width: width * 0.75,
+    height: width * 0.62,
+    borderRadius: width * 0.375,
     backgroundColor: '#f0fdf4',
     opacity: 0.55,
     alignSelf: 'center',
-    bottom: 10,
+    top: 8,
     zIndex: 0,
   },
   // Dot decorativo assimétrico
