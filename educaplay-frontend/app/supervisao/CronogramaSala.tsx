@@ -264,19 +264,19 @@ function CalendarioSemanal({
                           >
                             {/* Accent bar top */}
                             <View style={[cal.aulaAccentBar, { backgroundColor: cor }]} />
-                            {/* Corpo simplificado */}
+                            {/* Corpo */}
                             <View style={cal.aulaBody}>
                               <Text style={[cal.aulaTime, { color: cor }]}>{item.start}</Text>
-                              <Text style={cal.aulaSubject} numberOfLines={3}>{aula.subject}</Text>
+                              <Text style={cal.aulaSubject} numberOfLines={2}>{aula.subject}</Text>
+                              {aula.teacher ? (
+                                <View style={cal.aulaProfRow}>
+                                  <Ionicons name="person-outline" size={8} color={cor} />
+                                  <Text style={[cal.aulaProfName, { color: cor }]} numberOfLines={1}>
+                                    {aula.teacher.split(" ")[0]}
+                                  </Text>
+                                </View>
+                              ) : null}
                             </View>
-                            {/* Inicial do professor — canto inferior direito, absoluto */}
-                            {aula.teacher ? (
-                              <View style={[cal.aulaCorner, { backgroundColor: cor }]}>
-                                <Text style={cal.aulaCornerText}>
-                                  {aula.teacher.trim()[0]?.toUpperCase() ?? "P"}
-                                </Text>
-                              </View>
-                            ) : null}
                           </TouchableOpacity>
                         ) : (
                           <TouchableOpacity
@@ -682,15 +682,10 @@ const cal = StyleSheet.create({
   },
   aulaAccentBar: { height: 3, width: "100%" },
   aulaBody: { flex: 1, paddingHorizontal: 6, paddingTop: 5, paddingBottom: 4 },
-  aulaTime: { fontSize: 9, fontWeight: "700", color: "#3a7d44", marginBottom: 3 },
-  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", lineHeight: 13 },
-  // Inicial do professor no canto — não ocupa espaço vertical
-  aulaCorner: {
-    position: "absolute", bottom: 4, right: 4,
-    width: 16, height: 16, borderRadius: 8,
-    alignItems: "center", justifyContent: "center",
-  },
-  aulaCornerText: { fontSize: 8, fontWeight: "800", color: "#fff" },
+  aulaTime: { fontSize: 9, fontWeight: "700", color: "#3a7d44", marginBottom: 2 },
+  aulaSubject: { fontSize: 11, fontWeight: "700", color: "#111827", lineHeight: 13, marginBottom: 3 },
+  aulaProfRow: { flexDirection: "row", alignItems: "center", gap: 3 },
+  aulaProfName: { fontSize: 9, fontWeight: "600", flex: 1 },
 
   // Aliases mantidos
   aulaTimePill: {},
