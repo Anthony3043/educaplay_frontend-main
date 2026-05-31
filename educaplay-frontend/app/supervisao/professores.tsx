@@ -305,16 +305,61 @@ export default function ProfessoresScreen() {
     setAtualizandoPermissao(true);
     try {
       await api.put(`/professores/${profSelecionado.id}/permissao-mapa`, { podeEditarMapaSala: valor });
-      setProfessores((prev) =>
-        prev.map((p) => p.id === profSelecionado.id ? { ...p, podeEditarMapaSala: valor } : p)
-      );
-      setProfSelecionado((prev) => prev ? { ...prev, podeEditarMapaSala: valor } : prev);
+      setProfessores(prev => prev.map(p => p.id === profSelecionado.id ? { ...p, podeEditarMapaSala: valor } : p));
+      setProfSelecionado(prev => prev ? { ...prev, podeEditarMapaSala: valor } : prev);
     } catch {
       showInfo("Erro", "Não foi possível atualizar a permissão.", "erro");
     } finally {
       setAtualizandoPermissao(false);
     }
   }, [profSelecionado]);
+
+  // ── Modal de permissão por sala ──────────────────────────────
+  const [modalPermissaoMapa, setModalPermissaoMapa] = useState(false);
+  const [salasPermissao, setSalasPermissao] = useState<any[]>([]);
+  const [salasSelecionadas, setSalasSelecionadas] = useState<string[]>([]);
+  const [carregandoSalas, setCarregandoSalas] = useState(false);
+  const [salvandoPermissao, setSalvandoPermissao] = useState(false);
+
+  const abrirPermissaoMapa = async () => {
+    if (!profSelecionado) return;
+    setModalPermissaoMapa(true);
+    setCarregandoSalas(true);
+    try {
+      const res = await api.get(`/professores/${profSelecionado.id}/permissoes-mapa`);
+      setSalasPermissao(res.data);
+      setSalasSelecionadas(res.data.filter((s: any) => s.temPermissao).map((s: any) => s.id));
+    } catch {
+      showInfo("Erro", "Não foi possível carregar as salas.", "erro");
+      setModalPermissaoMapa(false);
+    } finally {
+      setCarregandoSalas(false);
+    }
+  };
+
+  const toggleSalaPermissao = (salaId: string, cheio: boolean, temPermissao: boolean) => {
+    if (cheio && !temPermissao) return; // sala cheia, não pode adicionar
+    setSalasSelecionadas(prev =>
+      prev.includes(salaId) ? prev.filter(id => id !== salaId) : [...prev, salaId]
+    );
+  };
+
+  const salvarPermissaoMapa = async () => {
+    if (!profSelecionado) return;
+    setSalvandoPermissao(true);
+    try {
+      await api.put(`/professores/${profSelecionado.id}/permissoes-mapa`, { salaIds: salasSelecionadas });
+      const temPerm = salasSelecionadas.length > 0;
+      setProfessores(prev => prev.map(p => p.id === profSelecionado.id ? { ...p, podeEditarMapaSala: temPerm } : p));
+      setProfSelecionado(prev => prev ? { ...prev, podeEditarMapaSala: temPerm } : prev);
+      setModalPermissaoMapa(false);
+      showInfo("sucesso", "Permissão atualizada!", `${salasSelecionadas.length} sala(s) configurada(s).`);
+    } catch (err: any) {
+      showInfo("Erro", err?.response?.data?.error || "Erro ao salvar permissões.", "erro");
+    } finally {
+      setSalvandoPermissao(false);
+    }
+  };
 
   const bloqueiosPorDia = DIAS.reduce<Record<string, Bloqueio[]>>((acc, dia) => {
     acc[dia] = bloqueios.filter((b) => b.diaSemana === dia);
@@ -536,26 +581,24 @@ export default function ProfessoresScreen() {
                 </>
               )}
 
-              {/* Permissão mapa de sala */}
-              <View style={m.permCard}>
+              {/* Permissão mapa de sala — por sala */}
+              <TouchableOpacity style={m.permCard} onPress={abrirPermissaoMapa} activeOpacity={0.8}>
                 <View style={m.permIconWrap}>
                   <Ionicons name="grid-outline" size={18} color="#3a7d44" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={m.permTitle}>Editar Mapa de Sala</Text>
-                  <Text style={m.permDesc}>Permite alterar o mapa de carteiras</Text>
+                  <Text style={m.permTitle}>Permissão — Mapa de Sala</Text>
+                  <Text style={m.permDesc}>
+                    {profSelecionado?.podeEditarMapaSala
+                      ? "Com permissão · Toque para gerenciar salas"
+                      : "Sem permissão · Toque para conceder"}
+                  </Text>
                 </View>
-                {atualizandoPermissao ? (
-                  <ActivityIndicator size="small" color="#3a7d44" />
-                ) : (
-                  <Switch
-                    value={profSelecionado?.podeEditarMapaSala ?? false}
-                    onValueChange={handleTogglePermissaoMapa}
-                    trackColor={{ false: "#E5E7EB", true: "#86efac" }}
-                    thumbColor={profSelecionado?.podeEditarMapaSala ? "#3a7d44" : "#9CA3AF"}
-                  />
-                )}
-              </View>
+                {atualizandoPermissao
+                  ? <ActivityIndicator size="small" color="#3a7d44" />
+                  : <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
+                }
+              </TouchableOpacity>
             </ScrollView>
 
             {/* Ações */}
@@ -866,6 +909,89 @@ export default function ProfessoresScreen() {
         </View>
       </Modal>
 
+      {/* Modal de permissão por sala */}
+      <Modal visible={modalPermissaoMapa} animationType="slide" transparent onRequestClose={() => setModalPermissaoMapa(false)}>
+        <View style={pm.overlay}>
+          <View style={pm.sheet}>
+            <View style={pm.handle} />
+            <View style={pm.header}>
+              <View style={pm.headerIcon}><Ionicons name="grid-outline" size={20} color="#3a7d44" /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={pm.headerTitle}>Salas com permissão</Text>
+                <Text style={pm.headerSub} numberOfLines={1}>{profSelecionado?.nome}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setModalPermissaoMapa(false)} style={pm.closeBtn} activeOpacity={0.7}>
+                <Ionicons name="close" size={18} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={pm.hint}>
+              Máximo 2 professores por sala. Salas cheias ficam desabilitadas.
+            </Text>
+
+            {carregandoSalas ? (
+              <ActivityIndicator color="#3a7d44" style={{ marginTop: 32 }} />
+            ) : (
+              <ScrollView contentContainerStyle={pm.lista} showsVerticalScrollIndicator={false}>
+                {salasPermissao.map(sala => {
+                  const sel = salasSelecionadas.includes(sala.id);
+                  const bloqueada = sala.cheio && !sala.temPermissao;
+                  return (
+                    <TouchableOpacity
+                      key={sala.id}
+                      style={[pm.salaRow, sel && pm.salaRowSel, bloqueada && pm.salaRowBloqueada]}
+                      onPress={() => !bloqueada && toggleSalaPermissao(sala.id, sala.cheio, sala.temPermissao)}
+                      activeOpacity={bloqueada ? 1 : 0.75}
+                    >
+                      <View style={[pm.salaIconWrap, { backgroundColor: sel ? "#F0FDF4" : "#F3F4F6" }]}>
+                        <Ionicons name="business-outline" size={18} color={sel ? "#3a7d44" : "#9CA3AF"} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[pm.salaNome, bloqueada && { color: "#9CA3AF" }]}>{sala.nome}</Text>
+                        {sala.turma ? <Text style={pm.salaTurma}>{sala.turma}</Text> : null}
+                      </View>
+                      <View style={pm.salaStatus}>
+                        {bloqueada ? (
+                          <View style={pm.salaCheia}>
+                            <Text style={pm.salaCheiaTxt}>Cheia (2/2)</Text>
+                          </View>
+                        ) : (
+                          <>
+                            <Text style={[pm.salaCount, sala.totalPermitidos >= 1 && { color: "#f59e0b" }]}>
+                              {sala.totalPermitidos}/2
+                            </Text>
+                            <View style={[pm.checkbox, sel && pm.checkboxSel]}>
+                              {sel && <Ionicons name="checkmark" size={13} color="#fff" />}
+                            </View>
+                          </>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+
+            <View style={pm.footer}>
+              <TouchableOpacity style={pm.cancelBtn} onPress={() => setModalPermissaoMapa(false)} activeOpacity={0.75}>
+                <Text style={pm.cancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[pm.saveBtn, salvandoPermissao && { opacity: 0.6 }]}
+                onPress={salvarPermissaoMapa}
+                disabled={salvandoPermissao}
+                activeOpacity={0.85}
+              >
+                {salvandoPermissao
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <><Ionicons name="checkmark-outline" size={17} color="#fff" /><Text style={pm.saveTxt}>Salvar</Text></>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Modal de feedback (erros / avisos / sucesso) */}
       <Modal visible={modalInfo.visivel} transparent animationType="fade" onRequestClose={() => setModalInfo(p => ({ ...p, visivel: false }))}>
         <View style={inf.overlay}>
@@ -1007,6 +1133,36 @@ const em = StyleSheet.create({
     marginHorizontal: 0,
   },
   salvarBtnText: { fontSize: 15, fontWeight: "800", color: "#fff" },
+});
+
+const pm = StyleSheet.create({
+  overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" },
+  sheet: { backgroundColor: "#fff", borderTopLeftRadius: 28, borderTopRightRadius: 28, maxHeight: "90%", paddingTop: 12 },
+  handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  headerIcon: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#F0FDF4", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#BBF7D0" },
+  headerTitle: { fontSize: 17, fontWeight: "800", color: "#111827" },
+  headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
+  hint: { fontSize: 12, color: "#6B7280", paddingHorizontal: 20, paddingVertical: 10, backgroundColor: "#FFFBEB", borderBottomWidth: 1, borderBottomColor: "#FDE68A" },
+  lista: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20, gap: 8 },
+  salaRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 1.5, borderColor: "#F1F5F9", backgroundColor: "#fff" },
+  salaRowSel: { borderColor: "#BBF7D0", backgroundColor: "#F0FDF4" },
+  salaRowBloqueada: { opacity: 0.5 },
+  salaIconWrap: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  salaNome: { fontSize: 15, fontWeight: "700", color: "#111827" },
+  salaTurma: { fontSize: 11, color: "#9CA3AF", marginTop: 2 },
+  salaStatus: { alignItems: "center", gap: 4 },
+  salaCount: { fontSize: 11, fontWeight: "700", color: "#9CA3AF" },
+  salaCheia: { backgroundColor: "#FEF2F2", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: "#FECACA" },
+  salaCheiaTxt: { fontSize: 10, fontWeight: "700", color: "#ef4444" },
+  checkbox: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, borderColor: "#D1D5DB", alignItems: "center", justifyContent: "center" },
+  checkboxSel: { backgroundColor: "#3a7d44", borderColor: "#3a7d44" },
+  footer: { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingBottom: 28, paddingTop: 12, borderTopWidth: 1, borderTopColor: "#F1F5F9" },
+  cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: "#E5E7EB", alignItems: "center", backgroundColor: "#F9FAFB" },
+  cancelText: { fontSize: 14, fontWeight: "600", color: "#6B7280" },
+  saveBtn: { flex: 2, paddingVertical: 14, borderRadius: 14, backgroundColor: "#3a7d44", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, shadowColor: "#3a7d44", shadowOpacity: 0.28, shadowRadius: 8, elevation: 4 },
+  saveTxt: { fontSize: 14, fontWeight: "700", color: "#fff" },
 });
 
 const conf = StyleSheet.create({

@@ -39,7 +39,8 @@ export default function MapaSalaScreen() {
   const [salvando, setSalvando] = useState(false);
   const [exportando, setExportando] = useState(false);
 
-  const podeEditar = usuario?.papel === "Supervisao" || usuario?.podeEditarMapaSala === true;
+  // podeEditar será recalculado por sala ao carregar o mapa
+  const [podeEditar, setPodeEditar] = useState(usuario?.papel === "Supervisao");
 
   // Modal de edição de assento
   const [modalAssento, setModalAssento] = useState(false);
@@ -58,6 +59,13 @@ export default function MapaSalaScreen() {
   const carregarMapa = async (sala: Sala) => {
     setSalaSelecionada(sala);
     setCarregandoMapa(true);
+    // Verifica permissão por sala para professor
+    if (usuario?.papel === "Professor") {
+      try {
+        const perm = await api.get(`/professores/${usuario.id}/permissoes-mapa/${sala.id}`);
+        setPodeEditar(perm.data?.temPermissao === true);
+      } catch { setPodeEditar(false); }
+    }
     try {
       const res = await api.get(`/salas/${sala.id}/mapa`);
       const lista = res.data.assentos as Assento[];
