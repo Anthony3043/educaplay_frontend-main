@@ -97,7 +97,7 @@ export default function HomeScreen() {
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
 
   // Verifica avisos ao focar E a cada 30s enquanto a tela está ativa
-  const [sucessoSubstituto, setSucessoSubstituto] = useState<{nome: string; aulas: number} | null>(null);
+  const [sucessoSubstituto, setSucessoSubstituto] = useState<{nome: string; aulas: number; temMais?: boolean} | null>(null);
 
   const getDiaSemanaHoje = () => {
     const map: Record<number, string> = { 1:"Segunda", 2:"Terça", 3:"Quarta", 4:"Quinta", 5:"Sexta", 6:"Sábado" };
@@ -148,6 +148,12 @@ export default function HomeScreen() {
     }));
   };
 
+  const fecharModalSubstituto = () => {
+    setModalSubstituto(false);
+    // Reabre alertas se ainda há alertas pendentes
+    if (alertasProf.length > 0) setModalAlertas(true);
+  };
+
   const confirmarSubstituto = async () => {
     // Coleta todas as substituições de todos os dias
     const substituicoes: any[] = [];
@@ -169,7 +175,11 @@ export default function HomeScreen() {
         const prof = Object.values(aulasPorDia).flat().find(a => a.aulaId === s.aulaId)?.substitutoEscolhido;
         return prof?.nome?.split(" ")[0];
       }).filter(Boolean))].join(", ");
-      setSucessoSubstituto({ nome: nomes, aulas: res.data?.aulasSubstituidas ?? 0 });
+      // Remove este alerta da fila e guarda se ainda há mais
+      const restantes = alertasProf.filter((a: any) => a !== alertaParaSubstituir);
+      setAlertasProf(restantes);
+      setAlertaIdx(0);
+      setSucessoSubstituto({ nome: nomes, aulas: res.data?.aulasSubstituidas ?? 0, temMais: restantes.length > 0 });
     } catch (err: any) {
       alert(err?.response?.data?.error || "Erro ao substituir professor.");
     } finally {
@@ -475,7 +485,7 @@ export default function HomeScreen() {
       </Modal>
 
       {/* Modal de seleção de substituto */}
-      <Modal visible={modalSubstituto} transparent animationType="slide" onRequestClose={() => setModalSubstituto(false)}>
+      <Modal visible={modalSubstituto} transparent animationType="slide" onRequestClose={fecharModalSubstituto}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
           <View style={sb.sheet}>
             <View style={sb.handle} />
@@ -489,7 +499,7 @@ export default function HomeScreen() {
                   Substituindo: {alertaParaSubstituir?.professor?.nome}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setModalSubstituto(false)} style={sb.closeBtn} activeOpacity={0.7}>
+              <TouchableOpacity onPress={fecharModalSubstituto} style={sb.closeBtn} activeOpacity={0.7}>
                 <Ionicons name="close" size={18} color="#6B7280" />
               </TouchableOpacity>
             </View>
@@ -599,7 +609,7 @@ export default function HomeScreen() {
       </Modal>
 
       {/* Pop-up de sucesso da substituição */}
-      <Modal visible={!!sucessoSubstituto} transparent animationType="fade" onRequestClose={() => setSucessoSubstituto(null)}>
+      <Modal visible={!!sucessoSubstituto} transparent animationType="fade" onRequestClose={() => { const t = sucessoSubstituto?.temMais; setSucessoSubstituto(null); if (t) setModalAlertas(true); }}>
         <View style={sb.successOverlay}>
           <View style={sb.successBox}>
             <View style={sb.successIconWrap}>
@@ -610,8 +620,17 @@ export default function HomeScreen() {
               <Text style={{ fontWeight: "800" }}>{sucessoSubstituto?.aulas ?? 0} aula(s)</Text> transferida(s) para{"\n"}
               <Text style={{ fontWeight: "800" }}>{sucessoSubstituto?.nome}</Text>.
             </Text>
-            <TouchableOpacity style={sb.successBtn} onPress={() => setSucessoSubstituto(null)} activeOpacity={0.85}>
-              <Text style={sb.successBtnText}>Fechar</Text>
+            {sucessoSubstituto?.temMais && (
+              <Text style={{ fontSize: 12, color: "#6B7280", marginBottom: 8, textAlign: "center" }}>
+                Ainda há avisos pendentes de outros dias.
+              </Text>
+            )}
+            <TouchableOpacity style={sb.successBtn} onPress={() => {
+              const temMais = sucessoSubstituto?.temMais;
+              setSucessoSubstituto(null);
+              if (temMais) setModalAlertas(true);
+            }} activeOpacity={0.85}>
+              <Text style={sb.successBtnText}>{sucessoSubstituto?.temMais ? "Ver próximo" : "Fechar"}</Text>
             </TouchableOpacity>
           </View>
         </View>
