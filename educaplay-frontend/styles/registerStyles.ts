@@ -67,7 +67,7 @@ export const registerStyles = StyleSheet.create({
   logoSide: {
     flex: 1,
     justifyContent: "center",
-    paddingBottom: 0,
+    paddingBottom: 50,
   },
   mascoteSide: {
     alignItems: "flex-end",
