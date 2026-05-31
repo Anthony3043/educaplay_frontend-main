@@ -1202,17 +1202,6 @@ const desat = StyleSheet.create({
   confirmarText: { fontSize: 15, fontWeight: "700", color: "#fff" },
 });
 
-const pm = StyleSheet.create({
-  box: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    backgroundColor: "#f0faf2", borderRadius: 14, padding: 14,
-    marginTop: 16, marginBottom: 8,
-    borderWidth: 1, borderColor: "#b7dfbe",
-  },
-  titulo: { fontSize: 14, fontWeight: "700", color: "#1a1a2e" },
-  descricao: { fontSize: 12, color: "#666", marginTop: 2 },
-});
-
 const li = StyleSheet.create({
   secaoHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 20, marginBottom: 8, paddingHorizontal: 4 },
   secaoTitulo: { fontSize: 12, fontWeight: "700", color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 },
