@@ -46,68 +46,40 @@ export const loginStyles = StyleSheet.create({
     marginBottom: 0,
   },
 
-  // ── Seção do mascote (fundo verde claro com folhas) ──────
+  // ── Seção do mascote ──────────────────────────────────────
   mascoteSection: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: Colors.primarySurface,
-    paddingTop: 16,
+    backgroundColor: '#ffffff',
+    paddingTop: 8,
     paddingBottom: 0,
-    position: 'relative',
-    overflow: 'hidden',
   },
-  mascoteCircleBg: {
+  mascoteSparkle: {
     position: 'absolute',
-    width: width * 0.65,
-    height: width * 0.65,
-    borderRadius: width * 0.325,
-    backgroundColor: Colors.primaryPale,
-    top: 10,
-    alignSelf: 'center',
-  },
-  leafLeft: {
-    position: 'absolute',
-    bottom: 0,
-    left: -10,
-    width: 90,
-    height: 120,
-    opacity: 0.9,
-  },
-  leafRight: {
-    position: 'absolute',
-    bottom: 0,
-    right: -10,
-    width: 90,
-    height: 120,
-    opacity: 0.9,
-  },
-  sparkle: {
-    position: 'absolute',
-    color: Colors.warning,
-    fontWeight: '700',
+    color: '#f59e0b',
+    fontWeight: '800',
     zIndex: 2,
   },
   mascoteImage: {
-    width: width * 1.0,
-    height: width * 0.48,
-    zIndex: 2,
+    width: width * 0.64,
+    height: width * 0.62,
+    marginBottom: -65,
   },
 
-  // ── Card branco (formulário) ─────────────────────────────
+  // ── Card branco ───────────────────────────────────────────
   card: {
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     paddingHorizontal: 24,
     paddingTop: 28,
     paddingBottom: 24,
-    marginTop: -20, // sobe sobre o mascote section
+    marginTop: 0,
     flex: 1,
-    // sombra sutil no topo
-    shadowColor: Colors.shadow,
+    shadowColor: '#3a7d44',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 8,
   },
 
