@@ -16,7 +16,7 @@ export const loginStyles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    paddingTop: 48,
+    paddingTop: 20,
     paddingBottom: 0,
   },
 
