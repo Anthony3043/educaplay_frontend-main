@@ -123,10 +123,11 @@ export default function HomeScreen() {
     }
     setAlertaParaSubstituir(alerta);
     setAulasPorDia({});
-    const hoje = getDiaSemanaHoje() ?? "Segunda";
-    setDiaSelecionadoSub(hoje);
+    // Usa o dia do alerta, ou hoje como fallback
+    const diaInicial = alerta.diaSemana ?? getDiaSemanaHoje() ?? "Segunda";
+    setDiaSelecionadoSub(diaInicial);
     setModalSubstituto(true);
-    await carregarAulasDia(alerta, hoje);
+    await carregarAulasDia(alerta, diaInicial);
   };
 
   const mudarDiaSub = async (dia: string) => {
@@ -493,24 +494,31 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Abas de dia */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={sb.diasTabsRow}>
-              {DIAS_SEMANA_SUB.map(dia => {
-                const ativo = dia === diaSelecionadoSub;
-                const temSub = (aulasPorDia[dia] ?? []).some(a => a.substitutoEscolhido);
-                return (
-                  <TouchableOpacity
-                    key={dia}
-                    style={[sb.diaTab, ativo && sb.diaTabAtivo]}
-                    onPress={() => mudarDiaSub(dia)}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[sb.diaTabText, ativo && sb.diaTabTextAtivo]}>{dia.slice(0,3)}</Text>
-                    {temSub && <View style={sb.diaTabDot} />}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+            {/* Abas: só os dias do alerta (ou todos se não tiver dia) */}
+            {(() => {
+              const diasDoAlerta = alertaParaSubstituir?.diaSemana
+                ? [alertaParaSubstituir.diaSemana]
+                : DIAS_SEMANA_SUB;
+              return diasDoAlerta.length > 1 ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={sb.diasTabsRow}>
+                  {diasDoAlerta.map((dia: string) => {
+                    const ativo = dia === diaSelecionadoSub;
+                    const temSub = (aulasPorDia[dia] ?? []).some((a: any) => a.substitutoEscolhido);
+                    return (
+                      <TouchableOpacity
+                        key={dia}
+                        style={[sb.diaTab, ativo && sb.diaTabAtivo]}
+                        onPress={() => mudarDiaSub(dia)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[sb.diaTabText, ativo && sb.diaTabTextAtivo]}>{dia.slice(0,3).toUpperCase()}</Text>
+                        {temSub && <View style={sb.diaTabDot} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              ) : null;
+            })()}
 
             <ScrollView contentContainerStyle={sb.lista} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {carregandoDia && (
@@ -708,12 +716,16 @@ const sb = StyleSheet.create({
   headerSub: { fontSize: 12, color: "#9CA3AF", marginTop: 2 },
   closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: "#F3F4F6", alignItems: "center", justifyContent: "center" },
   sectionLabel: { fontSize: 12, color: "#6B7280", paddingHorizontal: 20, paddingBottom: 8 },
-  diasTabsRow: { paddingHorizontal: 16, paddingVertical: 8, gap: 6, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
-  diaTab: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#F3F4F6", borderWidth: 1.5, borderColor: "transparent", alignItems: "center", gap: 3 },
-  diaTabAtivo: { backgroundColor: "#F0FDF4", borderColor: "#3a7d44" },
-  diaTabText: { fontSize: 12, fontWeight: "700", color: "#6B7280" },
-  diaTabTextAtivo: { color: "#3a7d44" },
-  diaTabDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#3a7d44" },
+  diasTabsRow: { paddingHorizontal: 16, paddingVertical: 10, gap: 8, borderBottomWidth: 1, borderBottomColor: "#F1F5F9" },
+  diaTab: {
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: "#E5E7EB", borderWidth: 2, borderColor: "transparent",
+    alignItems: "center", gap: 3,
+  },
+  diaTabAtivo: { backgroundColor: "#3a7d44", borderColor: "#2d6a4f" },
+  diaTabText: { fontSize: 12, fontWeight: "800", color: "#374151" },
+  diaTabTextAtivo: { color: "#fff" },
+  diaTabDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: "#fff" },
   lista: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16, gap: 6 },
   profRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "#F1F5F9", backgroundColor: "#fff" },
   profAvatar: { width: 44, height: 44, borderRadius: 13, alignItems: "center", justifyContent: "center" },
