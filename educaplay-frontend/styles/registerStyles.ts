@@ -77,6 +77,7 @@ export const registerStyles = StyleSheet.create({
   mascoteImage: {
     width: width * 0.50,
     height: width * 0.56,
+    marginBottom: -40,
   },
 
   // ── Inputs em linha (2 colunas) ──────────────────────────
