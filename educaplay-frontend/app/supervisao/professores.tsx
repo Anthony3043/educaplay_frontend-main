@@ -686,8 +686,8 @@ export default function ProfessoresScreen() {
 
       {/* Modal de edição de matérias */}
       <Modal visible={modalEditarMaterias} animationType="slide" transparent onRequestClose={fecharEditarMaterias}>
-        <View style={em.overlay}>
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+          <View style={em.overlay}>
             <View style={em.sheet}>
               <View style={em.handle} />
 
@@ -706,7 +706,7 @@ export default function ProfessoresScreen() {
               </View>
 
               <ScrollView
-                style={{ flex: 1 }}
+                style={{ flexShrink: 1 }}
                 contentContainerStyle={em.scroll}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
@@ -773,8 +773,8 @@ export default function ProfessoresScreen() {
                 </TouchableOpacity>
               </ScrollView>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Modal confirmação geral */}
@@ -945,7 +945,7 @@ const em = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: "rgba(15,15,20,0.65)", justifyContent: "flex-end" },
   sheet: {
     backgroundColor: "#F8F9FA", borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    height: "85%", paddingTop: 12,
+    maxHeight: "88%", paddingTop: 12,
   },
   handle: { width: 40, height: 4, borderRadius: 2, backgroundColor: "#E5E7EB", alignSelf: "center", marginBottom: 16 },
   header: {

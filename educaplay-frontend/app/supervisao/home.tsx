@@ -538,22 +538,36 @@ export default function HomeScreen() {
                   {aula.professoresDisponiveis.length === 0 ? (
                     <Text style={sb.aulaVazio}>Nenhum professor livre neste horário</Text>
                   ) : (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={sb.aulaProfsRow}>
+                    <View style={sb.profList}>
                       {aula.professoresDisponiveis.map((prof: any, idx: number) => {
                         const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
                         const cor = CORES[idx % CORES.length];
                         const sel = aula.substitutoEscolhido?.id === prof.id;
                         return (
-                          <TouchableOpacity key={prof.id} style={[sb.profCard, sel && { borderColor: cor, backgroundColor: cor + "12" }]} onPress={() => selecionarSubstituto(diaSelecionadoSub, aula.aulaId, prof)} activeOpacity={0.75}>
-                            <View style={[sb.profAvatar, { backgroundColor: cor + "22" }]}>
-                              {prof.foto ? <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 11 }} resizeMode="cover" /> : <Text style={[sb.profInitial, { color: cor }]}>{prof.nome[0]?.toUpperCase()}</Text>}
+                          <TouchableOpacity
+                            key={prof.id}
+                            style={[sb.profRow2, sel && { backgroundColor: cor + "10", borderColor: cor + "40" }]}
+                            onPress={() => selecionarSubstituto(diaSelecionadoSub, aula.aulaId, prof)}
+                            activeOpacity={0.75}
+                          >
+                            <View style={[sb.profAvatar2, { backgroundColor: cor + "20" }]}>
+                              {prof.foto
+                                ? <Image source={{ uri: prof.foto }} style={{ width: 36, height: 36, borderRadius: 11 }} resizeMode="cover" />
+                                : <Text style={[sb.profInitial, { color: cor, fontSize: 16 }]}>{prof.nome[0]?.toUpperCase()}</Text>
+                              }
                               {sel && <View style={[sb.profCheckBadge, { backgroundColor: cor }]}><Ionicons name="checkmark" size={9} color="#fff" /></View>}
                             </View>
-                            <Text style={[sb.profNome, sel && { color: cor, fontWeight: "700" }]} numberOfLines={1}>{prof.nome.split(" ")[0]}</Text>
+                            <View style={{ flex: 1 }}>
+                              <Text style={[sb.profNomeCompleto, sel && { color: cor, fontWeight: "700" }]} numberOfLines={1}>{prof.nome}</Text>
+                              {prof.materias?.length > 0 && (
+                                <Text style={sb.profMaterias2} numberOfLines={1}>{prof.materias.join(" · ")}</Text>
+                              )}
+                            </View>
+                            {sel && <Ionicons name="checkmark-circle" size={20} color={cor} />}
                           </TouchableOpacity>
                         );
                       })}
-                    </ScrollView>
+                    </View>
                   )}
                 </View>
               ))}
@@ -725,6 +739,16 @@ const sb = StyleSheet.create({
   aulaProfsRow: { gap: 8, paddingVertical: 2 },
   profCard: { alignItems: "center", gap: 5, width: 58, backgroundColor: "#fff", borderRadius: 12, padding: 8, borderWidth: 1.5, borderColor: "transparent" },
   profCheckBadge: { position: "absolute", bottom: -2, right: -2, width: 15, height: 15, borderRadius: 8, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "#fff" },
+  // Lista de professores (substitui scroll horizontal)
+  profList: { gap: 6 },
+  profRow2: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    backgroundColor: "#fff", borderRadius: 14, padding: 10,
+    borderWidth: 1.5, borderColor: "#F1F5F9",
+  },
+  profAvatar2: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", position: "relative" },
+  profNomeCompleto: { fontSize: 14, fontWeight: "600", color: "#111827" },
+  profMaterias2: { fontSize: 11, color: "#9CA3AF", marginTop: 1 },
   // Sucesso
   successOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
   successBox: { width: "100%", backgroundColor: "#fff", borderRadius: 24, padding: 28, alignItems: "center", gap: 10, shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20, elevation: 10 },
