@@ -7,7 +7,7 @@ export const registerStyles = StyleSheet.create({
 
   // ── Bloco superior (foil + header + logo + mascote) ──────
   topBlock: {
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: "#ffffff",
     position: "relative",
     overflow: "hidden",
   },
@@ -17,8 +17,8 @@ export const registerStyles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    width: width * 0.65,
-    height: 80,
+    width: width,
+    height: 115,
     zIndex: 0,
   },
 
@@ -72,8 +72,8 @@ export const registerStyles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   mascoteImage: {
-    width: width * 0.42,
-    height: width * 0.42,
+    width: width * 0.46,
+    height: width * 0.46,
   },
 
   // ── Inputs em linha (2 colunas) ──────────────────────────

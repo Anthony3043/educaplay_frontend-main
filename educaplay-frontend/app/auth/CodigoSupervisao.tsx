@@ -55,7 +55,7 @@ export default function CodigoSupervisaoScreen() {
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
           {/* Área superior — fundo unificado com iconSection */}
-          <View style={[s.topArea, { paddingBottom: 0, backgroundColor: "#f0faf2" }]}>
+          <View style={[s.topArea, { paddingBottom: 0, backgroundColor: "#ffffff" }]}>
             <Image source={require("@/assets/images/design_foil.png")} style={s.foilImage} resizeMode="cover" />
             <View style={[s.logoRow, { zIndex: 1 }]}>
               <Image source={require("@/assets/images/logo_icon.png")} style={s.logoImage} resizeMode="contain" />
@@ -163,17 +163,17 @@ const cs = StyleSheet.create({
   iconSection: {
     alignItems: "center",
     paddingVertical: 28,
-    backgroundColor: "#f0faf2",
+    backgroundColor: "#ffffff",
   },
   iconCircle: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: "#e8f5ea",
+    backgroundColor: "#f0fdf4",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: "#b7dfbe",
+    borderColor: "#bbf7d0",
   },
   card: {
     marginTop: 0,

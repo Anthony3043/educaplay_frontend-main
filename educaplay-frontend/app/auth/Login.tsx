@@ -65,7 +65,7 @@ export default function LoginScreen() {
             <Text style={[s.tagline, { zIndex: 1 }]}>Organize hoje, ensine melhor amanhã.</Text>
           </View>
 
-          <View style={[s.mascoteSection, { backgroundColor: "transparent" }]}>
+          <View style={s.mascoteSection}>
             <Image source={require("@/assets/ze_bloquinho_auth.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 
