@@ -113,7 +113,7 @@ export default function RegisterScreen() {
                 <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
               </View>
               <View style={r.mascoteSide}>
-                <Image source={require("@/assets/images/register_ze_bloco.png")} style={r.mascoteImage} resizeMode="contain" />
+                <Image source={require("@/assets/ze_bloquinho_auth.png")} style={r.mascoteImage} resizeMode="contain" />
               </View>
             </View>
           </View>

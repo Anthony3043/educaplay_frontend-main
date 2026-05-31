@@ -66,7 +66,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={[s.mascoteSection, { backgroundColor: "transparent" }]}>
-            <Image source={require("@/assets/images/login_ze_bloco.png")} style={s.mascoteImage} resizeMode="contain" />
+            <Image source={require("@/assets/ze_bloquinho_auth.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 
           <View style={s.card}>
