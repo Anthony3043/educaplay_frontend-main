@@ -275,8 +275,12 @@ export default function SalasScreen() {
                   <TextInput
                     style={[sm.input, turmaFocused && sm.inputFocused]}
                     value={turma}
-                    onChangeText={setTurma}
-                    placeholder="Ex: 3º A, 2º B, 1º Ano..."
+                    onChangeText={v => {
+                      // Insere "°" automaticamente após dígito se ainda não tem
+                      const formatado = v.replace(/(\d)(?!°)/g, "$1°");
+                      setTurma(formatado);
+                    }}
+                    placeholder="Ex: 3° A, 2° B, 1° Ano..."
                     placeholderTextColor="#9CA3AF"
                     onFocus={() => setTurmaFocused(true)}
                     onBlur={() => setTurmaFocused(false)}
