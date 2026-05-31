@@ -113,12 +113,14 @@ export default function RegisterScreen() {
                 <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
               </View>
               <View style={r.mascoteSide}>
+                <View style={r.mascoteGlow} />
+                <View style={r.mascoteGround} />
                 <Image source={require("@/assets/ze_bloquinho_auth.png")} style={r.mascoteImage} resizeMode="contain" />
               </View>
             </View>
           </View>
 
-          <View style={[s.card, { marginTop: 0 }]}>
+          <View style={[s.card, { marginTop: -10, zIndex: 1 }]}>
             <Text style={s.welcomeTitle}>Cadastro da Supervisão</Text>
             <Text style={s.welcomeSubtitle}>Preencha os dados para criar sua conta</Text>
 

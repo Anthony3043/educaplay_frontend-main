@@ -66,6 +66,10 @@ export default function LoginScreen() {
           </View>
 
           <View style={s.mascoteSection}>
+            {/* Glow oval verde suave atrás do mascote */}
+            <View style={s.mascoteGlow} />
+            {/* Linha de chão sutil */}
+            <View style={s.mascoteGround} />
             <Image source={require("@/assets/ze_bloquinho_auth.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 

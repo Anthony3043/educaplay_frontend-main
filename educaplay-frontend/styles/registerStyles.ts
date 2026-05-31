@@ -9,7 +9,8 @@ export const registerStyles = StyleSheet.create({
   topBlock: {
     backgroundColor: "#ffffff",
     position: "relative",
-    overflow: "hidden",
+    overflow: "visible",
+    zIndex: 2,
   },
 
   // ── Foil decorativo ──────────────────────────────────────
@@ -70,10 +71,33 @@ export const registerStyles = StyleSheet.create({
   mascoteSide: {
     alignItems: "flex-end",
     justifyContent: "flex-end",
+    position: "relative",
+  },
+  mascoteGlow: {
+    position: "absolute",
+    width: width * 0.48,
+    height: width * 0.48,
+    borderRadius: width * 0.24,
+    backgroundColor: "#f0fdf4",
+    bottom: 0,
+    right: 0,
+    zIndex: 0,
+  },
+  mascoteGround: {
+    position: "absolute",
+    bottom: 0,
+    right: width * 0.04,
+    width: width * 0.34,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: "#bbf7d0",
+    zIndex: 1,
   },
   mascoteImage: {
     width: width * 0.46,
-    height: width * 0.46,
+    height: width * 0.5,
+    zIndex: 2,
+    marginBottom: -14,
   },
 
   // ── Inputs em linha (2 colunas) ──────────────────────────
