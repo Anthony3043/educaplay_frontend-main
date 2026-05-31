@@ -187,22 +187,26 @@ export default function HomeScreen() {
     }
   };
 
-  useFocusEffect(useCallback(() => {
-    const carregarAlertas = async () => {
-      try {
-        const res = await api.get("/avisos-professor/recentes");
-        if (res.data?.length > 0) {
-          setAlertasProf(res.data);
-          setAlertaIdx(0);
-          setModalAlertas(true);
-        }
-      } catch {}
-    };
+  const carregarAlertas = useCallback(async () => {
+    try {
+      const res = await api.get("/avisos-professor/recentes");
+      if (res.data?.length > 0) {
+        setAlertasProf(res.data);
+        setAlertaIdx(0);
+        setModalAlertas(true);
+      }
+    } catch {}
+  }, []);
+
+  // Poll contínuo a cada 15s — independente de foco/navegação
+  useEffect(() => {
     carregarAlertas();
-    // Poll a cada 30 segundos para pop-up em tempo real
-    const intervalo = setInterval(carregarAlertas, 30000);
+    const intervalo = setInterval(carregarAlertas, 15000);
     return () => clearInterval(intervalo);
-  }, []));
+  }, [carregarAlertas]);
+
+  // Poll imediato ao voltar para a tela
+  useFocusEffect(useCallback(() => { carregarAlertas(); }, [carregarAlertas]));
 
   // Botão voltar do Android → só sai do app quando esta tela está em foco
   useFocusEffect(
