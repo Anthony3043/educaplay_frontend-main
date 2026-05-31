@@ -11,6 +11,9 @@ const BIOMETRIA_KEY = "@educaplay_biometria";
 
 SplashScreen.preventAutoHideAsync();
 
+// Acorda o servidor Render imediatamente ao abrir o app
+fetch('https://backend-educaplay.onrender.com/api/ping', { method: 'GET' }).catch(() => {});
+
 function RootNavigator() {
   const { usuario, carregando, logout } = useAuth();
   const segments = useSegments();
