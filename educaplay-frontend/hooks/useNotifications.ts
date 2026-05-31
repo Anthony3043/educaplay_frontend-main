@@ -10,9 +10,11 @@ function getNotif() {
   return require('expo-notifications') as typeof import('expo-notifications');
 }
 
-// Configura handler logo que o módulo carrega — independente de login
+// Configura handler e canais Android logo que o módulo carrega
 if (Platform.OS !== 'web' && !isExpoGo) {
-  getNotif().setNotificationHandler({
+  const Notif = getNotif();
+
+  Notif.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
       shouldShowAlert: true,
@@ -21,6 +23,31 @@ if (Platform.OS !== 'web' && !isExpoGo) {
       shouldSetBadge: true,
     }),
   });
+
+  // Canais Android (obrigatório Android 8+)
+  if (Platform.OS === 'android') {
+    Notif.setNotificationChannelAsync('geral', {
+      name: 'Geral',
+      importance: Notif.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#3a7d44',
+      sound: 'default',
+    });
+    Notif.setNotificationChannelAsync('avisos', {
+      name: 'Avisos de Professores',
+      importance: Notif.AndroidImportance.MAX,
+      vibrationPattern: [0, 300, 200, 300],
+      lightColor: '#f97316',
+      sound: 'default',
+    });
+    Notif.setNotificationChannelAsync('ponto', {
+      name: 'Registro de Ponto',
+      importance: Notif.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#3b82f6',
+      sound: 'default',
+    });
+  }
 }
 
 export async function registrarPushToken() {
