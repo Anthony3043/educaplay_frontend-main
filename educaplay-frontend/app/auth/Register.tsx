@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { loginStyles as s } from "../../styles/loginStyles";
+import { loginStyles as s } from "../../styles/loginstyles";
 import { registerStyles as r } from "../../styles/registerStyles";
 import { useAuth } from "../../context/AuthContext";
 

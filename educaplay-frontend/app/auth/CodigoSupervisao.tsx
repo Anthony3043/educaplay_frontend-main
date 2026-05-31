@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { loginStyles as s } from "../../styles/loginStyles";
+import { loginStyles as s } from "../../styles/loginstyles";
 import api from "../../src/services/api";
 
 export default function CodigoSupervisaoScreen() {
