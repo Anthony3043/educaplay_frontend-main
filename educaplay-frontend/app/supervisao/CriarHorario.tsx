@@ -241,7 +241,7 @@ export default function CriarHorarioScreen() {
             </View>
           )}
         </View>
-        {selected && <Text style={s.professorCheckmark}>✓</Text>}
+        {selected && <Ionicons name="checkmark-circle" size={20} color="#3a7d44" />}
         {bloqueado && (
           <Ionicons
             name={indispInfo.tipo === "em_aula" ? "time-outline" : "lock-closed-outline"}

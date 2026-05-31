@@ -74,9 +74,9 @@ export default function LoginScreen() {
             <View style={[s.mascoteDot, { width:  7, height:  7, top: 68, right: "12%", backgroundColor: "#bbf7d0", opacity: 0.50 }]} />
             <View style={[s.mascoteDot, { width:  4, height:  4, top: 42, left: "10%",  backgroundColor: "#fde68a", opacity: 0.65 }]} />
             <View style={[s.mascoteDot, { width:  6, height:  6, top: 85, left: "28%",  backgroundColor: "#86efac", opacity: 0.30 }]} />
-            {/* Sparkles dourados */}
-            <Text style={[s.mascoteSparkle, { top: 16, right: "24%", fontSize: 14 }]}>✦</Text>
-            <Text style={[s.mascoteSparkle, { top:  7, left:  "23%", fontSize:  9 }]}>✦</Text>
+            {/* Pontos decorativos */}
+            <View style={[s.mascoteDot, { width: 8, height: 8, top: 16, right: "24%", backgroundColor: "#f59e0b", opacity: 0.7 }]} />
+            <View style={[s.mascoteDot, { width: 5, height: 5, top:  7, left:  "23%", backgroundColor: "#f59e0b", opacity: 0.5 }]} />
             <Image source={require("@/assets/ze_bloquinho_auth.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 
@@ -104,7 +104,7 @@ export default function LoginScreen() {
             <View style={s.optionsRow}>
               <TouchableOpacity style={s.checkboxRow} onPress={() => setLembrarMe(!lembrarMe)} activeOpacity={0.7}>
                 <View style={[s.checkbox, lembrarMe && s.checkboxChecked]}>
-                  {lembrarMe && <Text style={s.checkmark}>✓</Text>}
+                  {lembrarMe && <Ionicons name="checkmark" size={12} color="#fff" />}
                 </View>
                 <Text style={s.checkboxLabel}>Lembrar-me</Text>
               </TouchableOpacity>

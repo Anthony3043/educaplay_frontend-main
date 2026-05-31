@@ -260,14 +260,19 @@ export default function NotificacoesScreen() {
                 notifs.map((notif, idx) => {
                   const iconInfo = (() => {
                     const i = notif.icon ?? "";
-                    if (i === "⚠️" || i.includes("Atraso"))   return { name: "time-outline" as const,                  color: "#f97316", bg: "#FFF7ED" };
-                    if (i === "🚫" || i.includes("Ausência"))  return { name: "ban-outline" as const,                   color: "#ef4444", bg: "#FEF2F2" };
-                    if (i === "📅" || i === "🗓️")               return { name: "calendar-outline" as const,              color: "#3b82f6", bg: "#EFF6FF" };
-                    if (i === "✅" || i === "☑️")               return { name: "checkmark-circle-outline" as const,      color: "#3a7d44", bg: "#F0FDF4" };
-                    if (i === "🔔" || i === "🔕")               return { name: "notifications-outline" as const,         color: "#8b5cf6", bg: "#F5F3FF" };
-                    if (i === "📍" || i === "📌")               return { name: "location-outline" as const,              color: "#0891b2", bg: "#ECFEFF" };
-                    if (i === "🗑️" || i === "❌")               return { name: "trash-outline" as const,                 color: "#ef4444", bg: "#FEF2F2" };
-                    if (i === "✏️" || i === "📝")               return { name: "create-outline" as const,                color: "#f59e0b", bg: "#FFFBEB" };
+                    // Códigos novos (sem emoji)
+                    if (i === "atraso")     return { name: "time-outline" as const,             color: "#f97316", bg: "#FFF7ED" };
+                    if (i === "ausencia")   return { name: "ban-outline" as const,               color: "#ef4444", bg: "#FEF2F2" };
+                    if (i === "aviso")      return { name: "alert-circle-outline" as const,      color: "#f97316", bg: "#FFF7ED" };
+                    if (i === "calendario") return { name: "calendar-outline" as const,          color: "#3b82f6", bg: "#EFF6FF" };
+                    if (i === "editar")     return { name: "create-outline" as const,            color: "#f59e0b", bg: "#FFFBEB" };
+                    if (i === "remover")    return { name: "trash-outline" as const,             color: "#ef4444", bg: "#FEF2F2" };
+                    // Legado (compatibilidade com registros antigos no banco)
+                    if (i === "⚠️")         return { name: "time-outline" as const,             color: "#f97316", bg: "#FFF7ED" };
+                    if (i === "🚫")         return { name: "ban-outline" as const,               color: "#ef4444", bg: "#FEF2F2" };
+                    if (i === "📅")         return { name: "calendar-outline" as const,          color: "#3b82f6", bg: "#EFF6FF" };
+                    if (i === "✏️")         return { name: "create-outline" as const,            color: "#f59e0b", bg: "#FFFBEB" };
+                    if (i === "🗑️")         return { name: "trash-outline" as const,             color: "#ef4444", bg: "#FEF2F2" };
                     return { name: "notifications-outline" as const, color: "#3a7d44", bg: "#F0FDF4" };
                   })();
                   return (

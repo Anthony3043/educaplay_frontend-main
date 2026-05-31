@@ -117,8 +117,8 @@ export default function RegisterScreen() {
                 <View style={[r.mascoteDot, { width: 5, height: 5, top: 28, right: "8%",  backgroundColor: "#4ade80", opacity: 0.38 }]} />
                 <View style={[r.mascoteDot, { width: 6, height: 6, top: 58, left: 10,     backgroundColor: "#bbf7d0", opacity: 0.45 }]} />
                 <View style={[r.mascoteDot, { width: 4, height: 4, top: 18, left: 14,     backgroundColor: "#fde68a", opacity: 0.62 }]} />
-                <Text style={[r.mascoteSparkle, { top: 8,  right: "22%", fontSize: 13 }]}>✦</Text>
-                <Text style={[r.mascoteSparkle, { top: 40, right: "6%",  fontSize: 9  }]}>✦</Text>
+                <View style={[r.mascoteDot, { width: 8, height: 8, top: 8,  right: "22%", backgroundColor: "#f59e0b", opacity: 0.65 }]} />
+                <View style={[r.mascoteDot, { width: 5, height: 5, top: 40, right: "6%",  backgroundColor: "#f59e0b", opacity: 0.45 }]} />
                 <Image source={require("@/assets/ze_bloquinho_auth.png")} style={r.mascoteImage} resizeMode="contain" />
               </View>
             </View>
@@ -145,7 +145,7 @@ export default function RegisterScreen() {
                 </View>
               </View>
             </View>
-            {erroNome ? <Text style={reg.erro}>✗ {erroNome}</Text> : null}
+            {erroNome ? <View style={reg.erroRow}><Ionicons name="close-circle-outline" size={13} color="#ef4444" /><Text style={reg.erro}>{erroNome}</Text></View> : null}
 
             {/* E-mail */}
             <View style={[r.inlineInput, erroEmail ? { borderColor: "#ef4444", borderWidth: 1.5 } : null]}>
@@ -166,7 +166,7 @@ export default function RegisterScreen() {
                 </View>
               </View>
             </View>
-            {erroEmail ? <Text style={reg.erro}>✗ {erroEmail}</Text> : null}
+            {erroEmail ? <View style={reg.erroRow}><Ionicons name="close-circle-outline" size={13} color="#ef4444" /><Text style={reg.erro}>{erroEmail}</Text></View> : null}
 
             {/* Senha */}
             <View style={r.inlineInput}>
@@ -215,8 +215,8 @@ export default function RegisterScreen() {
                 <Ionicons name={confirmarSenhaVisivel ? "eye-off-outline" : "eye-outline"} size={20} color="#888" style={s.eyeIcon} />
               </TouchableOpacity>
             </View>
-            {senhasDispares && <Text style={reg.erro}>✗ As senhas não coincidem</Text>}
-            {senhasIguais && <Text style={[reg.erro, { color: "#3a7d44" }]}>✓ Senhas coincidem</Text>}
+            {senhasDispares && <View style={reg.erroRow}><Ionicons name="close-circle-outline" size={13} color="#ef4444" /><Text style={reg.erro}>As senhas não coincidem</Text></View>}
+            {senhasIguais && <View style={reg.erroRow}><Ionicons name="checkmark-circle-outline" size={13} color="#3a7d44" /><Text style={[reg.erro, { color: "#3a7d44" }]}>Senhas coincidem</Text></View>}
 
             {/* Instituição */}
             <View style={r.inlineInput}>
@@ -288,11 +288,6 @@ const inf = StyleSheet.create({
 });
 
 const reg = StyleSheet.create({
-  erro: {
-    fontSize: 12,
-    color: "#ef4444",
-    marginTop: -8,
-    marginBottom: 4,
-    marginLeft: 2,
-  },
+  erroRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: -6, marginBottom: 4 },
+  erro: { fontSize: 12, color: "#ef4444" },
 });

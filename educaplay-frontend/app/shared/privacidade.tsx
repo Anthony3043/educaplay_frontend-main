@@ -165,7 +165,10 @@ export default function PrivacidadeScreen() {
               autoCapitalize="characters"
             />
             {erroConfirmacao && (
-              <Text style={ls.erroTexto}>✗ O texto não corresponde. Conta não excluída.</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Ionicons name="close-circle-outline" size={13} color="#ef4444" />
+                <Text style={ls.erroTexto}>O texto não corresponde. Conta não excluída.</Text>
+              </View>
             )}
 
             <View style={ls.botoesRow}>

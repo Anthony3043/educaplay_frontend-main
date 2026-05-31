@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 
 // ── Utilitário: análise de força da senha ──────────────────────────────────
 type ForcaSenha = { nivel: 0 | 1 | 2 | 3 | 4; label: string; cor: string };
@@ -99,10 +100,10 @@ export default function ResetPasswordScreen() {
         <View style={s.sucessoWrapper}>
           <View style={s.sucessoCard}>
             <View style={s.sucessoCircle}>
-              <Text style={s.sucessoEmoji}>🎉</Text>
+              <Ionicons name="checkmark-circle" size={44} color="#3a7d44" />
             </View>
-            <Text style={[s.sparkle, { top: -8, left: "12%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 11, top: -12, right: "10%" }]}>✦</Text>
+            <View style={[s.sparkle, { top: -8, left: "12%", width: 8, height: 8, borderRadius: 4, backgroundColor: "#f59e0b", opacity: 0.65 }]} />
+            <View style={[s.sparkle, { top: -12, right: "10%", width: 5, height: 5, borderRadius: 3, backgroundColor: "#f59e0b", opacity: 0.45 }]} />
 
             <Text style={s.sucessoTitulo}>Senha redefinida!</Text>
             <Text style={s.sucessoSub}>
@@ -116,7 +117,7 @@ export default function ResetPasswordScreen() {
               activeOpacity={0.85}
             >
               <Text style={s.btnLoginText}>Ir para o login</Text>
-              <Text style={s.btnArrow}>→</Text>
+              <Ionicons name="arrow-forward" size={18} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
@@ -145,17 +146,17 @@ export default function ResetPasswordScreen() {
               onPress={() => router.push("/auth/Login")}
               activeOpacity={0.7}
             >
-              <Text style={s.backArrow}>←</Text>
+              <Ionicons name="arrow-back" size={20} color="#374151" />
             </TouchableOpacity>
           </View>
 
           {/* Ícone */}
           <View style={s.iconArea}>
             <View style={s.iconCircle}>
-              <Text style={s.iconEmoji}>🔐</Text>
+              <Ionicons name="lock-closed-outline" size={36} color="#3a7d44" />
             </View>
-            <Text style={[s.sparkle, { top: 8, left: "22%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 10, top: 2, right: "19%" }]}>✦</Text>
+            <View style={[s.sparkle, { top: 8, left: "22%", width: 8, height: 8, borderRadius: 4, backgroundColor: "#f59e0b", opacity: 0.65 }]} />
+            <View style={[s.sparkle, { top: 2, right: "19%", width: 5, height: 5, borderRadius: 3, backgroundColor: "#f59e0b", opacity: 0.45 }]} />
           </View>
 
           {/* Card */}
@@ -168,7 +169,7 @@ export default function ResetPasswordScreen() {
             {/* ── Nova Senha ── */}
             <Text style={s.label}>Nova senha</Text>
             <View style={s.inputWrapper}>
-              <Text style={s.inputIcon}>🔒</Text>
+              <Ionicons name="lock-closed-outline" size={18} color="#888" />
               <TextInput
                 style={s.input}
                 placeholder="Mínimo 8 caracteres"
@@ -223,7 +224,7 @@ export default function ResetPasswordScreen() {
                           { color: ok ? "#4cd97b" : "#bbbcc8" },
                         ]}
                       >
-                        {ok ? "✓" : "○"}
+                        <Ionicons name={ok ? "checkmark-circle" : "ellipse-outline"} size={14} color={ok ? "#4cd97b" : "#bbbcc8"} />
                       </Text>
                       <Text
                         style={[
@@ -250,7 +251,7 @@ export default function ResetPasswordScreen() {
                 senhasDispares && s.inputError,
               ]}
             >
-              <Text style={s.inputIcon}>🔒</Text>
+              <Ionicons name="lock-closed-outline" size={18} color="#888" />
               <TextInput
                 style={s.input}
                 placeholder="Repita a nova senha"
@@ -265,7 +266,7 @@ export default function ResetPasswordScreen() {
                 autoCorrect={false}
               />
               <TouchableOpacity onPress={() => setVerConfirmar(!verConfirmar)}>
-                <Text style={s.eyeIcon}>{verConfirmar ? "🙈" : "👁️"}</Text>
+                <Ionicons name={verConfirmar ? "eye-off-outline" : "eye-outline"} size={20} color="#888" />
               </TouchableOpacity>
             </View>
 
@@ -277,7 +278,7 @@ export default function ResetPasswordScreen() {
                   { color: senhasIguais ? "#4cd97b" : "#f0556b" },
                 ]}
               >
-                {senhasIguais ? "✓ Senhas coincidem" : "✗ Senhas não coincidem"}
+                {senhasIguais ? "Senhas coincidem" : "Senhas não coincidem"}
               </Text>
             )}
 
@@ -297,7 +298,7 @@ export default function ResetPasswordScreen() {
               <Text style={s.btnRedefinirText}>
                 {carregando ? "Salvando..." : "Redefinir senha"}
               </Text>
-              {!carregando && <Text style={s.btnArrow}>→</Text>}
+              {!carregando && <Ionicons name="arrow-forward" size={18} color="#fff" />}
             </TouchableOpacity>
           </View>
         </ScrollView>

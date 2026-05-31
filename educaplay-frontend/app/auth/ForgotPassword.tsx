@@ -89,17 +89,11 @@ export default function ForgotPasswordScreen() {
           {/* Ícone central */}
           <View style={s.iconArea}>
             <View style={s.iconCircle}>
-              <Text style={s.iconEmoji}>🔑</Text>
+              <Ionicons name="key-outline" size={36} color="#3a7d44" />
             </View>
-            <Text style={[s.sparkle, { top: 10, left: "22%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 11, top: 4, right: "20%" }]}>
-              ✦
-            </Text>
-            <Text
-              style={[s.sparkle, { fontSize: 13, bottom: 6, right: "14%" }]}
-            >
-              ✦
-            </Text>
+            <View style={[s.sparkle, { top: 10, left: "22%", width: 8, height: 8, borderRadius: 4, backgroundColor: "#f59e0b", opacity: 0.65 }]} />
+            <View style={[s.sparkle, { top: 4, right: "20%", width: 5, height: 5, borderRadius: 3, backgroundColor: "#f59e0b", opacity: 0.45 }]} />
+            <View style={[s.sparkle, { bottom: 6, right: "14%", width: 7, height: 7, borderRadius: 4, backgroundColor: "#86efac", opacity: 0.55 }]} />
           </View>
 
           {/* Card */}
