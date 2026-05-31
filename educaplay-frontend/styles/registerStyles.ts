@@ -9,9 +9,9 @@ export const registerStyles = StyleSheet.create({
   topBlock: {
     backgroundColor: "#ffffff",
     position: "relative",
-    overflow: "visible",
-    zIndex: 10,
-    elevation: 10,
+    overflow: "hidden",
+    zIndex: 1,
+    elevation: 1,
   },
 
   // ── Foil decorativo ──────────────────────────────────────
@@ -73,13 +73,10 @@ export const registerStyles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "flex-end",
     position: "relative",
-    overflow: "visible",
   },
   mascoteImage: {
     width: width * 0.50,
     height: width * 0.56,
-    zIndex: 10,
-    marginBottom: -60,
   },
 
   // ── Inputs em linha (2 colunas) ──────────────────────────
