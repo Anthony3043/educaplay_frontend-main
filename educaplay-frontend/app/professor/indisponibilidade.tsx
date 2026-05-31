@@ -442,7 +442,7 @@ export default function IndisponibilidadeScreen() {
 
       {/* Modal avisar supervisão */}
       <Modal visible={modalAvisar} transparent animationType="slide" onRequestClose={() => setModalAvisar(false)}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <View style={{ flex: 1 }}>
           <View style={av.overlay}>
             <View style={av.sheet}>
               <View style={av.handle} />
@@ -576,7 +576,7 @@ export default function IndisponibilidadeScreen() {
               </ScrollView>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Modal aviso / erro / sucesso */}
