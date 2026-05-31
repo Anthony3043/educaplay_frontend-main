@@ -113,7 +113,6 @@ export default function RegisterScreen() {
                 <Text style={s.tagline}>Organize hoje, ensine melhor amanhã.</Text>
               </View>
               <View style={r.mascoteSide}>
-                <View style={r.mascoteHalo} />
                 <View style={[r.mascoteDot, { width: 8, height: 8, top: 12, right: "28%", backgroundColor: "#86efac", opacity: 0.55 }]} />
                 <View style={[r.mascoteDot, { width: 5, height: 5, top: 28, right: "8%",  backgroundColor: "#4ade80", opacity: 0.38 }]} />
                 <View style={[r.mascoteDot, { width: 6, height: 6, top: 58, left: 10,     backgroundColor: "#bbf7d0", opacity: 0.45 }]} />
