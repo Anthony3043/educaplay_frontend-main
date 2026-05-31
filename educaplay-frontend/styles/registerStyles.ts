@@ -9,7 +9,7 @@ export const registerStyles = StyleSheet.create({
   topBlock: {
     backgroundColor: "#ffffff",
     position: "relative",
-    overflow: "hidden",
+    overflow: "visible",
     zIndex: 1,
     elevation: 1,
   },
@@ -30,8 +30,8 @@ export const registerStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
+    paddingTop: 4,
+    paddingBottom: 0,
     zIndex: 2,
   },
   backBtn: {
@@ -61,13 +61,13 @@ export const registerStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingTop: 0,
     zIndex: 2,
   },
   logoSide: {
     flex: 1,
     justifyContent: "center",
-    paddingBottom: 12,
+    paddingBottom: 0,
   },
   mascoteSide: {
     alignItems: "flex-end",
@@ -77,7 +77,7 @@ export const registerStyles = StyleSheet.create({
   mascoteImage: {
     width: width * 0.50,
     height: width * 0.56,
-    marginBottom: -40,
+    marginBottom: -65,
   },
 
   // ── Inputs em linha (2 colunas) ──────────────────────────
