@@ -65,11 +65,7 @@ export default function LoginScreen() {
             <Text style={[s.tagline, { zIndex: 1 }]}>Organize hoje, ensine melhor amanhã.</Text>
           </View>
 
-          <View style={s.mascoteSection}>
-            <View style={s.mascoteCircleBg} />
-            <Text style={[s.sparkle, { fontSize: 16, top: 24, left: "18%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 11, top: 16, right: "20%" }]}>✦</Text>
-            <Text style={[s.sparkle, { fontSize: 13, top: 60, right: "12%" }]}>✦</Text>
+          <View style={[s.mascoteSection, { backgroundColor: "transparent" }]}>
             <Image source={require("@/assets/images/login_ze_bloco.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 
