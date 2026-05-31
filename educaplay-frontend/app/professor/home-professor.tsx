@@ -98,6 +98,7 @@ export default function HomeProfessorScreen() {
   }, []);
 
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
+  useFocusEffect(useCallback(() => { carregarNotifs(); }, [carregarNotifs]));
 
   // Botão voltar do Android → só sai do app quando esta tela está em foco
   useFocusEffect(

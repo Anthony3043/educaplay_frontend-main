@@ -61,14 +61,6 @@ const PREFS_ITEMS = [
     cor: "#8b5cf6",
     bg: "#f5f3ff",
   },
-  {
-    id: "sistema",
-    ionicon: "sparkles-outline" as const,
-    title: "Novidades do App",
-    subtitle: "Atualizações e melhorias do EducaPlay",
-    cor: "#3a7d44",
-    bg: "#e8f5ea",
-  },
 ];
 
 const PREFS_KEY = "@educaplay_notif_prefs";
@@ -77,7 +69,6 @@ const PREFS_DEFAULT: Record<string, boolean> = {
   cronograma: true,
   mapaSala: false,
   lembretes: true,
-  sistema: false,
 };
 
 function formatarTempo(dateStr: string) {

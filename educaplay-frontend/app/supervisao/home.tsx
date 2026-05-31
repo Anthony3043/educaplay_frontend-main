@@ -95,6 +95,7 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
+  useFocusEffect(useCallback(() => { carregarNotifs(); }, [carregarNotifs]));
 
   // Verifica avisos ao focar E a cada 30s enquanto a tela está ativa
   const [sucessoSubstituto, setSucessoSubstituto] = useState<{nome: string; aulas: number; temMais?: boolean} | null>(null);
