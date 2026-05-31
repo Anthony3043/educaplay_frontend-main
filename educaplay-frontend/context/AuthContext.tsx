@@ -44,11 +44,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       const u = await AsyncStorage.getItem('@educaplay_user');
-      if (u) setUsuario(JSON.parse(u));
+      if (u) {
+        setUsuario(JSON.parse(u));
+        // Atualiza token push ao restaurar sessão (token pode ter mudado)
+        registrarPushToken().catch(() => {});
+      }
     } catch {}
     setCarregando(false);
-    // Acorda o backend APÓS a sessão ser restaurada, evitando race condition com o interceptor 401.
-    api.get('/health').catch(() => {});
   };
 
   const login = async (email: string, senha: string, lembrar: boolean = true): Promise<Usuario> => {
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem('@educaplay_token', token);
     await AsyncStorage.setItem('@educaplay_user', JSON.stringify(usuario));
     setUsuario(usuario);
+    registrarPushToken().catch(() => {});
     return usuario;
   };
 

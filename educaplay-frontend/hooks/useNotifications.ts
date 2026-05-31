@@ -94,9 +94,10 @@ export async function agendarLembretes(aulas: { subject: string; timeStart: stri
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: '⏰ Lembrete de aula',
+        title: 'Lembrete de Aula',
         body: `Sua aula de "${aula.subject}" começa em 15 minutos (${aula.timeStart}).`,
         sound: true,
+        ...(Platform.OS === 'android' && { channelId: 'geral' }),
       },
       trigger: { hour: horaLembrete, minute: minLembrete, repeats: true } as any,
     });
