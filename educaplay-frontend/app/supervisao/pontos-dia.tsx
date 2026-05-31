@@ -25,7 +25,65 @@ type ItemResumo = {
   pontoTimestamp: string | null;
 };
 
+type Status = "batido" | "na_hora" | "atrasado" | "falta" | "pendente";
+
 const DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
+const DIAS_SEMANA: Record<string, number> = {
+  Domingo: 0, Segunda: 1, Terça: 2, Quarta: 3, Quinta: 4, Sexta: 5, Sábado: 6,
+};
+
+const STATUS_CONFIG: Record<Status, { label: string; cor: string; bg: string; bordaBg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  batido:   { label: "Batido",    cor: "#16a34a", bg: "#f0fdf4", bordaBg: "#bbf7d0", icon: "checkmark-circle"     },
+  na_hora:  { label: "Na hora",   cor: "#d97706", bg: "#fffbeb", bordaBg: "#fde68a", icon: "time"                 },
+  atrasado: { label: "Atrasado",  cor: "#ea580c", bg: "#fff7ed", bordaBg: "#fed7aa", icon: "alert-circle"         },
+  falta:    { label: "Falta",     cor: "#dc2626", bg: "#fef2f2", bordaBg: "#fca5a5", icon: "close-circle"         },
+  pendente: { label: "Pendente",  cor: "#6366f1", bg: "#f5f3ff", bordaBg: "#c4b5fd", icon: "ellipse-outline"      },
+};
+
+function toMinutos(hhmm: string): number {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function getStatus(item: ItemResumo, diaSelecionado: string): Status {
+  if (item.pontoBatido) return "batido";
+
+  const hoje = new Date();
+  const hojeNum = hoje.getDay();
+  const diaNum = DIAS_SEMANA[diaSelecionado] ?? -1;
+
+  // Dia passado desta semana → falta
+  if (diaNum < hojeNum) return "falta";
+  // Dia futuro desta semana → pendente
+  if (diaNum > hojeNum) return "pendente";
+
+  // É hoje → avaliar pelo horário
+  const agora = hoje.getHours() * 60 + hoje.getMinutes();
+  const inicio = toMinutos(item.timeStart);
+  const fim    = toMinutos(item.timeEnd);
+  const GRACA  = 30; // minutos de tolerância após fim da aula
+
+  if (agora < inicio)               return "pendente";
+  if (agora <= inicio + 15)         return "na_hora";
+  if (agora <= fim + GRACA)         return "atrasado";
+  return "falta";
+}
+
+type GrupoHorario = {
+  timeStart: string;
+  timeEnd: string;
+  itens: (ItemResumo & { status: Status })[];
+};
+
+function agruparPorHorario(itens: ItemResumo[], dia: string): GrupoHorario[] {
+  const mapa: Record<string, GrupoHorario> = {};
+  itens.forEach((item) => {
+    const key = `${item.timeStart}-${item.timeEnd}`;
+    if (!mapa[key]) mapa[key] = { timeStart: item.timeStart, timeEnd: item.timeEnd, itens: [] };
+    mapa[key].itens.push({ ...item, status: getStatus(item, dia) });
+  });
+  return Object.values(mapa).sort((a, b) => toMinutos(a.timeStart) - toMinutos(b.timeStart));
+}
 
 type ModalFeedback = { visivel: boolean; tipo: "sucesso" | "erro"; mensagem: string };
 
@@ -55,21 +113,24 @@ export default function PontosDiaScreen() {
     setNotificando(item.aulaId);
     try {
       await api.post("/ponto/notificar-falta", { aulaId: item.aulaId, diaSemana: diaSelecionado });
-      setFeedback({ visivel: true, tipo: "sucesso", mensagem: `${item.professor.nome} foi notificado sobre a falta de ponto.` });
+      setFeedback({ visivel: true, tipo: "sucesso", mensagem: `${item.professor.nome} foi notificado.` });
     } catch {
-      setFeedback({ visivel: true, tipo: "erro", mensagem: "Não foi possível enviar a notificação. Tente novamente." });
+      setFeedback({ visivel: true, tipo: "erro", mensagem: "Não foi possível enviar a notificação." });
     } finally {
       setNotificando(null);
     }
   };
 
-  const bateram = itens.filter((i) => i.pontoBatido);
-  const naoBateram = itens.filter((i) => !i.pontoBatido);
+  const formatarHora = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-  const formatarHora = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  };
+  const grupos = diaSelecionado ? agruparPorHorario(itens, diaSelecionado) : [];
+
+  // Contagens para o resumo
+  const contagens = itens.reduce((acc, item) => {
+    const s = getStatus(item, diaSelecionado ?? "");
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {} as Record<Status, number>);
 
   return (
     <SafeAreaView style={st.container}>
@@ -109,7 +170,7 @@ export default function PontosDiaScreen() {
         <View style={st.vazio}>
           <Ionicons name="calendar-outline" size={52} color="#ccc" />
           <Text style={st.vazioTitulo}>Selecione um dia</Text>
-          <Text style={st.vazioSub}>Veja quais professores bateram ou não o ponto</Text>
+          <Text style={st.vazioSub}>Veja o status dos pontos de cada aula</Text>
         </View>
       ) : carregando ? (
         <ActivityIndicator style={{ flex: 1 }} size="large" color="#3a7d44" />
@@ -122,118 +183,105 @@ export default function PontosDiaScreen() {
       ) : (
         <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
 
-          {/* Resumo */}
+          {/* Resumo com legenda de cores */}
           <View style={st.resumoCard}>
             <View style={st.resumoRow}>
-              <View style={st.resumoItem}>
-                <Text style={[st.resumoNum, { color: "#3a7d44" }]}>{bateram.length}</Text>
-                <Text style={st.resumoLabel}>Bateram</Text>
-              </View>
-              <View style={st.resumoSep} />
-              <View style={st.resumoItem}>
-                <Text style={[st.resumoNum, { color: "#ef4444" }]}>{naoBateram.length}</Text>
-                <Text style={st.resumoLabel}>Não bateram</Text>
-              </View>
-              <View style={st.resumoSep} />
-              <View style={st.resumoItem}>
-                <Text style={[st.resumoNum, { color: "#374151" }]}>{itens.length}</Text>
-                <Text style={st.resumoLabel}>Total</Text>
-              </View>
+              {(["batido", "na_hora", "atrasado", "falta", "pendente"] as Status[]).map((s) => {
+                const cfg = STATUS_CONFIG[s];
+                const count = contagens[s] ?? 0;
+                return (
+                  <View key={s} style={st.resumoItem}>
+                    <View style={[st.resumoDot, { backgroundColor: cfg.cor }]} />
+                    <Text style={[st.resumoNum, { color: cfg.cor }]}>{count}</Text>
+                    <Text style={st.resumoLabel}>{cfg.label}</Text>
+                  </View>
+                );
+              })}
             </View>
             {itens.length > 0 && (
               <View style={st.progressBarBg}>
-                <View style={[st.progressBarFg, { width: `${Math.round((bateram.length / itens.length) * 100)}%` as any }]} />
+                <View style={[st.progressBarFg, { width: `${Math.round(((contagens.batido ?? 0) / itens.length) * 100)}%` as any }]} />
               </View>
             )}
             <Text style={st.resumoPct}>
-              {itens.length > 0 ? `${Math.round((bateram.length / itens.length) * 100)}% de presença` : "Sem dados"}
+              {Math.round(((contagens.batido ?? 0) / itens.length) * 100)}% de presença confirmada
             </Text>
           </View>
 
-          {/* Não bateram */}
-          {naoBateram.length > 0 && (
-            <>
-              <View style={st.secaoHeader}>
-                <View style={[st.secaoAccent, { backgroundColor: "#ef4444" }]} />
-                <Text style={[st.secaoTitulo, { color: "#ef4444" }]}>Falta de ponto</Text>
-                <View style={st.secaoBadge}><Text style={st.secaoBadgeText}>{naoBateram.length}</Text></View>
+          {/* Grupos por horário */}
+          {grupos.map((grupo) => (
+            <View key={`${grupo.timeStart}-${grupo.timeEnd}`}>
+              {/* Header do grupo */}
+              <View style={st.grupoHeader}>
+                <View style={st.grupoHoraBadge}>
+                  <Ionicons name="time-outline" size={13} color="#3a7d44" />
+                  <Text style={st.grupoHoraText}>{grupo.timeStart}</Text>
+                  <Text style={st.grupoHoraSep}>–</Text>
+                  <Text style={st.grupoHoraText}>{grupo.timeEnd}</Text>
+                </View>
+                <View style={st.grupoLinha} />
+                <Text style={st.grupoCount}>{grupo.itens.length} aula{grupo.itens.length !== 1 ? "s" : ""}</Text>
               </View>
-              {naoBateram.map((item) => (
-                <View key={item.aulaId} style={[st.card, st.cardErro]}>
-                  <View style={[st.cardBarLeft, { backgroundColor: "#ef4444" }]} />
-                  <View style={{ flex: 1, padding: 12 }}>
-                    <View style={st.cardTop}>
-                      <View style={[st.horaBadge, { backgroundColor: "#fef2f2" }]}>
-                        <Text style={[st.horaText, { color: "#ef4444" }]}>{item.timeStart}</Text>
-                        <Text style={[st.horaEndText, { color: "#fca5a5" }]}>{item.timeEnd}</Text>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={st.cardSubject} numberOfLines={1}>{item.subject}</Text>
-                        <Text style={st.cardProfessor}>{item.professor.nome}</Text>
-                        {item.sala && (
-                          <View style={st.cardSalaRow}>
-                            <Ionicons name="business-outline" size={11} color="#aaa" />
-                            <Text style={st.cardSala} numberOfLines={1}>{item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}</Text>
+
+              {/* Cards do grupo */}
+              {grupo.itens.map((item) => {
+                const cfg = STATUS_CONFIG[item.status];
+                const podeNotificar = item.status === "falta" || item.status === "atrasado";
+                return (
+                  <View key={item.aulaId} style={[st.card, { borderColor: cfg.bordaBg, backgroundColor: cfg.bg }]}>
+                    <View style={[st.cardBarLeft, { backgroundColor: cfg.cor }]} />
+                    <View style={{ flex: 1, padding: 12 }}>
+                      <View style={st.cardTop}>
+                        {/* Badge de status */}
+                        <View style={[st.statusBadge, { backgroundColor: cfg.cor + "18" }]}>
+                          <Ionicons name={cfg.icon} size={16} color={cfg.cor} />
+                          <Text style={[st.statusLabel, { color: cfg.cor }]}>{cfg.label}</Text>
+                        </View>
+                        {/* Hora que bateu */}
+                        {item.pontoTimestamp && (
+                          <View style={st.horaBatidaBadge}>
+                            <Ionicons name="checkmark" size={11} color="#16a34a" />
+                            <Text style={st.horaBatidaText}>{formatarHora(item.pontoTimestamp)}</Text>
                           </View>
                         )}
                       </View>
-                    </View>
-                    <TouchableOpacity
-                      style={[st.btnNotificar, notificando === item.aulaId && { opacity: 0.6 }]}
-                      onPress={() => handleNotificar(item)}
-                      disabled={notificando === item.aulaId}
-                      activeOpacity={0.8}
-                    >
-                      {notificando === item.aulaId
-                        ? <ActivityIndicator size="small" color="#fff" />
-                        : <><Ionicons name="send-outline" size={13} color="#fff" /><Text style={st.btnNotificarText}>Notificar professor</Text></>
-                      }
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-            </>
-          )}
 
-          {/* Bateram */}
-          {bateram.length > 0 && (
-            <>
-              <View style={st.secaoHeader}>
-                <View style={[st.secaoAccent, { backgroundColor: "#3a7d44" }]} />
-                <Text style={[st.secaoTitulo, { color: "#3a7d44" }]}>Presença confirmada</Text>
-                <View style={[st.secaoBadge, { backgroundColor: "#e8f5ea" }]}><Text style={[st.secaoBadgeText, { color: "#3a7d44" }]}>{bateram.length}</Text></View>
-              </View>
-              {bateram.map((item) => (
-                <View key={item.aulaId} style={[st.card, st.cardOk]}>
-                  <View style={[st.cardBarLeft, { backgroundColor: "#3a7d44" }]} />
-                  <View style={{ flex: 1, padding: 12, flexDirection: "row", alignItems: "center" }}>
-                    <View style={[st.horaBadge, { backgroundColor: "#e8f5ea" }]}>
-                      <Text style={[st.horaText, { color: "#3a7d44" }]}>{item.timeStart}</Text>
-                      <Text style={[st.horaEndText, { color: "#86efac" }]}>{item.timeEnd}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
                       <Text style={st.cardSubject} numberOfLines={1}>{item.subject}</Text>
-                      <Text style={st.cardProfessor}>{item.professor.nome}</Text>
+                      <View style={st.cardInfoRow}>
+                        <Ionicons name="person-outline" size={12} color="#9CA3AF" />
+                        <Text style={st.cardProfessor} numberOfLines={1}>{item.professor.nome}</Text>
+                      </View>
                       {item.sala && (
-                        <View style={st.cardSalaRow}>
-                          <Ionicons name="business-outline" size={11} color="#aaa" />
-                          <Text style={st.cardSala} numberOfLines={1}>{item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}</Text>
+                        <View style={st.cardInfoRow}>
+                          <Ionicons name="business-outline" size={12} color="#9CA3AF" />
+                          <Text style={st.cardSala} numberOfLines={1}>
+                            {item.sala.nome}{item.sala.turma ? ` — ${item.sala.turma}` : ""}
+                          </Text>
                         </View>
                       )}
-                    </View>
-                    <View style={st.okBadge}>
-                      <View style={st.okCheck}><Ionicons name="checkmark" size={12} color="#fff" /></View>
-                      {item.pontoTimestamp && <Text style={st.okHora}>{formatarHora(item.pontoTimestamp)}</Text>}
+
+                      {podeNotificar && (
+                        <TouchableOpacity
+                          style={[st.btnNotificar, { backgroundColor: cfg.cor }, notificando === item.aulaId && { opacity: 0.6 }]}
+                          onPress={() => handleNotificar(item)}
+                          disabled={notificando === item.aulaId}
+                          activeOpacity={0.8}
+                        >
+                          {notificando === item.aulaId
+                            ? <ActivityIndicator size="small" color="#fff" />
+                            : <><Ionicons name="send-outline" size={13} color="#fff" /><Text style={st.btnNotificarText}>Notificar professor</Text></>
+                          }
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
-                </View>
-              ))}
-            </>
-          )}
+                );
+              })}
+            </View>
+          ))}
         </ScrollView>
       )}
 
-      {/* Modal de feedback */}
       <Modal visible={feedback.visivel} transparent animationType="fade" onRequestClose={() => setFeedback((f) => ({ ...f, visivel: false }))}>
         <View style={st.fbOverlay}>
           <View style={st.fbBox}>
@@ -287,10 +335,7 @@ const st = StyleSheet.create({
     borderRadius: 14, backgroundColor: "#F8F9FA",
     borderWidth: 1.5, borderColor: "#F1F5F9", gap: 2,
   },
-  diaChipAtivo: {
-    backgroundColor: "#3a7d44", borderColor: "#3a7d44",
-    shadowColor: "#3a7d44", shadowOpacity: 0.3, elevation: 4,
-  },
+  diaChipAtivo: { backgroundColor: "#3a7d44", borderColor: "#3a7d44", shadowColor: "#3a7d44", shadowOpacity: 0.3, elevation: 4 },
   diaAbrev: { fontSize: 10, fontWeight: "800", color: "#9CA3AF", letterSpacing: 0.5 },
   diaChipText: { fontSize: 12, fontWeight: "700", color: "#374151" },
   diaChipTextAtivo: { color: "#fff" },
@@ -301,59 +346,67 @@ const st = StyleSheet.create({
 
   scroll: { padding: 16, gap: 10, paddingBottom: 40 },
 
-  // Resumo unificado
+  // Resumo
   resumoCard: {
     backgroundColor: "#fff", borderRadius: 20, padding: 16,
     shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 10, elevation: 3,
     borderWidth: 1, borderColor: "#F1F5F9",
   },
-  resumoRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  resumoItem: { flex: 1, alignItems: "center" },
-  resumoSep: { width: 1, height: 32, backgroundColor: "#F1F5F9" },
-  resumoNum: { fontSize: 26, fontWeight: "800", lineHeight: 30 },
-  resumoLabel: { fontSize: 11, fontWeight: "600", color: "#9CA3AF", marginTop: 2 },
+  resumoRow: { flexDirection: "row", alignItems: "flex-end", marginBottom: 12 },
+  resumoItem: { flex: 1, alignItems: "center", gap: 2 },
+  resumoDot: { width: 8, height: 8, borderRadius: 4, marginBottom: 2 },
+  resumoNum: { fontSize: 20, fontWeight: "800", lineHeight: 24 },
+  resumoLabel: { fontSize: 9, fontWeight: "600", color: "#9CA3AF", textAlign: "center" },
   progressBarBg: { height: 6, backgroundColor: "#F1F5F9", borderRadius: 3, overflow: "hidden" },
-  progressBarFg: { height: 6, backgroundColor: "#3a7d44", borderRadius: 3 },
+  progressBarFg: { height: 6, backgroundColor: "#16a34a", borderRadius: 3 },
   resumoPct: { fontSize: 11, color: "#9CA3AF", fontWeight: "600", marginTop: 6, textAlign: "center" },
 
-  secaoHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, marginBottom: 6 },
-  secaoAccent: { width: 4, height: 18, borderRadius: 2 },
-  secaoTitulo: { fontSize: 14, fontWeight: "800", flex: 1 },
-  secaoBadge: { backgroundColor: "#fef2f2", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  secaoBadgeText: { fontSize: 12, fontWeight: "700", color: "#ef4444" },
+  // Grupo de horário
+  grupoHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8, marginBottom: 6 },
+  grupoHoraBadge: {
+    flexDirection: "row", alignItems: "center", gap: 4,
+    backgroundColor: "#f0fdf4", borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: 1, borderColor: "#bbf7d0",
+  },
+  grupoHoraText: { fontSize: 12, fontWeight: "800", color: "#16a34a" },
+  grupoHoraSep: { fontSize: 11, color: "#86efac" },
+  grupoLinha: { flex: 1, height: 1, backgroundColor: "#E5E7EB" },
+  grupoCount: { fontSize: 11, fontWeight: "600", color: "#9CA3AF" },
 
+  // Card de ponto
   card: {
     borderRadius: 16, borderWidth: 1.5, overflow: "hidden",
     flexDirection: "row",
-    shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
+    shadowColor: "#000", shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+    marginBottom: 8,
   },
   cardBarLeft: { width: 5, alignSelf: "stretch" },
-  cardErro: { backgroundColor: "#fffafa", borderColor: "#fca5a5" },
-  cardOk: { backgroundColor: "#f9fffe", borderColor: "#bbf7d0" },
-  cardInfo: { gap: 8 },
-  cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginBottom: 10 },
-  horaBadge: {
-    alignItems: "center", borderRadius: 10, paddingVertical: 8,
-    paddingHorizontal: 6, minWidth: 52, gap: 2,
+  cardTop: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+  statusBadge: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4,
   },
-  horaText: { fontSize: 13, fontWeight: "800" },
-  horaEndText: { fontSize: 10, fontWeight: "600" },
-  cardSubject: { fontSize: 14, fontWeight: "700", color: "#111827", marginBottom: 2 },
-  cardProfessor: { fontSize: 12, color: "#374151", fontWeight: "600" },
-  cardSalaRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+  statusLabel: { fontSize: 12, fontWeight: "700" },
+  horaBatidaBadge: {
+    flexDirection: "row", alignItems: "center", gap: 3,
+    backgroundColor: "#f0fdf4", borderRadius: 8,
+    paddingHorizontal: 7, paddingVertical: 3,
+    borderWidth: 1, borderColor: "#bbf7d0",
+  },
+  horaBatidaText: { fontSize: 11, fontWeight: "700", color: "#16a34a" },
+  cardSubject: { fontSize: 14, fontWeight: "700", color: "#111827", marginBottom: 4 },
+  cardInfoRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 2 },
+  cardProfessor: { fontSize: 12, color: "#374151", fontWeight: "600", flex: 1 },
   cardSala: { fontSize: 11, color: "#9CA3AF", flex: 1 },
-  okBadge: { alignItems: "center", gap: 4 },
-  okCheck: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#3a7d44", alignItems: "center", justifyContent: "center" },
-  okHora: { fontSize: 10, color: "#3a7d44", fontWeight: "700" },
 
   btnNotificar: {
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
-    backgroundColor: "#ef4444", borderRadius: 10, paddingVertical: 10,
-    shadowColor: "#ef4444", shadowOpacity: 0.25, shadowRadius: 6, elevation: 3,
+    borderRadius: 10, paddingVertical: 9, marginTop: 8,
+    elevation: 2,
   },
   btnNotificarText: { fontSize: 12, fontWeight: "700", color: "#fff" },
 
-  // Modal feedback
   fbOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 },
   fbBox: { width: "100%", backgroundColor: "#fff", borderRadius: 22, padding: 28, alignItems: "center", gap: 10 },
   fbIconWrap: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 4 },
