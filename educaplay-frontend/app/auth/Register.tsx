@@ -118,7 +118,7 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          <View style={[s.card, { marginTop: -90, zIndex: 10, elevation: 12 }]}>
+          <View style={[s.card, { marginTop: -30, zIndex: 10, elevation: 12 }]}>
             <Text style={s.welcomeTitle}>Cadastro da Supervisão</Text>
             <Text style={s.welcomeSubtitle}>Preencha os dados para criar sua conta</Text>
 
