@@ -66,6 +66,9 @@ export default function LoginScreen() {
           </View>
 
           <View style={s.mascoteSection}>
+            <Text style={[s.mascoteSparkle, { top: 18, right: "23%", fontSize: 15 }]}>✦</Text>
+            <Text style={[s.mascoteSparkle, { top: 8,  left: "22%", fontSize: 10 }]}>✦</Text>
+            <Text style={[s.mascoteSparkle, { top: 52, right: "13%", fontSize: 12 }]}>✦</Text>
             <Image source={require("@/assets/ze_bloquinho_auth.png")} style={s.mascoteImage} resizeMode="contain" />
           </View>
 
