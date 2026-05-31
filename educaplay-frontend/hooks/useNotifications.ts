@@ -3,26 +3,30 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import api from '../src/services/api';
 
-const isExpoGo = Constants.appOwnership === 'expo';
+const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 function getNotif() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require('expo-notifications') as typeof import('expo-notifications');
 }
 
-export async function registrarPushToken() {
-  if (Platform.OS === 'web' || isExpoGo || !Device.isDevice) return;
-
-  const Notifications = getNotif();
-
-  Notifications.setNotificationHandler({
+// Configura handler logo que o módulo carrega — independente de login
+if (Platform.OS !== 'web' && !isExpoGo) {
+  getNotif().setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
+      shouldShowAlert: true,
       shouldShowList: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
     }),
   });
+}
+
+export async function registrarPushToken() {
+  if (Platform.OS === 'web' || isExpoGo || !Device.isDevice) return;
+
+  const Notifications = getNotif();
 
   const perms = await Notifications.getPermissionsAsync() as any;
   let isGranted: boolean = perms.granted;
@@ -33,7 +37,12 @@ export async function registrarPushToken() {
   if (!isGranted) return;
 
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      Constants.easConfig?.projectId;
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined
+    );
     await api.put('/auth/push-token', { token: tokenData.data });
   } catch (e) {
     console.warn('Push token não obtido:', e);
