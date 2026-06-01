@@ -218,22 +218,6 @@ export default function RegisterScreen() {
             {senhasDispares && <View style={reg.erroRow}><Ionicons name="close-circle-outline" size={13} color="#ef4444" /><Text style={reg.erro}>As senhas não coincidem</Text></View>}
             {senhasIguais && <View style={reg.erroRow}><Ionicons name="checkmark-circle-outline" size={13} color="#3a7d44" /><Text style={[reg.erro, { color: "#3a7d44" }]}>Senhas coincidem</Text></View>}
 
-            {/* Instituição */}
-            <View style={r.inlineInput}>
-              <View style={r.inlineIconLabel}>
-                <Ionicons name="school-outline" size={18} color="#888" style={r.inlineIcon} />
-                <View style={{ flex: 1 }}>
-                  <Text style={r.inlineLabel}>Instituição (opcional)</Text>
-                  <TextInput
-                    style={r.inlineTextInput}
-                    placeholder="Nome da escola"
-                    placeholderTextColor="#bbbcc8"
-                    value={instituicao}
-                    onChangeText={setInstituicao}
-                  />
-                </View>
-              </View>
-            </View>
 
             <TouchableOpacity
               style={[s.btnEntrar, carregando && { opacity: 0.7 }]}
