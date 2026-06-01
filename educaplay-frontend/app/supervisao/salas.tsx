@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/src/constants/colors";
 import api from "../../src/services/api";
 
-type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null };
+type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null; cor?: string | null };
 
 export default function SalasScreen() {
   const router = useRouter();
@@ -132,9 +132,8 @@ export default function SalasScreen() {
               <Text style={sl.emptySubtitle}>Toque em + no cabeçalho{"\n"}para adicionar a primeira sala.</Text>
             </View>
           ) : (
-            salas.map((sala, idx) => {
-              const CORES = ["#3a7d44","#4361ee","#f4831f","#8b5cf6","#e11d48","#0891b2"];
-              const cor = CORES[idx % CORES.length];
+            salas.map((sala) => {
+              const cor = sala.cor || "#3a7d44";
               return (
                 <View key={sala.id} style={sl.card}>
                   <Ionicons name="business-outline" size={70} color={cor + "0D"} style={{ position: "absolute", top: -8, right: -8 }} />
