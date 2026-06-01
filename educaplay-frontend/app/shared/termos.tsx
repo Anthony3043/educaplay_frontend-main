@@ -45,98 +45,118 @@ export default function TermosScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={{ fontSize: 12, color: Colors.textMuted, marginBottom: 20 }}>
-          Última atualização: janeiro de 2025
+          Última atualização: junho de 2026
         </Text>
 
         <P>
-          Bem-vindo ao <Text style={{ fontWeight: "700", color: Colors.primary }}>EducaPlay</Text>. Ao utilizar
-          nosso aplicativo, você concorda com os termos e condições descritos abaixo. Leia com atenção antes de
-          usar.
+          Bem-vindo ao <Text style={{ fontWeight: "700", color: Colors.primary }}>EducaPlay</Text>. Ao instalar
+          ou utilizar este aplicativo, você declara ter lido, compreendido e concordado integralmente com estes
+          Termos de Uso. Caso não concorde com qualquer disposição, não utilize o aplicativo.
         </P>
 
-        <Section title="1. Aceitação dos Termos">
+        <Section title="1. Identificação do Serviço">
           <P>
-            Ao acessar ou utilizar o EducaPlay, você declara ter lido, compreendido e concordado com estes
-            Termos de Uso. Se não concordar com algum ponto, não utilize o aplicativo.
+            O <Text style={{ fontWeight: "600" }}>EducaPlay</Text> é uma plataforma digital de gestão escolar
+            destinada exclusivamente a instituições de ensino contratantes. O acesso é restrito a profissionais
+            (supervisores e professores) vinculados à instituição que adquiriu a licença de uso.
           </P>
         </Section>
 
-        <Section title="2. Descrição do Serviço">
+        <Section title="2. Acesso e Credenciais">
           <P>
-            O EducaPlay é uma plataforma de gestão educacional voltada para professores e supervisores de
-            instituições de ensino. Permite o cadastro e gerenciamento de cronogramas, horários de aulas,
-            disponibilidades e comunicação interna.
+            O acesso ao EducaPlay é realizado mediante credenciais individuais (e-mail e senha). O usuário é
+            integralmente responsável pela guarda e sigilo de suas credenciais.
+          </P>
+          <P>
+            O cadastro de supervisores exige um <Text style={{ fontWeight: "600" }}>código institucional</Text> fornecido
+            pela instituição contratante. O cadastro de professores é de responsabilidade exclusiva da supervisão da escola.
+          </P>
+          <P>
+            É vedado compartilhar credenciais de acesso. Em caso de suspeita de uso indevido, o usuário deve
+            comunicar imediatamente à supervisão da escola ou ao suporte do EducaPlay.
           </P>
         </Section>
 
-        <Section title="3. Cadastro e Conta">
-          <P>
-            Para utilizar o EducaPlay, é necessário criar uma conta fornecendo informações verdadeiras e
-            atualizadas. Você é responsável por manter a confidencialidade de suas credenciais de acesso
-            (e-mail e senha).
-          </P>
-          <P>
-            Qualquer atividade realizada com sua conta é de sua responsabilidade. Em caso de uso não
-            autorizado, entre em contato com nosso suporte imediatamente.
-          </P>
+        <Section title="3. Uso Permitido e Vedações">
+          <P>O EducaPlay destina-se exclusivamente à gestão de cronogramas, registro de ponto, comunicação
+          interna e administração de salas de aula. É expressamente proibido:</P>
+          <P>• Utilizar o aplicativo para finalidades alheias à gestão escolar;</P>
+          <P>• Tentar acessar dados de outras instituições ou contas de outros usuários;</P>
+          <P>• Realizar engenharia reversa, descompilar ou modificar o aplicativo;</P>
+          <P>• Inserir dados falsos ou fraudulentos no sistema;</P>
+          <P>• Usar o aplicativo para disseminar conteúdo ilegal, ofensivo ou discriminatório;</P>
+          <P>• Tentar comprometer a segurança, disponibilidade ou integridade da plataforma.</P>
         </Section>
 
-        <Section title="4. Uso Permitido">
-          <P>Você concorda em utilizar o EducaPlay somente para finalidades lícitas e de acordo com estes termos. É proibido:</P>
-          <P>• Utilizar o aplicativo para fins ilegais ou não autorizados;</P>
-          <P>• Tentar acessar contas de outros usuários;</P>
-          <P>• Publicar conteúdo ofensivo, discriminatório ou que viole direitos de terceiros;</P>
-          <P>• Tentar comprometer a segurança ou o funcionamento da plataforma.</P>
-        </Section>
-
-        <Section title="5. Propriedade Intelectual">
+        <Section title="4. Isolamento de Dados por Instituição">
           <P>
-            Todo o conteúdo do EducaPlay, incluindo textos, imagens, logotipos, ícones e código-fonte, é
-            protegido por leis de propriedade intelectual e pertence aos seus respectivos titulares. É
-            proibida a reprodução sem autorização prévia.
+            Os dados de cada instituição contratante são armazenados e processados de forma completamente
+            isolada. Nenhum usuário de uma instituição pode visualizar, acessar ou interferir nos dados de
+            outra instituição cadastrada na plataforma.
           </P>
         </Section>
 
-        <Section title="6. Privacidade">
+        <Section title="5. Coleta de Localização (GPS)">
           <P>
-            O uso das suas informações pessoais é regido pela nossa Política de Privacidade, disponível
-            neste aplicativo. Ao utilizar o EducaPlay, você também concorda com nossa política de
-            privacidade.
+            O EducaPlay coleta a <Text style={{ fontWeight: "600" }}>localização geográfica</Text> do dispositivo
+            exclusivamente no momento do registro de ponto. Essa informação é utilizada para verificar se o
+            professor está dentro do raio de tolerância definido pela instituição.
+          </P>
+          <P>
+            A localização não é monitorada de forma contínua e não é utilizada para nenhuma outra finalidade.
           </P>
         </Section>
 
-        <Section title="7. Limitação de Responsabilidade">
+        <Section title="6. Notificações Push">
           <P>
-            O EducaPlay é disponibilizado "no estado em que se encontra". Não garantimos que o serviço
-            estará sempre disponível, livre de erros ou ininterrupto. Não nos responsabilizamos por perdas
-            de dados ou danos causados pelo uso do aplicativo.
+            O aplicativo pode enviar notificações para o dispositivo do usuário referentes a: ausências,
+            atrasos, alterações de cronograma e registros de ponto. O usuário pode gerenciar as preferências
+            de notificação nas configurações do aplicativo.
           </P>
         </Section>
 
-        <Section title="8. Modificações dos Termos">
+        <Section title="7. Propriedade Intelectual">
           <P>
-            Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações entram em
-            vigor assim que publicadas no aplicativo. O uso continuado do EducaPlay após as alterações
-            implica na aceitação dos novos termos.
+            Todo o conteúdo do EducaPlay — incluindo código-fonte, design, logotipos, ícones e textos — é
+            protegido pelas leis de propriedade intelectual vigentes no Brasil. É proibida qualquer reprodução,
+            distribuição ou uso comercial sem autorização expressa e prévia do titular.
           </P>
         </Section>
 
-        <Section title="9. Encerramento de Conta">
+        <Section title="8. Disponibilidade do Serviço">
           <P>
-            Você pode encerrar sua conta a qualquer momento pelas configurações do aplicativo. Podemos
-            suspender ou encerrar contas que violem estes termos sem aviso prévio.
+            O EducaPlay é disponibilizado "no estado em que se encontra". Envidamos esforços para manter o
+            serviço disponível continuamente, mas não garantimos disponibilidade ininterrupta. Não nos
+            responsabilizamos por danos decorrentes de indisponibilidade temporária, perda de dados por falha
+            de dispositivo do usuário ou uso indevido das funcionalidades.
           </P>
         </Section>
 
-        <Section title="10. Contato">
+        <Section title="9. Rescisão de Acesso">
           <P>
-            Em caso de dúvidas sobre estes termos, entre em contato com nossa equipe pelo suporte
-            disponível na tela "Sobre" do aplicativo.
+            A supervisão da instituição pode desativar contas de professores a qualquer momento. O usuário
+            pode solicitar o encerramento de sua conta nas configurações do aplicativo. Contas que violem
+            estes termos podem ser suspensas sem aviso prévio.
+          </P>
+        </Section>
+
+        <Section title="10. Lei Aplicável">
+          <P>
+            Estes Termos de Uso são regidos pela legislação brasileira. Fica eleito o foro da comarca de
+            domicílio do usuário para resolução de quaisquer controvérsias decorrentes deste instrumento,
+            salvo disposição contratual em contrário.
+          </P>
+        </Section>
+
+        <Section title="11. Contato">
+          <P>
+            Em caso de dúvidas sobre estes termos, entre em contato pelo e-mail:{"\n"}
+            <Text style={{ fontWeight: "600", color: Colors.primary }}>am1662847@gmail.com</Text>
           </P>
         </Section>
 
         <Text style={{ fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 8 }}>
-          © 2025 EducaPlay. Todos os direitos reservados.
+          © 2026 EducaPlay. Todos os direitos reservados.
         </Text>
       </ScrollView>
     </SafeAreaView>

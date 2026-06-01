@@ -45,94 +45,123 @@ export default function PoliticaScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={{ fontSize: 12, color: Colors.textMuted, marginBottom: 20 }}>
-          Última atualização: janeiro de 2025
+          Última atualização: junho de 2026 — em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)
         </Text>
 
         <P>
-          A sua privacidade é muito importante para o{" "}
-          <Text style={{ fontWeight: "700", color: Colors.primary }}>EducaPlay</Text>. Esta política descreve
-          como coletamos, usamos, armazenamos e protegemos as suas informações pessoais.
+          O <Text style={{ fontWeight: "700", color: Colors.primary }}>EducaPlay</Text> respeita e protege a
+          privacidade dos seus usuários. Esta Política descreve de forma transparente quais dados coletamos,
+          como os utilizamos, com quem os compartilhamos e quais são os seus direitos como titular.
         </P>
 
-        <Section title="1. Dados Coletados">
-          <P>Ao utilizar o EducaPlay, coletamos as seguintes informações:</P>
-          <P>• <Text style={{ fontWeight: "600" }}>Dados de cadastro:</Text> nome, e-mail, instituição de ensino, cargo e matérias lecionadas;</P>
-          <P>• <Text style={{ fontWeight: "600" }}>Dados de uso:</Text> cronogramas, horários de aulas e disponibilidades registradas;</P>
-          <P>• <Text style={{ fontWeight: "600" }}>Dados do dispositivo:</Text> token de notificação push para envio de alertas;</P>
-          <P>• <Text style={{ fontWeight: "600" }}>Foto de perfil:</Text> caso você opte por adicionar uma imagem.</P>
+        <Section title="1. Controlador dos Dados">
+          <P>
+            O controlador responsável pelo tratamento dos seus dados pessoais é:{"\n"}
+            <Text style={{ fontWeight: "600" }}>EducaPlay</Text>{"\n"}
+            E-mail de contato: <Text style={{ fontWeight: "600", color: Colors.primary }}>am1662847@gmail.com</Text>
+          </P>
         </Section>
 
-        <Section title="2. Finalidade do Uso">
-          <P>Utilizamos seus dados para:</P>
-          <P>• Criar e gerenciar sua conta no aplicativo;</P>
-          <P>• Exibir e gerenciar cronogramas e horários de aulas;</P>
-          <P>• Enviar notificações relacionadas ao uso do app;</P>
-          <P>• Melhorar continuamente a experiência do usuário;</P>
+        <Section title="2. Dados Pessoais Coletados">
+          <P>Coletamos apenas os dados estritamente necessários para o funcionamento do aplicativo:</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Cadastro:</Text> nome completo, e-mail, cargo, instituição de ensino e disciplinas lecionadas;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Autenticação:</Text> senha (armazenada exclusivamente em formato criptografado — bcrypt);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Foto de perfil:</Text> imagem opcional fornecida pelo usuário, armazenada no serviço Cloudinary;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Localização geográfica (GPS):</Text> coletada pontualmente apenas no momento do registro de ponto, para verificar se o usuário está dentro do raio da escola. Não há monitoramento contínuo;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Token de notificação:</Text> identificador do dispositivo para envio de notificações push (Expo Push Notifications);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Dados de uso:</Text> cronogramas, horários, registros de ponto, mapas de sala e comunicações internas.</P>
+        </Section>
+
+        <Section title="3. Base Legal para o Tratamento (LGPD)">
+          <P>O tratamento dos seus dados pessoais é realizado com as seguintes bases legais:</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Execução de contrato</Text> (art. 7º, V): para prestação dos serviços de gestão escolar contratados pela instituição;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Legítimo interesse</Text> (art. 7º, IX): para envio de notificações operacionais e segurança da plataforma;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Consentimento</Text> (art. 7º, I): para uso de foto de perfil e localização GPS.</P>
+        </Section>
+
+        <Section title="4. Finalidade do Tratamento">
+          <P>Seus dados são utilizados exclusivamente para:</P>
+          <P>• Autenticar e gerenciar sua conta;</P>
+          <P>• Exibir e gerenciar cronogramas, horários e registros de ponto;</P>
+          <P>• Validar a presença geográfica no registro de ponto;</P>
+          <P>• Enviar notificações operacionais (ausências, atrasos, alterações);</P>
           <P>• Garantir a segurança e integridade da plataforma.</P>
+          <P>Seus dados <Text style={{ fontWeight: "600" }}>não são utilizados</Text> para fins comerciais, publicidade ou perfilamento.</P>
         </Section>
 
-        <Section title="3. Compartilhamento de Dados">
+        <Section title="5. Isolamento por Instituição">
           <P>
-            Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros para fins
-            comerciais. Seus dados podem ser compartilhados somente com outros usuários da mesma
-            instituição (por exemplo, supervisores vendo dados de professores cadastrados) dentro da
-            funcionalidade normal do aplicativo.
+            Os dados de cada instituição são tratados de forma completamente isolada. Nenhum usuário ou
+            gestor de uma instituição tem acesso aos dados de outra, garantindo sigilo absoluto entre as
+            escolas cadastradas na plataforma.
           </P>
         </Section>
 
-        <Section title="4. Armazenamento e Segurança">
+        <Section title="6. Compartilhamento com Terceiros">
           <P>
-            Suas informações são armazenadas em servidores seguros. Utilizamos criptografia para proteger
-            senhas e adotamos boas práticas de segurança para proteger seus dados contra acessos não
-            autorizados.
+            Não vendemos, cedemos ou comercializamos seus dados pessoais. Os dados podem ser processados
+            pelos seguintes prestadores de serviço tecnológico, estritamente para operação da plataforma:
           </P>
+          <P>• <Text style={{ fontWeight: "600" }}>Neon Tech</Text> (banco de dados PostgreSQL — EUA);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Render</Text> (hospedagem do servidor — EUA);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Cloudinary</Text> (armazenamento de fotos — EUA);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Expo / EAS</Text> (notificações push e atualizações OTA — EUA).</P>
+          <P>Todos os terceiros adotam medidas de segurança compatíveis com padrões internacionais.</P>
+        </Section>
+
+        <Section title="7. Transferência Internacional de Dados">
           <P>
-            Senhas são armazenadas de forma criptografada (hash) e nunca em texto simples. Nenhum
-            colaborador nosso tem acesso à sua senha.
+            Alguns dos serviços acima operam em servidores localizados nos Estados Unidos. A transferência
+            internacional ocorre com base em cláusulas contratuais padrão e políticas de privacidade
+            adequadas, nos termos do art. 33 da LGPD.
           </P>
         </Section>
 
-        <Section title="5. Seus Direitos">
-          <P>Você tem direito a:</P>
-          <P>• Acessar e corrigir seus dados pessoais pelo perfil do aplicativo;</P>
-          <P>• Excluir sua conta e todos os dados associados a ela;</P>
-          <P>• Solicitar informações sobre como seus dados são utilizados.</P>
+        <Section title="8. Segurança">
           <P>
-            Para exercer esses direitos, acesse as configurações do aplicativo ou entre em contato pelo
-            suporte.
+            Adotamos as seguintes medidas técnicas de segurança:{"\n"}
+            • Senhas armazenadas com hash bcrypt (irreversível);{"\n"}
+            • Comunicações protegidas por TLS/HTTPS;{"\n"}
+            • Autenticação por tokens JWT com expiração;{"\n"}
+            • Acesso ao banco de dados restrito ao servidor da aplicação.
           </P>
         </Section>
 
-        <Section title="6. Retenção de Dados">
+        <Section title="9. Retenção de Dados">
           <P>
-            Mantemos seus dados enquanto sua conta estiver ativa. Ao excluir sua conta, todos os seus
-            dados pessoais são removidos permanentemente de nossos sistemas dentro de um prazo razoável.
+            Seus dados são mantidos enquanto sua conta estiver ativa na plataforma. Ao solicitar a exclusão
+            da conta, todos os dados pessoais vinculados serão removidos permanentemente em até <Text style={{ fontWeight: "600" }}>15 dias úteis</Text>.
+            Registros de ponto e históricos operacionais podem ser mantidos por até 5 anos para fins de
+            auditoria institucional, conforme solicitação da instituição contratante.
           </P>
         </Section>
 
-        <Section title="7. Cookies e Tecnologias Semelhantes">
+        <Section title="10. Seus Direitos como Titular (LGPD)">
+          <P>Nos termos da LGPD, você tem direito a:</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Acesso:</Text> confirmar a existência e obter cópia dos seus dados;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Correção:</Text> atualizar dados incompletos, inexatos ou desatualizados pelo perfil do app;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Eliminação:</Text> solicitar a exclusão de dados desnecessários (exceto obrigações legais);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Portabilidade:</Text> solicitar seus dados em formato estruturado;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Revogação do consentimento:</Text> para dados tratados com base em consentimento (foto e GPS);</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Oposição:</Text> opor-se ao tratamento em casos previstos em lei;</P>
+          <P>• <Text style={{ fontWeight: "600" }}>Informação:</Text> ser informado sobre entidades com as quais seus dados são compartilhados.</P>
           <P>
-            O EducaPlay é um aplicativo móvel e não utiliza cookies de rastreamento. Utilizamos tokens de
-            autenticação (JWT) armazenados de forma segura no dispositivo para manter sua sessão ativa.
+            Para exercer qualquer desses direitos, entre em contato:{"\n"}
+            <Text style={{ fontWeight: "600", color: Colors.primary }}>am1662847@gmail.com</Text>
           </P>
         </Section>
 
-        <Section title="8. Alterações nesta Política">
+        <Section title="11. Alterações desta Política">
           <P>
-            Podemos atualizar esta política periodicamente. Notificaremos sobre mudanças significativas
-            pelo aplicativo. O uso continuado após as alterações implica na aceitação da nova política.
-          </P>
-        </Section>
-
-        <Section title="9. Contato">
-          <P>
-            Em caso de dúvidas sobre esta política ou sobre o tratamento dos seus dados, entre em contato
-            pela opção de suporte disponível na tela "Sobre" do aplicativo.
+            Esta Política pode ser atualizada periodicamente. Mudanças significativas serão comunicadas
+            pelo aplicativo com antecedência mínima de 15 dias. O uso continuado após a vigência das
+            alterações implica na aceitação da nova versão.
           </P>
         </Section>
 
         <Text style={{ fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 8 }}>
-          © 2025 EducaPlay. Todos os direitos reservados.
+          © 2026 EducaPlay. Todos os direitos reservados.{"\n"}
+          Em conformidade com a LGPD — Lei nº 13.709/2018
         </Text>
       </ScrollView>
     </SafeAreaView>
