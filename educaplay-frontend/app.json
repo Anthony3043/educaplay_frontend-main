@@ -3,9 +3,7 @@
     "name": "EducaPlay",
     "slug": "educaplay-frontend",
     "version": "1.0.0",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/82bd4f03-c8df-487b-80a1-928dee68f7db",
       "enabled": true,
