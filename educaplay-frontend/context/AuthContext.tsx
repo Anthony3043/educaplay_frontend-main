@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../src/services/api';
 import { registrarPushToken } from '../hooks/useNotifications';
@@ -81,13 +82,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = useCallback(async () => {
-    await AsyncStorage.multiRemove(['@educaplay_token', '@educaplay_user', '@educaplay_remember']);
+    // Remove todas as chaves de sessão — lembrar-me só funciona no próximo login explícito
+    await AsyncStorage.multiRemove([
+      '@educaplay_token',
+      '@educaplay_user',
+      '@educaplay_remember',
+    ]);
     setUsuario(null);
   }, []);
 
   useEffect(() => {
     registerUnauthorizedHandler(logout);
   }, [logout]);
+
+  // Quando app volta do background, verifica se sessão ainda é válida
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', async (state: AppStateStatus) => {
+      if (state === 'active' && usuario) {
+        const lembrar = await AsyncStorage.getItem('@educaplay_remember');
+        if (lembrar !== 'true') {
+          logout();
+        }
+      }
+    });
+    return () => sub.remove();
+  }, [usuario, logout]);
 
   const atualizarUsuario = (dados: Partial<Usuario>) => {
     const novo = { ...usuario, ...dados } as Usuario;
