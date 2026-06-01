@@ -3,6 +3,15 @@
     "name": "EducaPlay",
     "slug": "educaplay-frontend",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/82bd4f03-c8df-487b-80a1-928dee68f7db",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "orientation": "portrait",
     "scheme": "educaplayfrontend",
     "userInterfaceStyle": "automatic",
@@ -46,7 +55,8 @@
       "expo-web-browser",
       "expo-font",
       "expo-image",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true,
