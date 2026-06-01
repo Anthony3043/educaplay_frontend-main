@@ -1,6 +1,13 @@
 import 'react-native-reanimated';
+import * as Sentry from '@sentry/react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+
+Sentry.init({
+  dsn: 'https://e7544a7e96270de69f204895d145c6bf@o4511488040501248.ingest.us.sentry.io/4511488077987840',
+  environment: 'production',
+  tracesSampleRate: 0.2,
+});
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { AuthProvider, useAuth } from '../context/AuthContext';
@@ -96,10 +103,12 @@ function RootNavigator() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <AuthProvider>
       <RootNavigator />
     </AuthProvider>
   );
 }
+
+export default Sentry.wrap(RootLayout);
