@@ -127,15 +127,7 @@ export default function PerfilScreen() {
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Meu Perfil</Text>
-        {isProfessor ? (
-          <View style={{ width: 40 }} />
-        ) : (
-          <TouchableOpacity onPress={() => setIsEditing(!isEditing)} activeOpacity={0.7} style={s.backBtn}>
-            {isEditing
-              ? <Ionicons name="close" size={20} color="#fff" />
-              : <Ionicons name="pencil-outline" size={20} color="#fff" />}
-          </TouchableOpacity>
-        )}
+        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} style={{ flex: 1 }}>

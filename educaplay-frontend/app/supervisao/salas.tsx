@@ -12,6 +12,29 @@ import api from "../../src/services/api";
 
 type Sala = { id: string; nome: string; turma?: string | null; capacidade?: string | null; cor?: string | null };
 
+const SALA_ACCENT = ["#3a7d44","#4361ee","#f97316","#8b5cf6","#ef4444","#0891b2","#ec4899","#f59e0b"];
+const COR_POR_NOME: Record<string, string> = {
+  laranja: "#f97316", orange: "#f97316",
+  azul: "#4361ee",    blue: "#4361ee",
+  verde: "#3a7d44",   green: "#3a7d44",
+  vermelho: "#ef4444",red: "#ef4444",
+  roxo: "#8b5cf6",    purple: "#8b5cf6",
+  rosa: "#ec4899",    pink: "#ec4899",
+  amarelo: "#f59e0b", yellow: "#f59e0b",
+  cinza: "#6b7280",   gray: "#6b7280",
+  ciano: "#0891b2",   cyan: "#0891b2",
+  lilas: "#a78bfa",
+};
+const getCorSala = (nome: string, id: string): string => {
+  const lower = nome.toLowerCase();
+  for (const [key, cor] of Object.entries(COR_POR_NOME)) {
+    if (lower.includes(key)) return cor;
+  }
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) { hash = ((hash << 5) - hash) + id.charCodeAt(i); hash |= 0; }
+  return SALA_ACCENT[Math.abs(hash) % SALA_ACCENT.length];
+};
+
 export default function SalasScreen() {
   const router = useRouter();
   const [salas, setSalas] = useState<Sala[]>([]);
@@ -133,7 +156,7 @@ export default function SalasScreen() {
             </View>
           ) : (
             salas.map((sala) => {
-              const cor = sala.cor || "#3a7d44";
+              const cor = sala.cor || getCorSala(sala.nome, sala.id);
               return (
                 <View key={sala.id} style={sl.card}>
                   <Ionicons name="business-outline" size={70} color={cor + "0D"} style={{ position: "absolute", top: -8, right: -8 }} />

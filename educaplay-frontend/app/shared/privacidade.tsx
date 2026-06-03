@@ -97,6 +97,7 @@ export default function PrivacidadeScreen() {
 
         <Text style={ls.secaoLabel}>SEGURANÇA</Text>
 
+        <View style={s.section}>
         <View style={[s.configItem, { justifyContent: "space-between", opacity: biometriaDisponivel ? 1 : 0.45 }]}>
           <View style={s.configIcon}>
             <Ionicons name="finger-print" size={20} color="#1a1a2e" />
@@ -117,11 +118,13 @@ export default function PrivacidadeScreen() {
             thumbColor={biometriaAtiva ? Colors.primary : Colors.textMuted}
           />
         </View>
+        </View>
 
-        <Text style={[ls.secaoLabel, { marginTop: 12 }]}>CONTA</Text>
+        <Text style={[ls.secaoLabel, { marginTop: 16 }]}>CONTA</Text>
 
+        <View style={[s.section, { marginBottom: 0 }]}>
         <TouchableOpacity
-          style={[s.configItem, { borderColor: Colors.error, borderWidth: 1 }]}
+          style={s.configItem}
           activeOpacity={0.7}
           onPress={abrirModalExcluir}
         >
@@ -134,6 +137,7 @@ export default function PrivacidadeScreen() {
           </View>
           <Ionicons name="chevron-forward" size={20} color="#bbbcc8" />
         </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Modal de confirmação de exclusão */}

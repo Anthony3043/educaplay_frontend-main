@@ -236,6 +236,31 @@ ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
   // --- Tela de lista de salas ---
   if (!salaSelecionada) {
     const ACCENT_COLORS = ["#3a7d44", "#4361ee", "#f4831f", "#8b5cf6", "#e11d48", "#0891b2"];
+    const COR_POR_NOME: Record<string, string> = {
+      laranja: "#f97316", orange: "#f97316",
+      azul: "#4361ee", blue: "#4361ee",
+      verde: "#3a7d44", green: "#3a7d44",
+      vermelho: "#ef4444", red: "#ef4444",
+      roxo: "#8b5cf6", purple: "#8b5cf6",
+      rosa: "#ec4899", pink: "#ec4899",
+      amarelo: "#f59e0b", yellow: "#f59e0b",
+      cinza: "#6b7280", gray: "#6b7280",
+      ciano: "#0891b2", cyan: "#0891b2",
+      lilas: "#a78bfa",
+    };
+    const getCorSala = (nome: string, id: string): string => {
+      const lower = nome.toLowerCase();
+      for (const [key, cor] of Object.entries(COR_POR_NOME)) {
+        if (lower.includes(key)) return cor;
+      }
+      // Hash estável pelo ID — nunca muda com reordenação
+      let hash = 0;
+      for (let i = 0; i < id.length; i++) {
+        hash = ((hash << 5) - hash) + id.charCodeAt(i);
+        hash |= 0;
+      }
+      return ACCENT_COLORS[Math.abs(hash) % ACCENT_COLORS.length];
+    };
     return (
       <SafeAreaView style={st.container}>
         <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
@@ -275,7 +300,7 @@ ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
             <Text style={st.listaSecLabel}>Selecione uma sala para ver o mapa</Text>
 
             {salas.map((sala, idx) => {
-              const cor = ACCENT_COLORS[idx % ACCENT_COLORS.length];
+              const cor = getCorSala(sala.nome, sala.id);
               const inicial = sala.nome.trim()[0]?.toUpperCase() ?? "S";
               return (
                 <TouchableOpacity

@@ -26,26 +26,33 @@ if (Platform.OS !== 'web' && !isExpoGo) {
 
   // Canais Android (obrigatório Android 8+)
   if (Platform.OS === 'android') {
-    Notif.setNotificationChannelAsync('geral', {
+    // IDs _v2 forçam recriação dos canais com som — Android trava configurações do canal original
+    Notif.setNotificationChannelAsync('geral_v2', {
       name: 'Geral',
-      importance: Notif.AndroidImportance.HIGH,
+      importance: Notif.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
+      enableVibrate: true,
       lightColor: '#3a7d44',
       sound: 'default',
+      showBadge: true,
     });
-    Notif.setNotificationChannelAsync('avisos', {
+    Notif.setNotificationChannelAsync('avisos_v2', {
       name: 'Avisos de Professores',
       importance: Notif.AndroidImportance.MAX,
       vibrationPattern: [0, 300, 200, 300],
+      enableVibrate: true,
       lightColor: '#f97316',
       sound: 'default',
+      showBadge: true,
     });
-    Notif.setNotificationChannelAsync('ponto', {
+    Notif.setNotificationChannelAsync('ponto_v2', {
       name: 'Registro de Ponto',
-      importance: Notif.AndroidImportance.HIGH,
+      importance: Notif.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
+      enableVibrate: true,
       lightColor: '#3b82f6',
       sound: 'default',
+      showBadge: true,
     });
   }
 }
@@ -64,15 +71,18 @@ export async function registrarPushToken() {
   if (!isGranted) return;
 
   try {
+    // Busca projectId de múltiplas fontes para garantir que funciona em produção
     const projectId =
       Constants.expoConfig?.extra?.eas?.projectId ??
-      Constants.easConfig?.projectId;
-    const tokenData = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined
-    );
+      Constants.easConfig?.projectId ??
+      '82bd4f03-c8df-487b-80a1-928dee68f7db'; // fallback fixo do projeto
+
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+    console.log('[Push] Token obtido:', tokenData.data);
     await api.put('/auth/push-token', { token: tokenData.data });
+    console.log('[Push] Token salvo no servidor');
   } catch (e) {
-    console.warn('Push token não obtido:', e);
+    console.warn('[Push] Erro ao obter/salvar token:', e);
   }
 }
 

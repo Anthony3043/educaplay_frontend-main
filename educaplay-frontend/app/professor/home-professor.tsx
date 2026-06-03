@@ -100,6 +100,7 @@ export default function HomeProfessorScreen() {
   useEffect(() => { carregarNotifs(); }, [carregarNotifs]);
   useFocusEffect(useCallback(() => { carregarNotifs(); }, [carregarNotifs]));
 
+
   // Botão voltar do Android → só sai do app quando esta tela está em foco
   useFocusEffect(
     useCallback(() => {
@@ -203,7 +204,7 @@ export default function HomeProfessorScreen() {
         </View>
 
         {/* Menu Principal */}
-        <View style={[s.section, { paddingHorizontal: 0 }]}>
+<View style={[s.section, { paddingHorizontal: 0 }]}>
           <Text style={[s.sectionTitle, { paddingHorizontal: 18 }]}>Menu Principal</Text>
           <View style={s.menuBentoGrid}>
             {/* Card destaque */}

@@ -19,7 +19,6 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [instituicao, setInstituicao] = useState("");
 
   const [senhaVisivel, setSenhaVisivel] = useState(false);
   const [confirmarSenhaVisivel, setConfirmarSenhaVisivel] = useState(false);
@@ -71,7 +70,6 @@ export default function RegisterScreen() {
         email: email.trim().toLowerCase(),
         senha,
         papel: "Supervisao",
-        instituicao,
         codigoSupervisao: codigoSupervisao ?? "",
       } as any);
       router.replace("/supervisao/home");

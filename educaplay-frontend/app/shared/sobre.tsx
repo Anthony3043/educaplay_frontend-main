@@ -78,12 +78,14 @@ export default function SobreScreen() {
 
         {/* Logo e nome */}
         <View style={{ alignItems: "center", paddingVertical: 32, gap: 10 }}>
-          <Image
-            source={require("@/assets/images/logo_icon.png")}
-            style={{ width: 80, height: 80 }}
-            resizeMode="contain"
-          />
-          <Text style={{ fontSize: 24, fontWeight: "800", color: Colors.textPrimary }}>
+          <View style={{ width: 88, height: 88, borderRadius: 22, overflow: "hidden", elevation: 4, shadowColor: "#000", shadowOpacity: 0.12, shadowRadius: 10 }}>
+            <Image
+              source={require("@/assets/images/logo_icon.png")}
+              style={{ width: 88, height: 88 }}
+              resizeMode="cover"
+            />
+          </View>
+          <Text style={{ fontSize: 24, fontWeight: "800", color: Colors.textPrimary, marginTop: 4 }}>
             Educa<Text style={{ color: Colors.primary }}>Play</Text>
           </Text>
           <Text style={{ fontSize: 13, color: Colors.textMuted, textAlign: "center", paddingHorizontal: 32 }}>
@@ -93,47 +95,47 @@ export default function SobreScreen() {
 
         <View style={{ paddingHorizontal: 16, gap: 10 }}>
 
-          <Text style={{ fontSize: 13, color: Colors.textMuted, fontWeight: "600", marginBottom: 4 }}>
-            INFORMAÇÕES
-          </Text>
+          <Text style={s.sectionLabel}>INFORMAÇÕES</Text>
 
-          {SOBRE_ITEMS.map((item) => (
-            <View key={item.id} style={s.configItem}>
-              <View style={s.configIcon}>
-                <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
+          <View style={s.section}>
+            {SOBRE_ITEMS.map((item) => (
+              <View key={item.id} style={s.configItem}>
+                <View style={[s.configIcon, { backgroundColor: "#f0fdf4" }]}>
+                  <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
+                </View>
+                <View style={s.configContent}>
+                  <Text style={s.configTitle}>{item.title}</Text>
+                </View>
+                <Text style={{ fontSize: 13, color: Colors.textMuted, fontWeight: "600" }}>
+                  {item.value}
+                </Text>
               </View>
-              <View style={s.configContent}>
-                <Text style={s.configTitle}>{item.title}</Text>
-              </View>
-              <Text style={{ fontSize: 13, color: Colors.textMuted, fontWeight: "600" }}>
-                {item.value}
-              </Text>
-            </View>
-          ))}
+            ))}
+          </View>
 
-          <Text style={{ fontSize: 13, color: Colors.textMuted, fontWeight: "600", marginTop: 12, marginBottom: 4 }}>
-            LINKS
-          </Text>
+          <Text style={[s.sectionLabel, { marginTop: 8 }]}>LINKS</Text>
 
-          {LINKS.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={s.configItem}
-              activeOpacity={0.7}
-              onPress={() => item.type === "nav" ? router.push(item.route as any) : handleLink(item.url)}
-            >
-              <View style={s.configIcon}>
-                <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
-              </View>
-              <View style={s.configContent}>
-                <Text style={s.configTitle}>{item.title}</Text>
-                <Text style={s.configSubtitle}>{item.subtitle}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#bbbcc8" />
-            </TouchableOpacity>
-          ))}
+          <View style={s.section}>
+            {LINKS.map((item, idx) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[s.configItem, idx < LINKS.length - 1 && s.configItemBorder]}
+                activeOpacity={0.7}
+                onPress={() => item.type === "nav" ? router.push(item.route as any) : handleLink(item.url)}
+              >
+                <View style={[s.configIcon, { backgroundColor: "#f0fdf4" }]}>
+                  <Ionicons name={item.ionicon} size={20} color={Colors.primary} />
+                </View>
+                <View style={s.configContent}>
+                  <Text style={s.configTitle}>{item.title}</Text>
+                  <Text style={s.configSubtitle}>{item.subtitle}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#bbbcc8" />
+              </TouchableOpacity>
+            ))}
+          </View>
 
-          <Text style={{ fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 24, marginBottom: 8 }}>
+          <Text style={{ fontSize: 12, color: Colors.textMuted, textAlign: "center", marginTop: 16, marginBottom: 8 }}>
             © 2025 EducaPlay. Todos os direitos reservados.
           </Text>
         </View>
