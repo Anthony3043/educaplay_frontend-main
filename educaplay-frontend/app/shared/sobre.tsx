@@ -15,9 +15,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/src/constants/colors";
+import Constants from "expo-constants";
+
+const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
 const SOBRE_ITEMS = [
-  { id: "versao", ionicon: "phone-portrait-outline" as const, title: "Versão do app", value: "1.0.0" },
+  { id: "versao", ionicon: "phone-portrait-outline" as const, title: "Versão do app", value: APP_VERSION },
 ];
 
 type LinkItem =
