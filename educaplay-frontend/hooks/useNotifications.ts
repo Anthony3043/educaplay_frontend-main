@@ -107,7 +107,7 @@ export async function agendarLembretes(aulas: { subject: string; timeStart: stri
         title: 'Lembrete de Aula',
         body: `Sua aula de "${aula.subject}" começa em 15 minutos (${aula.timeStart}).`,
         sound: true,
-        ...(Platform.OS === 'android' && { channelId: 'geral' }),
+        ...(Platform.OS === 'android' && { channelId: 'geral_v2' }),
       },
       trigger: { hour: horaLembrete, minute: minLembrete, repeats: true } as any,
     });

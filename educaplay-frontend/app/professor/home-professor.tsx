@@ -84,7 +84,7 @@ export default function HomeProfessorScreen() {
   const drawerX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  const { usuario } = useAuth();
+  const { usuario, logout } = useAuth();
   const userName = usuario?.nome?.split(" ")[0] ?? "";
   const cargo = usuario?.papel === "Supervisao" ? "Supervisão" : (usuario?.papel ?? "");
   const materias = usuario?.materias ?? [];
@@ -342,7 +342,7 @@ export default function HomeProfessorScreen() {
 
               <TouchableOpacity
                 style={s.drawerLogout}
-                onPress={() => { closeDrawer(); setTimeout(() => router.replace("/auth/Login"), 260); }}
+                onPress={() => { closeDrawer(); setTimeout(() => { logout(); router.replace("/auth/Login"); }, 260); }}
                 activeOpacity={0.72}
               >
                 <View style={s.drawerLogoutIconWrap}>

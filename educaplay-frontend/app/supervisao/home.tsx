@@ -71,7 +71,7 @@ export default function HomeScreen() {
   const drawerX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
-  const { usuario } = useAuth();
+  const { usuario, logout } = useAuth();
   const userName = usuario?.nome?.split(" ")[0] ?? "";
   const [naoLidas, setNaoLidas] = useState(0);
   const [alertasProf, setAlertasProf] = useState<any[]>([]);
@@ -686,7 +686,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 style={s.drawerLogout}
-                onPress={() => { closeDrawer(); setTimeout(() => router.replace("/auth/Login"), 260); }}
+                onPress={() => { closeDrawer(); setTimeout(() => { logout(); router.replace("/auth/Login"); }, 260); }}
                 activeOpacity={0.72}
               >
                 <View style={s.drawerLogoutIconWrap}>

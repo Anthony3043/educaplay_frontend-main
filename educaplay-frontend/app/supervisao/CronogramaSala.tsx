@@ -582,7 +582,7 @@ h1{font-size:20px;font-weight:800;color:#0f172a}
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: "center", paddingHorizontal: 4 }}>
-          <Text style={[s.headerTitle, { fontSize: 16 }]} numberOfLines={2} adjustsFontSizeToFit minimumFontSize={12}>
+          <Text style={[s.headerTitle, { fontSize: 16 }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
             {tituloSala}
           </Text>
         </View>

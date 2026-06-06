@@ -496,7 +496,7 @@ ${instituicao ? `<div class="inst">${instituicao}</div>` : ""}
                           style={st.seatName}
                           numberOfLines={2}
                           adjustsFontSizeToFit
-                          minimumFontSize={7}
+                          minimumFontScale={0.5}
                         >
                           {assento.nome.split(" ")[0]}
                         </Text>

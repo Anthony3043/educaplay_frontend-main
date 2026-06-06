@@ -353,7 +353,7 @@ export default function ProfessoresScreen() {
       setProfessores(prev => prev.map(p => p.id === profSelecionado.id ? { ...p, podeEditarMapaSala: temPerm } : p));
       setProfSelecionado(prev => prev ? { ...prev, podeEditarMapaSala: temPerm } : prev);
       setModalPermissaoMapa(false);
-      showInfo("sucesso", "Permissão atualizada!", `${salasSelecionadas.length} sala(s) configurada(s).`);
+      showInfo("Sucesso", `Permissão atualizada! ${salasSelecionadas.length} sala(s) configurada(s).`, "sucesso");
     } catch (err: any) {
       showInfo("Erro", err?.response?.data?.error || "Erro ao salvar permissões.", "erro");
     } finally {

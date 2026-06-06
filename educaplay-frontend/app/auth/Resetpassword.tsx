@@ -82,7 +82,7 @@ export default function ResetPasswordScreen() {
     setErro('');
     setCarregando(true);
     try {
-      const api = (await import('../src/services/api')).default;
+      const api = (await import('../../src/services/api')).default;
       await api.post('/auth/reset-senha', { token, novaSenha });
       setSucesso(true);
     } catch (err) {
