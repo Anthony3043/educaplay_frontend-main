@@ -67,7 +67,7 @@ export default function PerfilScreen() {
       if (asset.base64) {
         const fotoData = `data:image/jpeg;base64,${asset.base64}`;
         setFotoPreview(fotoData);
-        if (isProfessor) await salvarFoto(fotoData);
+        await salvarFoto(fotoData);
       }
     }
   };
@@ -119,15 +119,6 @@ export default function PerfilScreen() {
     }
   };
 
-  const cancelarEdicao = () => {
-    setNome(usuario?.nome || "");
-    setEscola(usuario?.instituicao || "");
-    setMaterias(usuario?.materias ?? []);
-    setMateriaInput("");
-    setFotoPreview(null);
-    setIsEditing(false);
-  };
-
   return (
     <SafeAreaView style={s.container}>
       <StatusBar barStyle="light-content" backgroundColor="#3a7d44" />
@@ -136,13 +127,7 @@ export default function PerfilScreen() {
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Meu Perfil</Text>
-        <TouchableOpacity
-          style={s.backBtn}
-          onPress={() => (isEditing ? cancelarEdicao() : setIsEditing(true))}
-          activeOpacity={0.7}
-        >
-          <Ionicons name={isEditing ? "close" : "create-outline"} size={22} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 40 }} />
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} style={{ flex: 1 }}>
@@ -165,8 +150,8 @@ export default function PerfilScreen() {
           <View style={pf.avatarWrap}>
             <TouchableOpacity
               style={pf.avatarRing}
-              onPress={(isProfessor || isEditing) && !isLoading ? pickImage : undefined}
-              activeOpacity={(isProfessor || isEditing) ? 0.8 : 1}
+              onPress={!isLoading ? pickImage : undefined}
+              activeOpacity={0.8}
             >
               {fotoExibir ? (
                 <Image source={{ uri: fotoExibir }} style={pf.avatarImg} resizeMode="cover" />
@@ -175,13 +160,11 @@ export default function PerfilScreen() {
                   <Text style={pf.avatarInitial}>{nome.trim()[0]?.toUpperCase() ?? "?"}</Text>
                 </View>
               )}
-              {(isProfessor || isEditing) && (
-                <View style={pf.cameraOverlay}>
-                  {isLoading && isProfessor
-                    ? <ActivityIndicator size="small" color="#fff" />
-                    : <Ionicons name="camera-outline" size={18} color="#fff" />}
-                </View>
-              )}
+              <View style={pf.cameraOverlay}>
+                {isLoading
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Ionicons name="camera-outline" size={18} color="#fff" />}
+              </View>
             </TouchableOpacity>
           </View>
 
@@ -199,7 +182,7 @@ export default function PerfilScreen() {
                 ))}
               </View>
             )}
-            {isProfessor && <Text style={pf.fotoDica}>Toque na foto para alterá-la</Text>}
+            <Text style={pf.fotoDica}>Toque na foto para alterá-la</Text>
           </View>
         </View>
 
@@ -292,7 +275,7 @@ export default function PerfilScreen() {
           </View>
         )}
 
-        {isEditing && (
+        {isEditing && !isProfessor && (
           <TouchableOpacity
             style={[s.btnSalvar, isLoading && s.btnSalvarLoading]}
             onPress={handleSave}
