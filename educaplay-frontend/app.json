@@ -8,7 +8,7 @@
       "url": "https://u.expo.dev/82bd4f03-c8df-487b-80a1-928dee68f7db",
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 10000
     },
     "orientation": "portrait",
     "scheme": "educaplayfrontend",
