@@ -23,14 +23,12 @@ function OtaWatcher({ onUpdateDisponivel }: { onUpdateDisponivel: () => void }) 
   const Updates = require('expo-updates');
   const { isUpdateAvailable, isUpdatePending } = Updates.useUpdates();
 
+  // Mostra o modal tanto para update disponível quanto para update já baixado.
+  // Novos usuários frequentemente têm isUpdatePending=true ao montar (o nativo
+  // baixou antes do React inicializar), então precisamos cobrir os dois casos.
   useEffect(() => {
-    if (isUpdateAvailable) onUpdateDisponivel();
-  }, [isUpdateAvailable, onUpdateDisponivel]);
-
-  // Se o nativo já baixou o update, aplica na hora sem precisar do modal
-  useEffect(() => {
-    if (isUpdatePending) Updates.reloadAsync().catch(() => {});
-  }, [isUpdatePending]);
+    if (isUpdateAvailable || isUpdatePending) onUpdateDisponivel();
+  }, [isUpdateAvailable, isUpdatePending, onUpdateDisponivel]);
 
   return null;
 }
@@ -61,7 +59,9 @@ function RootNavigator() {
     setAplicandoUpdate(true);
     try {
       const Updates = require('expo-updates');
-      await Updates.fetchUpdateAsync();
+      // fetchUpdateAsync baixa o bundle; se já foi baixado (isUpdatePending),
+      // pode retornar { isNew: false } ou lançar — tudo bem, ignora e recarrega.
+      try { await Updates.fetchUpdateAsync(); } catch {}
       await Updates.reloadAsync();
     } catch {
       setAplicandoUpdate(false);
